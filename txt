@@ -1,0 +1,8 @@
+
+SUPER ADMIN
+EMAIL: superadmin@linchostel.com
+PASSWORD: SuperAdmin@2025
+
+ADMIN
+Email: admin@linchostel.com
+Password: admin12345

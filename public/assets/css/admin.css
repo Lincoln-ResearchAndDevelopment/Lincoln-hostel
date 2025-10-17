@@ -1,0 +1,907 @@
+        :root {
+    /* Light mode variables */
+    --bg-primary: #ffffff;
+    --bg-secondary: #f8f9fa;
+    --bg-tertiary: #e9ecef;
+    --text-primary: #212529;
+    --text-secondary: #6c757d;
+    --text-muted: #adb5bd;
+    --border-color: #dee2e6;
+    --card-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    --card-shadow-hover: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    --primary-color: #2c3e50;
+    --primary-hover: #1a252f;
+    --success-color: #198754;
+    --warning-color: #fd7e14;
+    --danger-color: #dc3545;
+    --info-color: #0dcaf0;
+    --navbar-bg: #ffffff;
+    --modal-bg: #ffffff;
+    --dropdown-bg: #ffffff;
+    --table-stripe: #f8f9fa;
+    --input-bg: #ffffff;
+    --input-border: #ced4da;
+    --alert-success-bg: #d1e7dd;
+    --alert-success-border: #badbcc;
+    --alert-success-text: #0f5132;
+    --alert-danger-bg: #f8d7da;
+    --alert-danger-border: #f5c2c7;
+    --alert-danger-text: #842029;
+    --alert-warning-bg: #fff3cd;
+    --alert-warning-border: #ffecb5;
+    --alert-warning-text: #664d03;
+    --alert-info-bg: #d1ecf1;
+    --alert-info-border: #b8daff;
+    --alert-info-text: #055160;
+}
+
+/* Immediate theme application using html class and data attribute */
+html[data-theme="dark"],
+.dark-theme {
+    /* Dark mode variables - More consistent color palette */
+    --bg-primary: #1e1e1e;
+    --bg-secondary: #121212;
+    --bg-tertiary: #2d2d2d;
+    --text-primary: #ffffff;
+    --text-secondary: #b3b3b3;
+    --text-muted: #888888;
+    --border-color: #404040;
+    --card-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.5);
+    --card-shadow-hover: 0 0.5rem 1rem rgba(0, 0, 0, 0.7);
+    --primary-color: #3b82f6;
+    --primary-hover: #2563eb;
+    --success-color: #10b981;
+    --warning-color: #f59e0b;
+    --danger-color: #ef4444;
+    --info-color: #06b6d4;
+    --navbar-bg: #1e1e1e;
+    --modal-bg: #1e1e1e;
+    --dropdown-bg: #1e1e1e;
+    --table-stripe: #2d2d2d;
+    --input-bg: #2d2d2d;
+    --input-border: #404040;
+    --alert-success-bg: #064e3b;
+    --alert-success-border: #065f46;
+    --alert-success-text: #6ee7b7;
+    --alert-danger-bg: #7f1d1d;
+    --alert-danger-border: #991b1b;
+    --alert-danger-text: #fca5a5;
+    --alert-warning-bg: #78350f;
+    --alert-warning-border: #92400e;
+    --alert-warning-text: #fbbf24;
+    --alert-info-bg: #164e63;
+    --alert-info-border: #155e75;
+    --alert-info-text: #67e8f9;
+}
+
+[data-theme="dark"] {
+    /* Dark mode variables - More consistent color palette */
+    --bg-primary: #1e1e1e;
+    --bg-secondary: #121212;
+    --bg-tertiary: #2d2d2d;
+    --text-primary: #ffffff;
+    --text-secondary: #b3b3b3;
+    --text-muted: #888888;
+    --border-color: #404040;
+    --card-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.5);
+    --card-shadow-hover: 0 0.5rem 1rem rgba(0, 0, 0, 0.7);
+    --primary-color: #3b82f6;
+    --primary-hover: #2563eb;
+    --success-color: #10b981;
+    --warning-color: #f59e0b;
+    --danger-color: #ef4444;
+    --info-color: #06b6d4;
+    --navbar-bg: #1e1e1e;
+    --modal-bg: #1e1e1e;
+    --dropdown-bg: #1e1e1e;
+    --table-stripe: #2d2d2d;
+    --input-bg: #2d2d2d;
+    --input-border: #404040;
+    --alert-success-bg: #064e3b;
+    --alert-success-border: #065f46;
+    --alert-success-text: #6ee7b7;
+    --alert-danger-bg: #7f1d1d;
+    --alert-danger-border: #991b1b;
+    --alert-danger-text: #fca5a5;
+    --alert-warning-bg: #78350f;
+    --alert-warning-border: #92400e;
+    --alert-warning-text: #fbbf24;
+    --alert-info-bg: #164e63;
+    --alert-info-border: #155e75;
+    --alert-info-text: #67e8f9;
+}
+
+* {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+body {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+    font-family: 'Nunito', sans-serif;
+}
+
+/* Navbar Styling */
+.navbar {
+    background-color: var(--navbar-bg) !important;
+    border-bottom: 1px solid var(--border-color);
+    box-shadow: var(--card-shadow);
+}
+
+.navbar-brand {
+    font-weight: bold;
+    font-size: 1.6rem;
+    color: var(--primary-color) !important;
+}
+
+.nav-link {
+    color: var(--text-primary) !important;
+    transition: color 0.3s ease;
+}
+
+.nav-link:hover {
+    color: var(--primary-color) !important;
+}
+
+.nav-link.active {
+    font-weight: 600;
+    color: var(--primary-color) !important;
+}
+
+/* Hamburger icon styling for dark mode */
+.navbar-toggler {
+    border-color: var(--border-color);
+}
+
+.navbar-toggler:focus {
+    box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25);
+}
+
+[data-theme="dark"] .navbar-toggler-icon,
+.dark-theme .navbar-toggler-icon {
+    filter: invert(1);
+}
+
+/* Dark Mode Toggle */
+.theme-toggle {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.375rem 0.75rem;
+    background-color: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 0.375rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: var(--text-primary);
+    text-decoration: none;
+}
+
+.theme-toggle:hover {
+    background-color: var(--primary-color);
+    color: var(--bg-primary);
+    text-decoration: none;
+}
+
+.theme-toggle i {
+    font-size: 0.875rem;
+}
+
+/* Card Styling */
+.card {
+    background-color: var(--bg-primary) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 0.75rem;
+    box-shadow: var(--card-shadow);
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    box-shadow: var(--card-shadow-hover);
+}
+
+.card-header {
+    background-color: var(--bg-tertiary) !important;
+    color: var(--text-primary) !important;
+    border-bottom: 1px solid var(--border-color) !important;
+    font-weight: 600;
+}
+
+.card-body {
+    color: var(--text-primary) !important;
+    background-color: var(--bg-primary) !important;
+}
+
+.card-title {
+    color: var(--text-primary) !important;
+}
+
+.card-text {
+    color: var(--text-secondary) !important;
+}
+
+.card-footer {
+    background-color: var(--bg-tertiary) !important;
+    border-top: 1px solid var(--border-color) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Button Styling */
+.btn-primary {
+    background-color: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+    color: var(--bg-primary) !important;
+}
+
+.btn-primary:hover, .btn-primary:focus, .btn-primary:active {
+    background-color: var(--primary-hover) !important;
+    border-color: var(--primary-hover) !important;
+    color: var(--bg-primary) !important;
+}
+
+.btn-success {
+    background-color: var(--success-color) !important;
+    border-color: var(--success-color) !important;
+    color: var(--bg-primary) !important;
+}
+
+.btn-success:hover, .btn-success:focus, .btn-success:active {
+    background-color: #059669 !important;
+    border-color: #059669 !important;
+    color: var(--bg-primary) !important;
+}
+
+.btn-warning {
+    background-color: var(--warning-color) !important;
+    border-color: var(--warning-color) !important;
+    color: var(--bg-primary) !important;
+}
+
+.btn-warning:hover, .btn-warning:focus, .btn-warning:active {
+    background-color: #d97706 !important;
+    border-color: #d97706 !important;
+    color: var(--bg-primary) !important;
+}
+
+.btn-danger {
+    background-color: var(--danger-color) !important;
+    border-color: var(--danger-color) !important;
+    color: var(--bg-primary) !important;
+}
+
+.btn-danger:hover, .btn-danger:focus, .btn-danger:active {
+    background-color: #dc2626 !important;
+    border-color: #dc2626 !important;
+    color: var(--bg-primary) !important;
+}
+
+.btn-info {
+    background-color: var(--info-color) !important;
+    border-color: var(--info-color) !important;
+    color: var(--bg-primary) !important;
+}
+
+.btn-info:hover, .btn-info:focus, .btn-info:active {
+    background-color: #0891b2 !important;
+    border-color: #0891b2 !important;
+    color: var(--bg-primary) !important;
+}
+
+.btn-secondary {
+    background-color: var(--text-secondary) !important;
+    border-color: var(--text-secondary) !important;
+    color: var(--bg-primary) !important;
+}
+
+.btn-secondary:hover, .btn-secondary:focus, .btn-secondary:active {
+    background-color: var(--text-muted) !important;
+    border-color: var(--text-muted) !important;
+    color: var(--bg-primary) !important;
+}
+
+.btn-outline-primary {
+    border-color: var(--primary-color) !important;
+    color: var(--primary-color) !important;
+    background-color: transparent !important;
+}
+
+.btn-outline-primary:hover, .btn-outline-primary:focus, .btn-outline-primary:active {
+    background-color: var(--primary-color) !important;
+    color: var(--bg-primary) !important;
+}
+
+.btn-outline-secondary {
+    border-color: var(--border-color) !important;
+    color: var(--text-secondary) !important;
+    background-color: transparent !important;
+}
+
+.btn-outline-secondary:hover, .btn-outline-secondary:focus, .btn-outline-secondary:active {
+    background-color: var(--bg-tertiary) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Form Styling */
+.form-control, .form-select {
+    background-color: var(--input-bg) !important;
+    border-color: var(--input-border) !important;
+    color: var(--text-primary) !important;
+}
+
+.form-control:focus, .form-select:focus {
+    background-color: var(--input-bg) !important;
+    border-color: var(--primary-color) !important;
+    color: var(--text-primary) !important;
+    box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25) !important;
+}
+
+.form-label {
+    color: var(--text-primary) !important;
+    font-weight: 500;
+}
+
+.form-text {
+    color: var(--text-muted) !important;
+}
+
+/* Placeholder styling for dark mode */
+.form-control::placeholder,
+.form-select::placeholder {
+    color: var(--text-muted) !important;
+    opacity: 0.8;
+}
+
+[data-theme="dark"] .form-control::placeholder,
+[data-theme="dark"] .form-select::placeholder,
+.dark-theme .form-control::placeholder,
+.dark-theme .form-select::placeholder {
+    color: var(--text-muted) !important;
+    opacity: 0.9;
+}
+
+/* Table Styling */
+.table {
+    color: var(--text-primary) !important;
+    background-color: var(--bg-primary) !important;
+}
+
+.table thead th {
+    background-color: var(--bg-tertiary) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--border-color) !important;
+    font-weight: 600;
+}
+
+.table tbody tr {
+    border-color: var(--border-color) !important;
+    background-color: var(--bg-primary) !important;
+}
+
+.table tbody td {
+    color: var(--text-primary) !important;
+    border-color: var(--border-color) !important;
+}
+
+.table-striped > tbody > tr:nth-of-type(odd) > td {
+    background-color: var(--table-stripe) !important;
+}
+
+.table-hover > tbody > tr:hover > td {
+    background-color: var(--bg-tertiary) !important;
+}
+
+/* Enhanced table styling for dark mode */
+[data-theme="dark"] .table,
+.dark-theme .table {
+    --bs-table-bg: var(--bg-primary);
+    --bs-table-striped-bg: var(--table-stripe);
+    --bs-table-hover-bg: var(--bg-tertiary);
+    --bs-table-border-color: var(--border-color);
+}
+
+/* Modal Styling */
+.modal-content {
+    background-color: var(--modal-bg) !important;
+    border: 1px solid var(--border-color) !important;
+    color: var(--text-primary) !important;
+}
+
+.modal-header {
+    background-color: var(--bg-tertiary) !important;
+    color: var(--text-primary) !important;
+    border-bottom: 1px solid var(--border-color) !important;
+}
+
+.modal-title {
+    color: var(--text-primary) !important;
+}
+
+.modal-body {
+    background-color: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
+}
+
+.modal-footer {
+    background-color: var(--bg-tertiary) !important;
+    border-top: 1px solid var(--border-color) !important;
+}
+
+.btn-close {
+    filter: var(--bs-btn-close-white-filter, none);
+}
+
+[data-theme="dark"] .btn-close,
+.dark-theme .btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+/* Dropdown Styling */
+.dropdown-menu {
+    background-color: var(--dropdown-bg) !important;
+    border: 1px solid var(--border-color) !important;
+    box-shadow: var(--card-shadow);
+}
+
+.dropdown-item {
+    color: var(--text-primary) !important;
+}
+
+.dropdown-item:hover, .dropdown-item:focus {
+    background-color: var(--bg-tertiary) !important;
+    color: var(--text-primary) !important;
+}
+
+.dropdown-header {
+    background-color: var(--bg-tertiary) !important;
+    color: var(--text-primary) !important;
+    font-weight: 600;
+}
+
+.dropdown-divider {
+    border-color: var(--border-color) !important;
+}
+
+/* Badge Styling */
+.badge.bg-primary {
+    background-color: var(--primary-color) !important;
+    color: var(--bg-primary) !important;
+}
+
+.badge.bg-success {
+    background-color: var(--success-color) !important;
+    color: var(--bg-primary) !important;
+}
+
+.badge.bg-warning {
+    background-color: var(--warning-color) !important;
+    color: var(--bg-primary) !important;
+}
+
+.badge.bg-danger {
+    background-color: var(--danger-color) !important;
+    color: var(--bg-primary) !important;
+}
+
+.badge.bg-info {
+    background-color: var(--info-color) !important;
+    color: var(--bg-primary) !important;
+}
+
+.badge.bg-secondary {
+    background-color: var(--text-secondary) !important;
+    color: var(--bg-primary) !important;
+}
+
+/* Alert Styling */
+.alert-success {
+    background-color: var(--alert-success-bg) !important;
+    border-color: var(--alert-success-border) !important;
+    color: var(--alert-success-text) !important;
+}
+
+.alert-danger {
+    background-color: var(--alert-danger-bg) !important;
+    border-color: var(--alert-danger-border) !important;
+    color: var(--alert-danger-text) !important;
+}
+
+.alert-warning {
+    background-color: var(--alert-warning-bg) !important;
+    border-color: var(--alert-warning-border) !important;
+    color: var(--alert-warning-text) !important;
+}
+
+.alert-info {
+    background-color: var(--alert-info-bg) !important;
+    border-color: var(--alert-info-border) !important;
+    color: var(--alert-info-text) !important;
+}
+
+/* Text Colors */
+.text-muted {
+    color: var(--text-muted) !important;
+}
+
+.text-primary {
+    color: var(--primary-color) !important;
+}
+
+.text-secondary {
+    color: var(--text-secondary) !important;
+}
+
+.text-success {
+    color: var(--success-color) !important;
+}
+
+.text-warning {
+    color: var(--warning-color) !important;
+}
+
+.text-danger {
+    color: var(--danger-color) !important;
+}
+
+.text-info {
+    color: var(--info-color) !important;
+}
+
+.text-dark {
+    color: var(--text-primary) !important;
+}
+
+.text-light {
+    color: var(--text-secondary) !important;
+}
+
+/* Background Colors */
+.bg-light {
+    background-color: var(--bg-tertiary) !important;
+    color: var(--text-primary) !important;
+}
+
+.bg-white {
+    background-color: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
+}
+
+.bg-dark {
+    background-color: var(--bg-tertiary) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Pagination */
+.page-link {
+    background-color: var(--bg-primary) !important;
+    border-color: var(--border-color) !important;
+    color: var(--text-primary) !important;
+}
+
+.page-link:hover, .page-link:focus {
+    background-color: var(--bg-tertiary) !important;
+    border-color: var(--border-color) !important;
+    color: var(--text-primary) !important;
+}
+
+.page-item.active .page-link {
+    background-color: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+    color: var(--bg-primary) !important;
+}
+
+.page-item.disabled .page-link {
+    background-color: var(--bg-tertiary) !important;
+    border-color: var(--border-color) !important;
+    color: var(--text-muted) !important;
+}
+
+/* Breadcrumb */
+.breadcrumb {
+    background-color: var(--bg-tertiary) !important;
+}
+
+.breadcrumb-item a {
+    color: var(--primary-color) !important;
+}
+
+.breadcrumb-item.active {
+    color: var(--text-secondary) !important;
+}
+
+/* List Group */
+.list-group-item {
+    background-color: var(--bg-primary) !important;
+    border-color: var(--border-color) !important;
+    color: var(--text-primary) !important;
+}
+
+.list-group-item:hover {
+    background-color: var(--bg-tertiary) !important;
+}
+
+.list-group-item.active {
+    background-color: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+    color: var(--bg-primary) !important;
+}
+
+/* Progress */
+.progress {
+    background-color: var(--bg-tertiary) !important;
+}
+
+.progress-bar {
+    background-color: var(--primary-color) !important;
+}
+
+.progress-bar-success {
+    background-color: var(--success-color) !important;
+}
+
+.progress-bar-warning {
+    background-color: var(--warning-color) !important;
+}
+
+.progress-bar-danger {
+    background-color: var(--danger-color) !important;
+}
+
+.progress-bar-info {
+    background-color: var(--info-color) !important;
+}
+
+/* Notification Badge */
+.position-absolute.badge {
+    background-color: var(--danger-color) !important;
+}
+
+/* Loading Animation */
+.theme-switching {
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+/* Smooth scrollbar for dark mode */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--text-muted);
+}
+
+/* Focus indicators for accessibility */
+.btn:focus,
+.form-control:focus,
+.form-select:focus {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+}
+
+/* Animation for theme transition */
+@keyframes themeTransition {
+    0% { opacity: 0.8; }
+    100% { opacity: 1; }
+}
+
+.theme-transition {
+    animation: themeTransition 0.3s ease;
+}
+
+/* Main content area */
+main {
+    background-color: var(--bg-secondary) !important;
+    min-height: calc(100vh - 76px);
+}
+
+/* Container styling */
+.container, .container-fluid {
+    color: var(--text-primary) !important;
+}
+
+/* Input group styling */
+.input-group-text {
+    background-color: var(--bg-tertiary) !important;
+    border-color: var(--input-border) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Nav tabs styling */
+.nav-tabs .nav-link {
+    background-color: var(--bg-primary) !important;
+    border-color: var(--border-color) !important;
+    color: var(--text-primary) !important;
+}
+
+.nav-tabs .nav-link.active {
+    background-color: var(--bg-primary) !important;
+    border-color: var(--border-color) var(--border-color) var(--bg-primary) !important;
+    color: var(--primary-color) !important;
+}
+
+.nav-tabs .nav-link:hover {
+    border-color: var(--border-color) !important;
+    color: var(--primary-color) !important;
+}
+
+/* Tab content styling */
+.tab-content {
+    background-color: var(--bg-primary) !important;
+    border: 1px solid var(--border-color) !important;
+    border-top: none;
+}
+
+/* Accordion styling */
+.accordion-item {
+    background-color: var(--bg-primary) !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+.accordion-header button {
+    background-color: var(--bg-tertiary) !important;
+    color: var(--text-primary) !important;
+}
+
+.accordion-body {
+    background-color: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Offcanvas styling */
+.offcanvas {
+    background-color: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
+}
+
+.offcanvas-header {
+    border-bottom: 1px solid var(--border-color) !important;
+}
+
+/* Toast styling */
+.toast {
+    background-color: var(--bg-primary) !important;
+    border: 1px solid var(--border-color) !important;
+    color: var(--text-primary) !important;
+}
+
+.toast-header {
+    background-color: var(--bg-tertiary) !important;
+    border-bottom: 1px solid var(--border-color) !important;
+}
+
+/* Spinner styling */
+.spinner-border {
+    color: var(--primary-color) !important;
+}
+
+.spinner-grow {
+    color: var(--primary-color) !important;
+}
+
+/* Border utilities */
+.border {
+    border-color: var(--border-color) !important;
+}
+
+.border-top {
+    border-top-color: var(--border-color) !important;
+}
+
+.border-bottom {
+    border-bottom-color: var(--border-color) !important;
+}
+
+.border-start {
+    border-left-color: var(--border-color) !important;
+}
+
+.border-end {
+    border-right-color: var(--border-color) !important;
+}
+
+.img-thumbnail {
+    transition: transform 0.2s;
+    object-fit: cover;
+}
+.img-thumbnail:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 10px rgba(0,0,0,0.2);
+}
+
+.modal-body iframe {
+    min-height: 70vh;
+    border: none;
+}
+
+.receipt-preview {
+    width: 50px;
+    height: 50px;
+    border-radius: 4px;
+    cursor: pointer;
+    object-fit: cover;
+    border: 1px solid #dee2e6;
+}
+
+.file-icon {
+    font-size: 24px;
+    margin-right: 5px;
+}
+
+.pdf-preview {
+    background-color: #f8f9fa;
+    padding: 10px;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.pdf-preview:hover {
+    background-color: #e9ecef;
+}
+
+/* Custom Pagination Styles */
+.pagination {
+    margin-bottom: 0;
+}
+
+.pagination .page-link {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    border: 1px solid #dee2e6;
+    color: #6c757d;
+    background-color: #fff;
+    border-radius: 0.25rem;
+    margin: 0 2px;
+    transition: all 0.15s ease-in-out;
+}
+
+.pagination .page-link:hover {
+    color: #495057;
+    background-color: #e9ecef;
+    border-color: #dee2e6;
+    text-decoration: none;
+}
+
+.pagination .page-item.active .page-link {
+    background-color: #2c3e50;
+    border-color: #2c3e50;
+    color: #fff;
+}
+
+.pagination .page-item.disabled .page-link {
+    color: #6c757d;
+    background-color: #fff;
+    border-color: #dee2e6;
+    cursor: not-allowed;
+}
+
+.pagination .page-link:focus {
+    box-shadow: 0 0 0 0.2rem rgba(44, 62, 80, 0.25);
+    outline: 0;
+}
+
+/* Small pagination variant */
+.pagination-sm .page-link {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    line-height: 1.5;
+}
+
+/* Pagination info text */
+.pagination-info {
+    font-size: 0.875rem;
+    color: #6c757d;
+    margin-bottom: 1rem;
+}
