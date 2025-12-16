@@ -64,7 +64,7 @@
             --sidebar-collapsed-width: 70px;
             --header-height: 60px;
             --transition-speed: 0.3s;
-            --primary-color: #000;
+            --primary-color: 6c757d;
             --secondary-color: #fff;
             --gray-light: #f8f9fa;
             --gray-medium: #e9ecef;

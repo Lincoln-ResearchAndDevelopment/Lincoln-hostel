@@ -71,7 +71,7 @@
         <img src="{{ asset('assets/img/favicon.ico') }}" alt="Lincoln Logo" style="height: 70px; width: 150px; margin-right: 10px; border-radius: 10px;">
       </a>
       <h1 class="logo-text">
-        <a href="/" style="text-decoration: none; color: inherit;">LincHostel<span>.</span></a>
+        <a href="/" style="text-decoration: none; color: inherit;"><span></span></a>
       </h1>
     </div>
 

@@ -7,23 +7,23 @@
     <div class="row justify-content-center">
         <div class="col-md-8">
             <div class="card">
-                <div class="card-header">
+                <div class="card-header "style="background:red;color:white;"
+                >
                     <h3 class="mb-0">
-                        <i class="fas fa-user-circle me-2"></i>
+                        <i  class="fas fa-user-circle me-2 "></i>
                         Super Admin Profile
                     </h3>
                 </div>
 
-                <div class="card-body">
                     <div class="row">
-                        <div class="col-md-4 text-center mb-4">
-                            <div class="avatar-large mx-auto mb-3">
-                                <i class="fas fa-user-tie fa-4x text-primary"></i>
+                        <div class="col-md-4 text-center mb-4" >
+                            <div class="avatar-large mx-auto mb-3 bg-white">
+                                <i class="fas fa-user-tie fa-4x text-black "></i>
                             </div>
                             <h4>{{ $superAdmin->name }}</h4>
                             <p class="text-muted">{{ $superAdmin->email }}</p>
                             @if($superAdmin->is_master)
-                                <span class="badge bg-warning">Master Admin</span>
+                                <span  style="background:red;" class="badge ">Master Admin</span>
                             @else
                                 <span class="badge bg-info">System Admin</span>
                             @endif
@@ -81,11 +81,11 @@
                             @endif
 
                             <div class="mt-4">
-                                <a href="{{ route('superadmin.profile.edit') }}" class="btn btn-primary">
-                                    <i class="fas fa-edit me-2"></i>Edit Profile
+                                <a style="background:red;color:white;" href="{{ route('superadmin.profile.edit') }}" class="btn">
+                                    <i class="fas fa-edit me-2 text-white"></i>Edit Profile
                                 </a>
-                                <a href="{{ route('superadmin.profile.password.form') }}" class="btn btn-warning">
-                                    <i class="fas fa-key me-2"></i>Change Password
+                                <a style="background:red; color:white;" href="{{ route('superadmin.profile.password.form') }}" class="btn">
+                                    <i  class="fas fa-key me-2 text-white"></i>Change Password
                                 </a>
                             </div>
                         </div>

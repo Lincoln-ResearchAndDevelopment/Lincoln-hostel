@@ -7,7 +7,7 @@
     <!-- Welcome Header -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card bg-gradient-primary text-white">
+            <div style="background:red;" class="text-white " >
                 <div class="card-body p-4">
                     <div class="row align-items-center">
                         <div class="col-md-8">
@@ -15,7 +15,7 @@
                                 <i class="fas fa-crown me-2"></i>
                                 Welcome back, {{ $super_admin->name }}!
                                 @if($is_master_admin)
-                                    <span class="badge bg-warning ms-2">Master Admin</span>
+                                    <span class="badge bg-white text-black ms-2">Master Admin</span>
                                 @else
                                     <span class="badge bg-info ms-2">System Admin</span>
                                 @endif
@@ -31,7 +31,7 @@
                                     <span class="fw-bold">{{ $super_admin ? $super_admin->formatted_last_login : 'Never' }}</span>
                                 </div>
                                 <div class="avatar-circle bg-white text-primary">
-                                    <i class="fas fa-user-tie fa-2x"></i>
+                                    <i style="color:black;" class="fas fa-user-tie fa-2x"></i>
                                 </div>
                             </div>
                         </div>
@@ -45,11 +45,11 @@
     <div class="row mb-4">
         <!-- Users Overview -->
         <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card border-left-black shadow h-100 py-2">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            <div class="text-xs font-weight-bold text-black text-uppercase mb-1">
                                 Total Users</div>
                             <div class="h5 mb-0 font-weight-bold text-gray-800">{{ number_format($total_users) }}</div>
                         </div>
@@ -63,11 +63,11 @@
 
         <!-- Students Overview -->
         <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-success shadow h-100 py-2">
+            <div class="card border-left-black shadow h-100 py-2">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            <div class="text-xs font-weight-bold text-black text-uppercase mb-1">
                                 Active Students</div>
                             <div class="h5 mb-0 font-weight-bold text-gray-800">{{ number_format($total_students) }}</div>
                         </div>
@@ -81,11 +81,11 @@
 
         <!-- Rooms Overview -->
         <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-info shadow h-100 py-2">
+            <div class="card border-left-black shadow h-100 py-2">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                            <div class="text-xs font-weight-bold text-black text-uppercase mb-1">
                                 Available Rooms</div>
                             <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $available_rooms }} / {{ $total_rooms }}</div>
                         </div>
@@ -99,11 +99,11 @@
 
         <!-- Financial Overview -->
         <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card border-left-black shadow h-100 py-2">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                            <div class="text-xs font-weight-bold text-black text-uppercase mb-1">
                                 Monthly Revenue</div>
                             <div class="h5 mb-0 font-weight-bold text-gray-800">₦{{ number_format($monthly_revenue, 2) }}</div>
                         </div>
@@ -122,19 +122,19 @@
         <div class="col-lg-6 mb-4">
             <div class="card shadow">
                 <div class="card-header py-3 d-flex justify-content-between align-items-center">
-                    <h6 class="m-0 font-weight-bold text-primary">
+                    <h6 class="m-0 font-weight-bold " style="color:black;">
                         <i class="fas fa-exclamation-triangle me-2"></i>Complaints Overview
                     </h6>
-                    <span class="badge bg-warning text-dark">{{ $pending_complaints }} pending</span>
+                    <span class="badge  text-white" style="background:red;">{{ $pending_complaints }} pending</span>
                 </div>
                 <div class="card-body">
                     <div class="row text-center">
                         <div class="col-6">
-                            <div class="h4 mb-0 text-danger">{{ $total_complaints }}</div>
+                            <div class="h4 mb-0 text-black">{{ $total_complaints }}</div>
                             <small class="text-muted">Total</small>
                         </div>
                         <div class="col-6">
-                            <div class="h4 mb-0 text-warning">{{ $pending_complaints }}</div>
+                            <div class="h4 mb-0 text-black">{{ $pending_complaints }}</div>
                             <small class="text-muted">Pending</small>
                         </div>
                     </div>
@@ -146,19 +146,19 @@
         <div class="col-lg-6 mb-4">
             <div class="card shadow">
                 <div class="card-header py-3 d-flex justify-content-between align-items-center">
-                    <h6 class="m-0 font-weight-bold text-primary">
+                    <h6 class="m-0 font-weight-bold" style="color:black;">
                         <i class="fas fa-users me-2"></i>Visitor Management
                     </h6>
-                    <span class="badge bg-info">{{ $current_visitors }} active</span>
+                    <span class="badge  text-white" style="background:red;">{{ $current_visitors }} active</span>
                 </div>
                 <div class="card-body">
                     <div class="row text-center">
                         <div class="col-6">
-                            <div class="h4 mb-0 text-primary">{{ $total_visitors }}</div>
+                            <div class="h4 mb-0 text-black">{{ $total_visitors }}</div>
                             <small class="text-muted">Total</small>
                         </div>
                         <div class="col-6">
-                            <div class="h4 mb-0 text-info">{{ $current_visitors }}</div>
+                            <div class="h4 mb-0 text-black">{{ $current_visitors }}</div>
                             <small class="text-muted">Current</small>
                         </div>
                     </div>
@@ -173,7 +173,7 @@
         <div class="col-lg-6 mb-4">
             <div class="card shadow">
                 <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">
+                    <h6 class="m-0 font-weight-bold text-black">
                         <i class="fas fa-credit-card me-2"></i>Recent Payments
                     </h6>
                 </div>
@@ -202,7 +202,7 @@
         <div class="col-lg-6 mb-4">
             <div class="card shadow">
                 <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">
+                    <h6 class="m-0 font-weight-bold text-black">
                         <i class="fas fa-exclamation-circle me-2"></i>Recent Complaints
                     </h6>
                 </div>
@@ -214,7 +214,7 @@
                                 <small class="text-muted">{{ Str::limit($complaint->title, 30) }}</small>
                             </div>
                             <div class="text-end">
-                                <span class="badge bg-{{ $complaint->status == 'resolved' ? 'success' : 'warning' }}">
+                                <span  class="badge bg-{{ $complaint->status == 'resolved' ? 'success' : 'warning' }}">
                                     {{ ucfirst($complaint->status) }}
                                 </span>
                             </div>
@@ -256,7 +256,7 @@
         <div class="col-12">
             <div class="card shadow">
                 <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">
+                    <h6 class="m-0 font-weight-bold text-black">
                         <i class="fas fa-cogs me-2"></i>System Management
                     </h6>
                 </div>
@@ -264,12 +264,12 @@
                     <div class="row">
                         <div class="col-md-4 text-center mb-3">
                             <a href="{{ route('superadmin.admin-management.index') }}" class="text-decoration-none">
-                                <div class="card border-primary h-100">
+                                <div class="card border-black h-100">
                                     <div class="card-body text-center">
-                                        <i class="fas fa-users-cog fa-3x text-primary mb-3"></i>
-                                        <h5 class="card-title text-primary">Admin Management</h5>
+                                        <i class="fas fa-users-cog fa-3x text-black mb-3"></i>
+                                        <h5 class="card-title text-black">Admin Management</h5>
                                         <p class="card-text text-muted">Create, edit, and manage system administrators</p>
-                                        <span class="badge bg-primary">{{ $total_users - ($total_students ?? 0) }} Admins</span>
+                                        <span style="background:red;" class="badge">{{ $total_users - ($total_students ?? 0) }} Admins</span>
                                     </div>
                                 </div>
                             </a>
@@ -277,24 +277,24 @@
 
                         <div class="col-md-4 text-center mb-3">
                             <a href="{{ route('superadmin.profile.show') }}" class="text-decoration-none">
-                                <div class="card border-info h-100">
+                                <div class="card border-black h-100">
                                     <div class="card-body text-center">
-                                        <i class="fas fa-user-shield fa-3x text-info mb-3"></i>
-                                        <h5 class="card-title text-info">Profile Settings</h5>
-                                        <p class="card-text text-muted">Manage your account settings and preferences</p>
-                                        <span class="badge bg-info">Account</span>
+                                        <i class="fas fa-user-shield fa-3x text-black mb-3"></i>
+                                        <h5 class="card-title text-black">Profile Settings</h5>
+                                        <p class="card-text text-black">Manage your account settings and preferences</p>
+                                        <span style="background:red;" class="badge b">Account</span>
                                     </div>
                                 </div>
                             </a>
                         </div>
 
                         <div class="col-md-4 text-center mb-3">
-                            <div class="card border-warning h-100">
+                            <div class="card border-black h-100">
                                 <div class="card-body text-center">
-                                    <i class="fas fa-chart-line fa-3x text-warning mb-3"></i>
-                                    <h5 class="card-title text-warning">System Reports</h5>
-                                    <p class="card-text text-muted">View detailed analytics and reports</p>
-                                    <span class="badge bg-warning">Coming Soon</span>
+                                    <i class="fas fa-chart-line fa-3x text-black mb-3"></i>
+                                    <h5 class="card-title text-black">System Reports</h5>
+                                    <p class="card-text text-black">View detailed analytics and reports</p>
+                                    <span style="background:red;" class="badge ">Coming Soon</span>
                                 </div>
                             </div>
                         </div>

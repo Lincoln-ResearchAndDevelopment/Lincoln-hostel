@@ -13,12 +13,13 @@ use App\Http\Controllers\VisitorController;
 use App\Http\Controllers\ComplaintController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\SuperAdminController;
 use App\Http\Controllers\AnnouncementController;
 use App\Http\Controllers\StudentsAuthController;
 use App\Http\Controllers\StudentPaymentController;
 use App\Http\Controllers\StudentComplaintController;
 use App\Http\Controllers\HostelApplicationController;
-use App\Http\Controllers\SuperAdminController;
+use App\Http\Controllers\StudentsDashboardController;
 use App\Http\Controllers\SuperAdmin\AdminManagementController;
 
 /*
@@ -119,11 +120,12 @@ Route::middleware(['auth'])->group(function () {
 | Student Login Routes (Unauthenticated)
 |--------------------------------------------------------------------------
 */
-Route::prefix('student')->name('student.')->middleware('guest:student')->group(function () {
+// Student login routes
+Route::prefix('student')->name('student.')->group(function () {
     Route::get('/login', [StudentsAuthController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [StudentsAuthController::class, 'login'])->name('login.post');
+    Route::post('/logout', [StudentsAuthController::class, 'logout'])->name('logout');
 });
-
 /*
 |--------------------------------------------------------------------------
 | Student-only Routes (with StudentAuth Middleware)
@@ -131,7 +133,14 @@ Route::prefix('student')->name('student.')->middleware('guest:student')->group(f
 */
 Route::prefix('student')->name('student.')->middleware('student.auth')->group(function () {
     Route::get('/dashboard', [StudentsDashboardController::class, 'index'])->name('dashboard');
+
+    // Student dashboard
+       Route::get('/dashboard', [StudentsDashboardController::class, 'index'])->name('dashboard');
+
+    // Payments
     Route::post('/payments', [StudentPaymentController::class, 'store'])->name('payments.store');
+
+    // Complaints
     Route::post('/complaints', [StudentComplaintController::class, 'store'])->name('complaints.store');
 
     // Student session status check route

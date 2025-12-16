@@ -11,7 +11,7 @@
                     <div class="row">
                         <!-- Rooms Summary -->
                         <div class="col-md-3 mb-4">
-                            <div class="card text-white" style="background-color: #2c3e50; border-radius: 20px;">
+                            <div class="card text-white" style="background-color: red; border-radius: 20px;">
                                 <div class="card-body">
                                     <h5 class="card-title">Rooms</h5>
                                     <p class="card-text display-4">{{ $total_rooms }}</p>
@@ -22,7 +22,7 @@
 
                         <!-- Students Summary -->
                         <div class="col-md-3 mb-4">
-                            <div class="card text-white" style="background-color: #2c3e50; border-radius: 20px;">
+                            <div class="card text-white" style="background-color: red; border-radius: 20px;">
                                 <div class="card-body">
                                     <h5 class="card-title">Students</h5>
                                     <p class="card-text display-4">{{ $total_students }}</p>
@@ -33,7 +33,7 @@
 
                         <!-- Complaints Summary -->
                         <div class="col-md-3 mb-4">
-                            <div class="card text-white" style="background-color: #2c3e50; border-radius: 20px;">
+                            <div class="card text-white" style="background-color: red ; border-radius: 20px;">
                                 <div class="card-body">
                                     <h5 class="card-title">Pending Complaints</h5>
                                     <p class="card-text display-4">{{ $pending_complaints }}</p>
@@ -44,7 +44,7 @@
 
                         <!-- Visitors Summary -->
                         <div class="col-md-3 mb-4">
-                            <div class="card text-white" style="background-color: #2c3e50; border-radius: 20px;">
+                            <div class="card text-white" style="background-color: red; border-radius: 20px;">
                                 <div class="card-body">
                                     <h5 class="card-title">Current Visitors</h5>
                                     <p class="card-text display-4">{{ $recent_visitors->count() }}</p>
@@ -58,7 +58,7 @@
                             <div class="card">
                                 <div class="card-header d-flex justify-content-between align-items-center">
                                     <span>Send Announcements</span>
-                                    <button type="button" class="btn" style="background-color:#2c3e50; color: white;" data-bs-toggle="modal" data-bs-target="#announcementsModal">
+                                    <button type="button" class="btn" style="background-color:red; color: white;" data-bs-toggle="modal" data-bs-target="#announcementsModal">
                                         View Recent Announcements
                                     </button>
                                 </div>
@@ -97,7 +97,7 @@
                                     </div>
 
                                     <div class="d-flex justify-content-between">
-                                        <button type="submit" class="btn" style="background-color: #2c3e50; color: white;">Send Announcement</button>
+                                        <button type="submit" class="btn" style="background-color: red; color: white;">Send Announcement</button>
                                     </div>
                                 </form>
                             </div>
@@ -316,7 +316,7 @@
                                                             <form action="{{ route('visitors.update', $visitor) }}" method="POST">
                                                                 @csrf
                                                                 @method('PUT')
-                                                                <button type="submit" class="btn btn-sm" style="background-color: #2c3e50; color: white">Check Out</button>
+                                                                <button type="submit" class="btn btn-sm" style="background-color: red; color: white">Check Out</button>
                                                             </form>
                                                         </td>
                                                     </tr>

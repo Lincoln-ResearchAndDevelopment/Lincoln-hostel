@@ -11,6 +11,7 @@ class RedirectIfNotStudent
     public function handle(Request $request, Closure $next)
     {
         if (!Auth::guard('student')->check()) {
+            // Make sure this route exists exactly as named
             return redirect()->route('student.login');
         }
 

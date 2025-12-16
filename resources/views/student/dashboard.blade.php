@@ -634,7 +634,7 @@
                 <!-- Students in This Room -->
                 <div class="card mb-4">
                     <div class="card-header">
-                        <h5><i class="fas fa-users me-2"></i>Students in your Room ({{ $room->students->count() }})</h5>
+                        <h5><i class="fas fa-users me-2"></i>Students in your Room ({{ $student->room->students->count() }})</h5>
                     </div>
                     <div class="card-body">
                         <table class="table table-striped">
@@ -646,7 +646,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @forelse ($room->students as $student)
+                                @forelse ($student->room->students as $student)
                                     <tr>
                                         <td>{{ $student->full_name }}</td>
                                         <td>{{ $student->check_in_date->format('M d, Y') }}</td>
@@ -777,7 +777,7 @@
                         <i class="fas fa-history me-2"></i>Payment History
                     </div>
                     <div class="card-body">
-                        @if($payments->count() > 0)
+                        @if($student->payments->count() > 0)
                             <div class="table-responsive">
                                 <table class="table table-hover table-striped align-middle">
                                     <thead>
@@ -826,7 +826,7 @@
                         <i class="fas fa-list me-2"></i>Complaint History
                     </div>
                     <div class="card-body">
-                        @if($complaints->count() > 0)
+                        @if($student->complaints->count() > 0)
                             <div class="table-responsive">
                                 <table class="table table-hover table-striped align-middle">
                                     <thead>

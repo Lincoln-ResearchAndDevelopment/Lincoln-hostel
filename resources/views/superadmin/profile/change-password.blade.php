@@ -60,11 +60,11 @@
                         </div>
 
                         <div class="d-flex justify-content-between">
-                            <a href="{{ route('superadmin.profile.show') }}" class="btn btn-secondary">
+                            <a style="background:red;color:white;" href="{{ route('superadmin.profile.show') }}" class="btn btn-secondary">
                                 <i class="fas fa-arrow-left me-2"></i>Back to Profile
                             </a>
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save me-2"></i>Update Password
+                            <button style="background:red;color:white;" type="submit" class="btn btn-secondary ">
+                                <i class="fas fa-save me-2 "></i>Update Password
                             </button>
                         </div>
                     </form>
