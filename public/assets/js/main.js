@@ -204,14 +204,27 @@
     speed: 600,
     loop: true,
     autoplay: {
-      delay: 5000,
+      delay: 6000,
       disableOnInteraction: false
     },
-    slidesPerView: 'auto',
+    slidesPerView: 1,
+    centeredSlides: true,
+    spaceBetween: 8, // tightened gap between slides
+    slideToClickedSlide: true,
     pagination: {
       el: '.swiper-pagination',
-      type: 'bullets',
       clickable: true
+    },
+    // navigation intentionally omitted (no nav icons per design)
+    breakpoints: {
+      768: {
+        slidesPerView: 1,
+        spaceBetween: 8
+      },
+      992: {
+        slidesPerView: 1,
+        spaceBetween: 10
+      }
     }
   });
 

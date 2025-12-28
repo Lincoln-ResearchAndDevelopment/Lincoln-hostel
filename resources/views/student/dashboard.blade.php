@@ -67,6 +67,32 @@
             background: #ffffff;
         }
 
+            /* Close button for mobile sidebar */
+            .close-sidebar {
+                position: absolute;
+                top: 8px;
+                right: 8px;
+                background: none;
+                border: none;
+                font-size: 1.25rem;
+                color: var(--text-primary);
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                padding: 0.35rem;
+                border-radius: 6px;
+                cursor: pointer;
+            }
+
+            @media (min-width: 769px) {
+                .close-sidebar { display: none; }
+            }
+
+            /* Prevent body scroll when menu is open on mobile */
+            body.no-scroll {
+                overflow: hidden;
+            }
+
         .sidebar-brand {
             color: #000000;
             font-size: 1.5rem;
@@ -307,7 +333,33 @@
                 flex: 1;
                 justify-content: flex-end;
             }
+            /* Make panels stack and take full width on small screens */
+            .col-md-6.section-panel {
+                flex: 0 0 100%;
+                max-width: 100%;
+                padding-left: 0.5rem;
+                padding-right: 0.5rem;
+            }
+
+            .section-panel { display: none; width: 100%; box-sizing: border-box; }
+            .section-panel.active-section { display: block; margin-bottom: 1rem; animation: fadeIn 220ms ease; }
+
+            /* Responsive thumbnails */
+            .complaint-thumb { width: 80px; height: 60px; object-fit: cover; border-radius: 6px; }
+            @media (max-width: 576px) {
+                .complaint-thumb { width: 56px; height: 42px; }
+            }
         }
+
+        /* Panel show/hide behavior for sidebar navigation */
+        .section-panel { display: none; }
+        .section-panel.active-section { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
 
         @media (min-width: 769px) {
             .sidebar {
@@ -464,22 +516,66 @@
 <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
 <!-- Sidebar Navigation -->
-<nav class="sidebar" id="sidebar">
+<nav class="sidebar" id="sidebar" role="navigation" aria-label="Student sidebar" aria-hidden="true">
     <div class="sidebar-header">
         <a href="#" class="sidebar-brand">
             <i class="fas fa-building"></i>
             LincHostel
         </a>
+        <button class="close-sidebar d-md-none" id="closeSidebarBtn" aria-label="Close navigation">
+            <i class="fas fa-times" aria-hidden="true"></i>
+        </button>
     </div>
 
     <div class="sidebar-nav">
         <div class="nav-item">
-            <a class="nav-link active" href="#">
+            <a class="nav-link active" href="#dashboard-top">
                 <i class="fas fa-tachometer-alt"></i>
                 Dashboard
             </a>
         </div>
-        <!-- Add more sidebar navigation items here if needed -->
+        <div class="nav-item">
+            <a class="nav-link" href="#student-info">
+                <i class="fas fa-id-card"></i>
+                Profile
+            </a>
+        </div>
+        <div class="nav-item">
+            <a class="nav-link" href="#roommates">
+                <i class="fas fa-users"></i>
+                Roommates
+            </a>
+        </div>
+        <div class="nav-item">
+            <a class="nav-link" href="#make-payment">
+                <i class="fas fa-credit-card"></i>
+                Make Payment
+            </a>
+        </div>
+        <div class="nav-item">
+            <a class="nav-link" href="#make-complaint">
+                <i class="fas fa-exclamation-triangle"></i>
+                Make Complaint
+            </a>
+        </div>
+        <div class="nav-item">
+            <a class="nav-link" href="#payment-history">
+                <i class="fas fa-history"></i>
+                Payment History
+            </a>
+        </div>
+        <div class="nav-item">
+            <a class="nav-link" href="#complaint-history">
+                <i class="fas fa-list"></i>
+                Complaint History
+            </a>
+        </div>
+        <div class="nav-item mt-3">
+            <a class="nav-link" href="#settings">
+                <i class="fas fa-cog"></i>
+                Settings
+            </a>
+        </div>
     </div>
 
     <!-- Student Info in Sidebar -->
@@ -494,8 +590,9 @@
     <div class="container">
         <div class="header-content">
             <div class="header-left">
-                <button class="menu-toggle" id="menuToggle">
-                    <i class="fas fa-bars"></i>
+                <button class="menu-toggle" id="menuToggle" aria-controls="sidebar" aria-expanded="false" aria-label="Toggle navigation">
+                    <i class="fas fa-bars" aria-hidden="true"></i>
+                    <span class="visually-hidden">Toggle navigation</span>
                 </button>
                 <h1 class="h4 mb-0 d-none d-md-block">Student Dashboard</h1>
             </div>
@@ -521,6 +618,9 @@
                                 <a 
                                     href="#" 
                                     class="dropdown-item py-3 px-3 text-wrap text-break"
+                                /* Main content padding for small screens */
+                                .main-content {
+                                    padding: 1rem 0.75rem;
                                     data-bs-toggle="modal" 
                                     data-bs-target="#announcementModal"
                                     data-title="{{ $announcement->title }}"
@@ -576,11 +676,16 @@
 <!-- Main Content -->
 <main class="main-content" id="mainContent">
     <div class="container py-5">
+            @if(session('complaint_success'))
+                <div class="alert alert-success auto-dismiss" role="status" aria-live="polite">
+                    <i class="fas fa-check-circle me-2" aria-hidden="true"></i> {{ session('complaint_success') }}
+                </div>
+            @endif
         <div class="row justify-content-center">
             <div class="col-lg-10">
 
                 <!-- Welcome Card -->
-                <div class="card mb-4">
+                <div class="card mb-4 section-panel" id="dashboard-top" aria-hidden="true">
                     <div class="card-header">
                         <i class="fas fa-user-graduate me-2"></i>Student Dashboard
                     </div>
@@ -599,12 +704,51 @@
                         @endphp
                         <h5>{{ $greeting }}, {{ $student->full_name }}! 👋 </h5>
                         <p class="text-muted">Here's your personalized dashboard with all your details and available options.</p>
+                        <!-- Student Overview Cards -->
+                        <div class="row mt-4">
+                            <div class="col-sm-6 col-md-3 mb-3">
+                                <div class="card h-100 shadow-sm">
+                                    <div class="card-body text-center py-2">
+                                        <div class="h6 mb-1 text-muted">Payments</div>
+                                        <div class="h5 fw-bold">{{ $total_payments }}</div>
+                                        <small class="text-success">₦{{ number_format($total_paid, 2) }} paid</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6 col-md-3 mb-3">
+                                <div class="card h-100 shadow-sm">
+                                    <div class="card-body text-center py-2">
+                                        <div class="h6 mb-1 text-muted">Pending Payments</div>
+                                        <div class="h5 fw-bold">{{ $pending_payments }}</div>
+                                        <small class="text-muted">Awaiting verification</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6 col-md-3 mb-3">
+                                <div class="card h-100 shadow-sm">
+                                    <div class="card-body text-center py-2">
+                                        <div class="h6 mb-1 text-muted">Complaints</div>
+                                        <div class="h5 fw-bold">{{ $total_complaints }}</div>
+                                        <small class="text-warning">{{ $pending_complaints }} pending</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6 col-md-3 mb-3">
+                                <div class="card h-100 shadow-sm">
+                                    <div class="card-body text-center py-2">
+                                        <div class="h6 mb-1 text-muted">Announcements</div>
+                                        <div class="h5 fw-bold">{{ $unreadAnnouncements }}</div>
+                                        <small class="text-muted">Latest updates</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Rest of your dashboard content remains exactly the same -->
                 <!-- Student Info -->
-                <div class="card mb-4">
+                <div class="card mb-4 section-panel" id="student-info" aria-hidden="true">
                     <div class="card-header">
                         <i class="fas fa-id-card me-2"></i>Student Information
                     </div>
@@ -632,7 +776,7 @@
                 </div>
 
                 <!-- Students in This Room -->
-                <div class="card mb-4">
+                <div class="card mb-4 section-panel" id="roommates" aria-hidden="true">
                     <div class="card-header">
                         <h5><i class="fas fa-users me-2"></i>Students in your Room ({{ $student->room->students->count() }})</h5>
                     </div>
@@ -663,9 +807,9 @@
                 </div>
 
                 <!-- Actions -->
-                <div class="row g-4">
+                    <div class="row g-4" id="actions">
                     <!-- Payment -->
-                    <div class="col-md-6">
+                    <div class="col-md-6 section-panel" id="make-payment" aria-hidden="true">
                         <div class="card h-100">
                             <div class="card-header">
                                 <i class="fas fa-credit-card me-2"></i>Make Payment
@@ -737,7 +881,7 @@
                     </div>
 
                     <!-- Complaint -->
-                    <div class="col-md-6">
+                    <div class="col-md-6 section-panel" id="make-complaint" aria-hidden="true">
                         <div class="card h-100">
                             <div class="card-header">
                                 <i class="fas fa-exclamation-triangle me-2"></i>Make Complaint
@@ -748,7 +892,7 @@
                                         <i class="fas fa-check-circle me-2"></i>{{ session('complaint_success') }}
                                     </div>
                                 @endif
-                                <form action="{{ route('student.complaints.store') }}" method="POST">
+                                <form action="{{ route('student.complaints.store') }}" method="POST" enctype="multipart/form-data">
                                     @csrf
                                     <div class="mb-3">
                                         <label class="form-label">
@@ -762,6 +906,13 @@
                                         </label>
                                         <textarea name="description" class="form-control" rows="4" placeholder="Please provide detailed information about your complaint..." required></textarea>
                                     </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">
+                                            <i class="fas fa-paperclip me-1"></i>Attachment (photo)
+                                        </label>
+                                        <input type="file" name="attachment" class="form-control" accept="image/jpeg,image/png">
+                                        <small class="text-muted">Optional. JPG/PNG up to 5MB. Upload a photo of the issue for faster resolution.</small>
+                                    </div>
                                     <button type="submit" class="btn btn-primary">
                                         <i class="fas fa-paper-plane me-1"></i>Submit Complaint
                                     </button>
@@ -772,7 +923,7 @@
                 </div>
 
                 <!-- Payment History -->
-                <div class="card mt-5">
+                <div class="card mt-5 section-panel" id="payment-history" aria-hidden="true">
                     <div class="card-header">
                         <i class="fas fa-history me-2"></i>Payment History
                     </div>
@@ -821,7 +972,7 @@
                 </div>
 
                 <!-- Complaint History -->
-                <div class="card mt-4">
+                <div class="card mt-4 section-panel" id="complaint-history" aria-hidden="true">
                     <div class="card-header">
                         <i class="fas fa-list me-2"></i>Complaint History
                     </div>
@@ -832,6 +983,7 @@
                                     <thead>
                                         <tr>
                                             <th><i class="fas fa-heading me-1"></i>Subject</th>
+                                            <th><i class="fas fa-paperclip me-1"></i>Image</th>
                                             <th><i class="fas fa-calendar me-1"></i>Date</th>
                                             <th><i class="fas fa-info-circle me-1"></i>Status</th>
                                         </tr>
@@ -840,6 +992,15 @@
                                         @foreach($complaints as $complaint)
                                             <tr>
                                                 <td>{{ Str::limit($complaint->subject, 30) }}</td>
+                                                <td>
+                                                    @if($complaint->attachment_path)
+                                                        <a href="{{ asset('storage/' . $complaint->attachment_path) }}" target="_blank">
+                                                            <img src="{{ asset('storage/' . $complaint->attachment_path) }}" alt="attachment" class="complaint-thumb">
+                                                        </a>
+                                                    @else
+                                                        <span class="text-muted">—</span>
+                                                    @endif
+                                                </td>
                                                 <td>{{ $complaint->created_at->format('M d, Y') }}</td>
                                                 <td>
                                                     <span class="badge 
@@ -913,6 +1074,26 @@
                 </div>
             </div>
         </div>
+
+                <!-- Settings -->
+                <div class="card mt-4 section-panel" id="settings" aria-hidden="true">
+                    <div class="card-header">
+                        <i class="fas fa-cog me-2"></i>Settings
+                    </div>
+                    <div class="card-body">
+                        <div class="list-group">
+                            <a href="{{ url('/student/profile') }}" class="list-group-item list-group-item-action">
+                                <i class="fas fa-user me-2"></i>Update Profile
+                            </a>
+                            <a href="{{ url('/student/profile/change-password') }}" class="list-group-item list-group-item-action">
+                                <i class="fas fa-key me-2"></i>Change Password
+                            </a>
+                            <a href="{{ url('/student/notifications') }}" class="list-group-item list-group-item-action">
+                                <i class="fas fa-bell me-2"></i>Notification Preferences
+                            </a>
+                        </div>
+                    </div>
+                </div>
     </div>
 
     <!-- Announcement Details Modal -->
@@ -959,11 +1140,46 @@ document.addEventListener('DOMContentLoaded', function () {
     const mainContent = document.getElementById('mainContent');
     const menuToggle = document.getElementById('menuToggle');
     const sidebarOverlay = document.getElementById('sidebarOverlay');
+    const closeSidebarBtn = document.getElementById('closeSidebarBtn');
+    let lastFocusedElement = null;
+
+    // Initialize aria-hidden on the sidebar based on initial viewport width
+    if (sidebar) {
+        sidebar.setAttribute('aria-hidden', window.innerWidth >= 769 ? 'false' : 'true');
+    }
 
     function toggleSidebar() {
         sidebar.classList.toggle('active');
         mainContent.classList.toggle('sidebar-open');
         sidebarOverlay.classList.toggle('active');
+        // Update aria-expanded on the toggle button for assistive tech
+        if (menuToggle) {
+            const expanded = sidebar.classList.contains('active');
+            menuToggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+        }
+        // Keep aria-hidden in sync for the sidebar for accessibility
+        if (sidebar) {
+            const isVisible = sidebar.classList.contains('active') || window.innerWidth >= 769;
+            sidebar.setAttribute('aria-hidden', isVisible ? 'false' : 'true');
+        }
+        // Lock body scroll on mobile when sidebar is open
+        if (window.innerWidth < 769) {
+            if (sidebar.classList.contains('active')) {
+                document.body.classList.add('no-scroll');
+                // Move focus into the sidebar for keyboard users
+                lastFocusedElement = document.activeElement;
+                const firstLink = sidebar.querySelector('.nav-link');
+                if (firstLink) firstLink.focus();
+            } else {
+                document.body.classList.remove('no-scroll');
+                // Return focus to the toggle button if available
+                if (lastFocusedElement && typeof lastFocusedElement.focus === 'function') {
+                    lastFocusedElement.focus();
+                } else if (menuToggle) {
+                    menuToggle.focus();
+                }
+            }
+        }
     }
 
     if (menuToggle) {
@@ -974,15 +1190,100 @@ document.addEventListener('DOMContentLoaded', function () {
         sidebarOverlay.addEventListener('click', toggleSidebar);
     }
 
-    // Close sidebar when clicking on a nav link (mobile)
+    if (closeSidebarBtn) {
+        closeSidebarBtn.addEventListener('click', toggleSidebar);
+    }
+
+    // Close the sidebar with Escape key and ensure accessible keyboard behavior
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' || e.key === 'Esc') {
+            if (sidebar && sidebar.classList.contains('active') && window.innerWidth < 769) {
+                toggleSidebar();
+            }
+        }
+    });
+
+    // Close sidebar when clicking on a nav link (mobile), but let anchor links handle their own behavior
     const navLinks = document.querySelectorAll('.nav-link');
     navLinks.forEach(link => {
         link.addEventListener('click', function() {
-            if (window.innerWidth < 769) {
+            // If this is an anchor link for panel navigation, do not toggle here (handled separately)
+            const href = this.getAttribute('href') || '';
+            if (window.innerWidth < 769 && !href.startsWith('#')) {
                 toggleSidebar();
             }
         });
     });
+
+    // Sidebar-driven panels: show/hide panels instead of scrolling
+    const sectionLinks = document.querySelectorAll('.sidebar .nav-link[href^="#"]');
+    const panels = Array.from(sectionLinks).map(l => document.querySelector(l.getAttribute('href'))).filter(Boolean);
+
+    function showPanel(id) {
+        panels.forEach(p => {
+            if (p && p.id === id) {
+                p.classList.add('active-section');
+                p.setAttribute('aria-hidden', 'false');
+            } else if (p) {
+                p.classList.remove('active-section');
+                p.setAttribute('aria-hidden', 'true');
+            }
+        });
+
+        sectionLinks.forEach(l => {
+            if (l.getAttribute('href') === '#' + id) {
+                l.classList.add('active');
+                l.setAttribute('aria-current', 'true');
+                l.focus({ preventScroll: true });
+            } else {
+                l.classList.remove('active');
+                l.removeAttribute('aria-current');
+            }
+        });
+
+        // Reset mainContent scroll so content starts at top of panel
+        if (mainContent) mainContent.scrollTop = 0;
+    }
+
+    // Attach click handlers to open panels
+    sectionLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const href = this.getAttribute('href');
+            const id = href.replace('#', '');
+            showPanel(id);
+            // Close sidebar on mobile after selection
+            if (window.innerWidth < 769) toggleSidebar();
+        });
+    });
+
+    // Show dashboard by default
+    if (document.getElementById('dashboard-top')) {
+        showPanel('dashboard-top');
+    }
+
+    // If the server asked us to open a specific panel (e.g., after complaint submit), do so
+    @if(session('complaint_panel'))
+        showPanel('{{ session('complaint_panel') }}');
+    @endif
+
+    // Ensure responsive consistency when resizing between mobile and desktop
+    function handleResize() {
+        if (window.innerWidth >= 769) {
+            // On desktop: clear any mobile overlay/active classes that might linger
+            if (sidebar) sidebar.classList.remove('active');
+            if (sidebarOverlay) sidebarOverlay.classList.remove('active');
+            if (mainContent) mainContent.classList.remove('sidebar-open');
+            if (sidebar) sidebar.setAttribute('aria-hidden', 'false');
+        }
+        else {
+            if (sidebar) sidebar.setAttribute('aria-hidden', 'true');
+        }
+    }
+
+    window.addEventListener('resize', handleResize);
+    // Run once to normalize initial state
+    handleResize();
 
     // Enhanced Theme Management - No more flash!
     const themeToggle = document.getElementById('themeToggle');

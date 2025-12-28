@@ -149,7 +149,7 @@
     <h1>Welcome to <span>LincHostel.</span></h1>
     <h2>Where Comfort Meets Community, Affordable, Inclusive.</h2>
     <div class="d-flex">
-      <a href="{{ route('hostel.apply') }}" class="btn-get-started scrollto">Book Your Spot Today</a>
+      <a href="{{ route('hostel.apply') }}" class="btn-get-started scrollto">Book Now</a>
     </div>
   </div>
 </section>
@@ -352,65 +352,75 @@
         <div class="swiper-wrapper">
           <div class="swiper-slide">
             <div class="testimonial-item">
-              <img src="assets/img/testimonials-bg.jpg" class="testimonial-img" alt="Chidera Okeke">
-              <h3>Chidera Okeke</h3>
-              <h4>2nd Year</h4>
-              <p>
-                <i class="bx bxs-quote-alt-left quote-icon-left"></i>
+              <div class="testimonial-image">
+                <img src="assets/img/testimonials/debbietestimonial.jpeg" class="testimonial-img" alt="Deborah Chukwuokike">
+              </div>
+              <h3 class="testimonial-name">Deborah Chukuokike .C.</h3>
+              <h4 class="testimonial-role">2nd Year</h4>
+              <p class="testimonial-quote">
+                <i class="bx bxs-quote-alt-left quote-icon-left" aria-hidden="true"></i>
                 Staying at LincHostel made my semester so much easier. The rooms are neat, and the security gives me peace of mind. I love how it feels like a small family here.
-                <i class="bx bxs-quote-alt-right quote-icon-right"></i>
+                <i class="bx bxs-quote-alt-right quote-icon-right" aria-hidden="true"></i>
               </p>
             </div>
           </div>
 
           <div class="swiper-slide">
             <div class="testimonial-item">
-              <img src="assets/img/testimonials/testimonials-2.jpg" class="testimonial-img" alt="Tunde Adebayo">
-              <h3>Tunde Adebayo</h3>
-              <h4>1st Year</h4>
-              <p>
-                <i class="bx bxs-quote-alt-left quote-icon-left"></i>
+              <div class="testimonial-image">
+                <img src="assets/img/testimonials/Adatestimonial.jpeg" class="testimonial-img" alt="Gift Ibemere">
+              </div>
+              <h3 class="testimonial-name">Ibemere Gift</h3>
+              <h4 class="testimonial-role">2nd Year</h4>
+              <p class="testimonial-quote">
+                <i class="bx bxs-quote-alt-left quote-icon-left" aria-hidden="true"></i>
                 I really appreciate how organized the hostel management is. Booking was straightforward and the staff are always approachable. The curfew policy also helps maintain order.
-                <i class="bx bxs-quote-alt-right quote-icon-right"></i>
+                <i class="bx bxs-quote-alt-right quote-icon-right" aria-hidden="true"></i>
               </p>
             </div>
           </div>
 
           <div class="swiper-slide">
             <div class="testimonial-item">
-              <img src="assets/img/testimonials/testimonials-3.jpg" class="testimonial-img" alt="Amaka Nwosu">
-              <h3>Amaka Nwosu</h3>
-              <h4>2nd Year</h4>
-              <p>
-                <i class="bx bxs-quote-alt-left quote-icon-left"></i>
+              <div class="testimonial-image">
+                <img src="assets/img/testimonials/marytestimonial.jpeg" class="testimonial-img" alt="Akinyode Mary">
+              </div>
+              <h3 class="testimonial-name">Akinyode Mary</h3>
+              <h4 class="testimonial-role">2nd Year</h4>
+              <p class="testimonial-quote">
+                <i class="bx bxs-quote-alt-left quote-icon-left" aria-hidden="true"></i>
                 LincHostel is honestly one of the best hostels I've stayed in. Clean rooms, reliable power supply, and proper security. Plus, the location is so close to school. I'll definitely stay here again next semester.
-                <i class="bx bxs-quote-alt-right quote-icon-right"></i>
+                <i class="bx bxs-quote-alt-right quote-icon-right" aria-hidden="true"></i>
               </p>
             </div>
           </div>
 
           <div class="swiper-slide">
             <div class="testimonial-item">
-              <img src="assets/img/testimonials/testimonials-4.jpg" class="testimonial-img" alt="Kehinde Yusuf">
-              <h3>Kehinde Yusuf</h3>
-              <h4>1st Year</h4>
-              <p>
-                <i class="bx bxs-quote-alt-left quote-icon-left"></i>
+              <div class="testimonial-image">
+                <img src="assets/img/testimonials/wisdomtestmonial.jpeg" class="testimonial-img" alt="Wisdom Daniel">
+              </div>
+              <h3 class="testimonial-name">Wisdom Daniel</h3>
+              <h4 class="testimonial-role">2nd Year</h4>
+              <p class="testimonial-quote">
+                <i class="bx bxs-quote-alt-left quote-icon-left" aria-hidden="true"></i>
                 The environment is calm and secure. I love the steady water supply and good network. It really makes academic work easier and stress-free.
-                <i class="bx bxs-quote-alt-right quote-icon-right"></i>
+                <i class="bx bxs-quote-alt-right quote-icon-right" aria-hidden="true"></i>
               </p>
             </div>
           </div>
 
           <div class="swiper-slide">
             <div class="testimonial-item">
-              <img src="assets/img/testimonials/testimonials-5.jpg" class="testimonial-img" alt="Ijeoma Eze">
-              <h3>Ijeoma Eze</h3>
-              <h4>1st Year</h4>
-              <p>
-                <i class="bx bxs-quote-alt-left quote-icon-left"></i>
+              <div class="testimonial-image">
+                <img src="assets/img/testimonials/Goldtestimonial.jpeg" class="testimonial-img" alt="Gold Omojo">
+              </div>
+              <h3 class="testimonial-name">Gold Omojo</h3>
+              <h4 class="testimonial-role">1st Year</h4>
+              <p class="testimonial-quote">
+                <i class="bx bxs-quote-alt-left quote-icon-left" aria-hidden="true"></i>
                 What I love most about LincHostel is how safe and homely it feels. The management actually listens to students and the facilities are well maintained. It's worth every naira.
-                <i class="bx bxs-quote-alt-right quote-icon-right"></i>
+                <i class="bx bxs-quote-alt-right quote-icon-right" aria-hidden="true"></i>
               </p>
             </div>
           </div>

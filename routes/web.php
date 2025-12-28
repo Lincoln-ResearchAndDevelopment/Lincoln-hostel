@@ -137,6 +137,17 @@ Route::prefix('student')->name('student.')->middleware('student.auth')->group(fu
     // Student dashboard
        Route::get('/dashboard', [StudentsDashboardController::class, 'index'])->name('dashboard');
 
+    // Student profile and settings
+    Route::get('/profile', [\App\Http\Controllers\StudentProfileController::class, 'index'])->name('profile');
+    Route::get('/profile/edit', [\App\Http\Controllers\StudentProfileController::class, 'edit'])->name('profile.edit');
+    Route::post('/profile/update', [\App\Http\Controllers\StudentProfileController::class, 'update'])->name('profile.update');
+    Route::get('/profile/change-password', [\App\Http\Controllers\StudentProfileController::class, 'changePasswordForm'])->name('password.change');
+    Route::post('/profile/change-password', [\App\Http\Controllers\StudentProfileController::class, 'changePassword'])->name('password.update');
+
+    // Notification preferences
+    Route::get('/notifications', [\App\Http\Controllers\StudentNotificationsController::class, 'index'])->name('notifications');
+    Route::post('/notifications', [\App\Http\Controllers\StudentNotificationsController::class, 'update'])->name('notifications.update');
+
     // Payments
     Route::post('/payments', [StudentPaymentController::class, 'store'])->name('payments.store');
 

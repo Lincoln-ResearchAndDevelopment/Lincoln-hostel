@@ -209,9 +209,19 @@
                 <div class="card-body">
                     @forelse($recent_complaints as $complaint)
                         <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
-                            <div>
-                                <div class="fw-bold">{{ $complaint->student->full_name }}</div>
-                                <small class="text-muted">{{ Str::limit($complaint->title, 30) }}</small>
+                            <div class="d-flex align-items-center gap-3">
+                                @if($complaint->attachment_path)
+                                    <a href="{{ asset('storage/' . $complaint->attachment_path) }}" target="_blank">
+                                        <img src="{{ asset('storage/' . $complaint->attachment_path) }}" alt="attachment" class="complaint-thumb" style="width:64px; height:48px;">
+                                    </a>
+                                @else
+                                    <div style="width:64px;height:48px;border-radius:6px;background:#f1f1f1;display:inline-block;"></div>
+                                @endif
+
+                                <div>
+                                    <div class="fw-bold">{{ $complaint->student->full_name }}</div>
+                                    <small class="text-muted">{{ Str::limit($complaint->subject ?? $complaint->description, 30) }}</small>
+                                </div>
                             </div>
                             <div class="text-end">
                                 <span  class="badge bg-{{ $complaint->status == 'resolved' ? 'success' : 'warning' }}">

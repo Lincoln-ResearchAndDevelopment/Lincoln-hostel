@@ -13,6 +13,7 @@ class Complaint extends Model
         'student_id',
         'subject',
         'description',
+        'attachment_path',
         'status',
         'resolution',
         'resolved_at'
