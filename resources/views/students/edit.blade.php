@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('content')
 <div class="container">
@@ -124,11 +124,11 @@
                         <div class="form-group row mb-3">
                             <label for="room_id" class="col-md-4 col-form-label text-md-right">{{ __('Room') }}</label>
                             <div class="col-md-6">
-                                <select id="room_id" class="form-control @error('room_id') is-invalid @enderror" name="room_id" required>
+                                <select id="room_id" class="form-select @error('room_id') is-invalid @enderror" name="room_id" required>
                                     <option value="">Select a room</option>
                                     @foreach($availableRooms as $room)
                                         <option value="{{ $room->id }}" {{ old('room_id', $student->room_id) == $room->id ? 'selected' : '' }}>
-                                            {{ $room->room_number }} ({{ $room->occupied }}/{{ $room->capacity }} occupied)
+                                            {{ ucfirst($room->room_type) }} Room - {{ $room->room_number }} ({{ $room->hostel->name }})
                                         </option>
                                     @endforeach
                                 </select>

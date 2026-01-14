@@ -82,6 +82,7 @@
         <li><a class="nav-link scrollto" href="#services">Features</a></li>
         <li><a class="nav-link scrollto" href="#faq">Faqs</a></li>
         <li><a class="nav-link scrollto" href="#contact">Contact</a></li>
+        <li><a class="nav-link scrollto" href="{{ route('check.application') }}" target="_blank">Check Application</a></li>
         <li><a class="nav-link scrollto" href="{{ route('hostel.apply') }}" target="_blank">Apply Now</a></li>
         
         <!-- Mobile-only items -->

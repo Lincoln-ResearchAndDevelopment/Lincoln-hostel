@@ -1,0 +1,103 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Models\Announcement;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+
+class AnnouncementController extends Controller
+{
+    public function __construct()
+    {
+        $this->middleware('admin');
+    }
+
+    public function index()
+    {
+        $announcements = Announcement::orderBy('created_at', 'desc')->paginate(15);
+        return view('admin.announcements.index', compact('announcements'));
+    }
+
+    public function create()
+    {
+        return view('admin.announcements.create');
+    }
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'required|string',
+            'attachment' => 'nullable|file|max:10240',
+        ]);
+
+        $data = [
+            'title' => $request->title,
+            'description' => $request->description,
+            'created_by' => auth()->id(),
+        ];
+
+        if ($request->hasFile('attachment')) {
+            $file = $request->file('attachment');
+            $data['attachment_path'] = $file->store('announcements', 'public');
+            $data['attachment_original_name'] = $file->getClientOriginalName();
+            $data['attachment_mime_type'] = $file->getMimeType();
+        }
+
+        Announcement::create($data);
+
+        return redirect()->route('admin.announcements.index')->with('success', 'Announcement published successfully.');
+    }
+
+    public function edit(Announcement $announcement)
+    {
+        return view('admin.announcements.edit', compact('announcement'));
+    }
+
+    public function update(Request $request, Announcement $announcement)
+    {
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'required|string',
+            'attachment' => 'nullable|file|max:10240',
+        ]);
+
+        $data = [
+            'title' => $request->title,
+            'description' => $request->description,
+        ];
+
+        if ($request->has('remove_attachment') && $announcement->attachment_path) {
+            Storage::disk('public')->delete($announcement->attachment_path);
+            $data['attachment_path'] = null;
+            $data['attachment_original_name'] = null;
+            $data['attachment_mime_type'] = null;
+        }
+
+        if ($request->hasFile('attachment')) {
+            if ($announcement->attachment_path) {
+                Storage::disk('public')->delete($announcement->attachment_path);
+            }
+            $file = $request->file('attachment');
+            $data['attachment_path'] = $file->store('announcements', 'public');
+            $data['attachment_original_name'] = $file->getClientOriginalName();
+            $data['attachment_mime_type'] = $file->getMimeType();
+        }
+
+        $announcement->update($data);
+
+        return redirect()->route('admin.announcements.index')->with('success', 'Announcement updated successfully.');
+    }
+
+    public function destroy(Announcement $announcement)
+    {
+        if ($announcement->attachment_path) {
+            Storage::disk('public')->delete($announcement->attachment_path);
+        }
+        $announcement->delete();
+
+        return redirect()->route('admin.announcements.index')->with('success', 'Announcement deleted successfully.');
+    }
+}

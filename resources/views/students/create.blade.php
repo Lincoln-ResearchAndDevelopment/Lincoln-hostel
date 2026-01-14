@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('content')
 <div class="container">
@@ -175,9 +175,10 @@
                                         name="room_id" 
                                         required>
                                     <option value="">Select a room</option>
+                                    @php $currentHostel = null; @endphp
                                     @foreach($availableRooms as $room)
                                         <option value="{{ $room->id }}" {{ old('room_id') == $room->id ? 'selected' : '' }}>
-                                            {{ $room->room_number }} ({{ $room->occupied }}/{{ $room->capacity }})
+                                            {{ ucfirst($room->room_type) }} Room - {{ $room->room_number }} ({{ $room->hostel->name }})
                                         </option>
                                     @endforeach
                                 </select>

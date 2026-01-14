@@ -59,6 +59,6 @@ class StudentsAuthController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('student.auth.login');
+        return redirect()->route('student.login');
     }
 }

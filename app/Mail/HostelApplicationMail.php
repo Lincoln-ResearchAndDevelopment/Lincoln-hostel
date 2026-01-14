@@ -5,23 +5,25 @@ namespace App\Mail;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
+use App\Models\HostelApplication;
 
 class HostelApplicationMail extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public $applicationData;
+    public $application;
 
-    public function __construct($applicationData)
+    public function __construct(HostelApplication $application)
     {
-        $this->applicationData = $applicationData;
+        $this->application = $application;
     }
 
     public function build()
     {
-        return $this->view('emails.hostel_application')
+        return $this->subject('Hostel Application Confirmation - ' . $this->application->application_number)
+                    ->view('emails.hostel_application_confirmation')
                     ->with([
-                        'applicationData' => $this->applicationData,
+                        'application' => $this->application,
                     ]);
     }
 }

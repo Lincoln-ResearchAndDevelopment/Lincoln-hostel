@@ -2,37 +2,58 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Notification;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class StudentNotificationsController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth:student');
+        $this->middleware('student.auth');
     }
 
+    /**
+     * Display all notifications
+     */
     public function index()
     {
-        $student = auth('student')->user();
-        // For now, use a simple placeholder preferences array
-        $preferences = [
-            'email' => true,
-            'sms' => false,
-            'push' => true,
-        ];
+        $student = Auth::guard('student')->user();
+        $notifications = $student->notifications()->paginate(15);
+        $unreadCount = $student->notifications()->unread()->count();
 
-        return view('student.notifications.index', compact('student', 'preferences'));
+        return view('student.notifications.index', compact('notifications', 'unreadCount'));
     }
 
+    /**
+     * Mark a notification as read
+     */
+    public function markAsRead($id)
+    {
+        $student = Auth::guard('student')->user();
+        $notification = $student->notifications()->findOrFail($id);
+        $notification->markAsRead();
+
+        return redirect()->back()->with('success', 'Notification dismissed.');
+    }
+
+    /**
+     * Mark all notifications as read
+     */
+    public function markAllAsRead()
+    {
+        $student = Auth::guard('student')->user();
+        $student->notifications()->unread()->update(['read_at' => now()]);
+
+        return redirect()->back()->with('success', 'All notifications marked as read.');
+    }
+
+    /**
+     * Update notification preferences (placeholder for future)
+     */
     public function update(Request $request)
     {
-        $request->validate([
-            'email' => 'sometimes|boolean',
-            'sms' => 'sometimes|boolean',
-            'push' => 'sometimes|boolean',
-        ]);
-
-        // Persisting preference storage is out-of-scope for now; show success
-        return back()->with('success', 'Notification preferences updated.');
+        // Placeholder for notification preferences
+        return redirect()->back()->with('success', 'Notification preferences updated.');
     }
 }

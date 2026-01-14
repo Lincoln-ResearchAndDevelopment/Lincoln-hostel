@@ -4,6 +4,7 @@ use App\Models\Payment;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\RoomController;
+use App\Http\Controllers\HostelController;
 use App\Http\Controllers\StaffController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\PaymentController;
@@ -42,6 +43,10 @@ Route::post('/contact', [ContactController::class, 'send'])->name('contact.send'
 */
 Route::get('/hostel/apply', [HostelApplicationController::class, 'create'])->name('apply');
 Route::post('/hostel/apply', [HostelApplicationController::class, 'store'])->name('hostel.apply');
+Route::get('/application/{applicationNumber}', [HostelApplicationController::class, 'show'])->name('application.show');
+Route::get('/check-application', function() {
+    return view('check-application');
+})->name('check.application');
 
 /*
 |--------------------------------------------------------------------------
@@ -69,12 +74,16 @@ Route::middleware(['admin'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::resources([
+        'hostels'    => HostelController::class,
         'rooms'      => RoomController::class,
         'students'   => StudentController::class,
         'payments'   => PaymentController::class,
         'complaints' => ComplaintController::class,
         'visitors'   => VisitorController::class,
     ]);
+
+    // Additional hostel routes
+    Route::get('/hostels/{hostel}/rooms', [HostelController::class, 'rooms'])->name('hostels.rooms');
 
     Route::post('/visitors/{visitor}/checkout', [VisitorController::class, 'checkout'])->name('visitors.checkout');
     Route::get('/students/{student}/profile', [StudentController::class, 'profile'])->name('students.profile');
@@ -106,12 +115,63 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/announcements/{announcement}', [AnnouncementController::class, 'destroy'])->name('announcements.destroy');
     Route::get('/announcements/{announcement}/download', [AnnouncementController::class, 'downloadAttachment'])->name('announcements.download');
 
+    // Hostel Applications Management
+    Route::prefix('applications')->name('applications.')->group(function () {
+        Route::get('/', [HostelApplicationController::class, 'adminIndex'])->name('index');
+        Route::get('/{application}', [HostelApplicationController::class, 'adminShow'])->name('show');
+        Route::patch('/{application}/status', [HostelApplicationController::class, 'updateStatus'])->name('update-status');
+    });
+
     // Admin session status check route
     Route::get('/check-admin-session', function () {
         if (!Auth::check()) {
             return response()->json(['error' => 'Unauthenticated'], 401);
         }
         return response()->json(['status' => 'ok']);
+    });
+
+    // Admin Management Routes
+    Route::prefix('admin')->name('admin.')->group(function () {
+        // Leave Requests Management
+        Route::get('/leave', [App\Http\Controllers\Admin\LeaveRequestController::class, 'index'])->name('leave.index');
+        Route::get('/leave/{leaveRequest}', [App\Http\Controllers\Admin\LeaveRequestController::class, 'show'])->name('leave.show');
+        Route::post('/leave/{leaveRequest}/approve', [App\Http\Controllers\Admin\LeaveRequestController::class, 'approve'])->name('leave.approve');
+        Route::post('/leave/{leaveRequest}/reject', [App\Http\Controllers\Admin\LeaveRequestController::class, 'reject'])->name('leave.reject');
+
+        // Attendance Management
+        Route::get('/attendance', [App\Http\Controllers\Admin\AttendanceController::class, 'index'])->name('attendance.index');
+        Route::get('/attendance/create', [App\Http\Controllers\Admin\AttendanceController::class, 'create'])->name('attendance.create');
+        Route::post('/attendance', [App\Http\Controllers\Admin\AttendanceController::class, 'store'])->name('attendance.store');
+        Route::get('/attendance/student/{student}', [App\Http\Controllers\Admin\AttendanceController::class, 'studentHistory'])->name('attendance.student');
+
+        // Fee Structure Management
+        Route::get('/fees', [App\Http\Controllers\Admin\FeeController::class, 'index'])->name('fees.index');
+        Route::get('/fees/students', [App\Http\Controllers\Admin\FeeController::class, 'studentFees'])->name('fees.students');
+        Route::patch('/fees/room/{room}', [App\Http\Controllers\Admin\FeeController::class, 'updateRoomPrice'])->name('fees.room.update');
+        Route::patch('/fees/student/{student}', [App\Http\Controllers\Admin\FeeController::class, 'updateStudentFee'])->name('fees.student.update');
+
+        // Announcements Management
+        Route::get('/announcements', [App\Http\Controllers\Admin\AnnouncementController::class, 'index'])->name('announcements.index');
+        Route::get('/announcements/create', [App\Http\Controllers\Admin\AnnouncementController::class, 'create'])->name('announcements.create');
+        Route::post('/announcements', [App\Http\Controllers\Admin\AnnouncementController::class, 'store'])->name('announcements.store');
+        Route::get('/announcements/{announcement}/edit', [App\Http\Controllers\Admin\AnnouncementController::class, 'edit'])->name('announcements.edit');
+        Route::put('/announcements/{announcement}', [App\Http\Controllers\Admin\AnnouncementController::class, 'update'])->name('announcements.update');
+        Route::delete('/announcements/{announcement}', [App\Http\Controllers\Admin\AnnouncementController::class, 'destroy'])->name('announcements.destroy');
+
+        // Hostel Rules Management
+        Route::get('/rules', [App\Http\Controllers\Admin\HostelRuleController::class, 'index'])->name('rules.index');
+        Route::get('/rules/create', [App\Http\Controllers\Admin\HostelRuleController::class, 'create'])->name('rules.create');
+        Route::post('/rules', [App\Http\Controllers\Admin\HostelRuleController::class, 'store'])->name('rules.store');
+        Route::get('/rules/{rule}/edit', [App\Http\Controllers\Admin\HostelRuleController::class, 'edit'])->name('rules.edit');
+        Route::put('/rules/{rule}', [App\Http\Controllers\Admin\HostelRuleController::class, 'update'])->name('rules.update');
+        Route::delete('/rules/{rule}', [App\Http\Controllers\Admin\HostelRuleController::class, 'destroy'])->name('rules.destroy');
+        Route::patch('/rules/{rule}/toggle', [App\Http\Controllers\Admin\HostelRuleController::class, 'toggleStatus'])->name('rules.toggle');
+
+        // Reports
+        Route::get('/reports', [App\Http\Controllers\Admin\ReportController::class, 'index'])->name('reports.index');
+        Route::get('/reports/occupancy', [App\Http\Controllers\Admin\ReportController::class, 'occupancy'])->name('reports.occupancy');
+        Route::get('/reports/fees', [App\Http\Controllers\Admin\ReportController::class, 'fees'])->name('reports.fees');
+        Route::get('/reports/complaints', [App\Http\Controllers\Admin\ReportController::class, 'complaints'])->name('reports.complaints');
     });
 });
 
@@ -124,6 +184,11 @@ Route::middleware(['auth'])->group(function () {
 Route::prefix('student')->name('student.')->group(function () {
     Route::get('/login', [StudentsAuthController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [StudentsAuthController::class, 'login'])->name('login.post');
+    // Student Hostel Routes
+    Route::get('/hostels', [App\Http\Controllers\StudentsDashboardController::class, 'hostels'])->name('hostels.index');
+    Route::get('/hostels/{hostel}', [App\Http\Controllers\StudentsDashboardController::class, 'showHostel'])->name('hostels.show');
+    Route::post('/rooms/{room}/book', [App\Http\Controllers\StudentsDashboardController::class, 'bookRoom'])->name('rooms.book');
+
     Route::post('/logout', [StudentsAuthController::class, 'logout'])->name('logout');
 });
 /*
@@ -132,29 +197,53 @@ Route::prefix('student')->name('student.')->group(function () {
 |--------------------------------------------------------------------------
 */
 Route::prefix('student')->name('student.')->middleware('student.auth')->group(function () {
+    // Dashboard
     Route::get('/dashboard', [StudentsDashboardController::class, 'index'])->name('dashboard');
 
-    // Student dashboard
-       Route::get('/dashboard', [StudentsDashboardController::class, 'index'])->name('dashboard');
-
-    // Student profile and settings
-    Route::get('/profile', [\App\Http\Controllers\StudentProfileController::class, 'index'])->name('profile');
+    // Profile Management
+    Route::get('/profile', [\App\Http\Controllers\StudentProfileController::class, 'index'])->name('profile.index');
     Route::get('/profile/edit', [\App\Http\Controllers\StudentProfileController::class, 'edit'])->name('profile.edit');
     Route::post('/profile/update', [\App\Http\Controllers\StudentProfileController::class, 'update'])->name('profile.update');
     Route::get('/profile/change-password', [\App\Http\Controllers\StudentProfileController::class, 'changePasswordForm'])->name('password.change');
     Route::post('/profile/change-password', [\App\Http\Controllers\StudentProfileController::class, 'changePassword'])->name('password.update');
 
-    // Notification preferences
-    Route::get('/notifications', [\App\Http\Controllers\StudentNotificationsController::class, 'index'])->name('notifications');
-    Route::post('/notifications', [\App\Http\Controllers\StudentNotificationsController::class, 'update'])->name('notifications.update');
+    // Room & Hostel Details
+    Route::get('/room', [StudentsDashboardController::class, 'roomDetails'])->name('room.details');
+    Route::get('/hostel/rules', [StudentsDashboardController::class, 'hostelRules'])->name('hostel.rules');
+
+    // Announcements & Notices
+    Route::get('/announcements', [StudentsDashboardController::class, 'announcements'])->name('announcements.index');
+    Route::get('/announcements/{announcement}', [StudentsDashboardController::class, 'showAnnouncement'])->name('announcements.show');
+
+    // Attendance / In-Out Records
+    Route::get('/attendance', [StudentsDashboardController::class, 'attendance'])->name('attendance.index');
+
+    // Fee Details & Payment Status
+    Route::get('/fees', [StudentsDashboardController::class, 'feeDetails'])->name('fees.index');
 
     // Payments
     Route::post('/payments', [StudentPaymentController::class, 'store'])->name('payments.store');
 
     // Complaints
+    Route::get('/complaints', [StudentsDashboardController::class, 'complaints'])->name('complaints.index');
+    Route::get('/complaints/{id}', [StudentsDashboardController::class, 'showComplaint'])->name('complaints.show');
     Route::post('/complaints', [StudentComplaintController::class, 'store'])->name('complaints.store');
 
-    // Student session status check route
+    // Leave Requests
+    Route::get('/leave', [App\Http\Controllers\StudentLeaveController::class, 'index'])->name('leave.index');
+    Route::get('/leave/create', [App\Http\Controllers\StudentLeaveController::class, 'create'])->name('leave.create');
+    Route::post('/leave', [App\Http\Controllers\StudentLeaveController::class, 'store'])->name('leave.store');
+
+    // Notification Preferences
+    Route::get('/notifications', [\App\Http\Controllers\StudentNotificationsController::class, 'index'])->name('notifications');
+    Route::post('/notifications', [\App\Http\Controllers\StudentNotificationsController::class, 'update'])->name('notifications.update');
+    Route::get('/notifications/{id}/mark-read', [\App\Http\Controllers\StudentNotificationsController::class, 'markAsRead'])->name('notifications.mark-read');
+    Route::post('/notifications/mark-all-read', [\App\Http\Controllers\StudentNotificationsController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
+
+    // Application Details (if came from application)
+    Route::get('/application', [StudentsDashboardController::class, 'applicationDetails'])->name('application.details');
+
+    // Session Check
     Route::get('/check-session', function () {
         if (!Auth::guard('student')->check()) {
             return response()->json(['error' => 'Unauthenticated'], 401);

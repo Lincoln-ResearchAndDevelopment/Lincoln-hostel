@@ -37,9 +37,14 @@ class StudentController extends Controller
 
     public function create()
     {
-        $availableRooms = Room::where('status', 'available')
+        // Fetch available rooms with their hostel
+        $availableRooms = Room::with('hostel')
+                            ->where('status', 'available')
                             ->whereRaw('occupied < capacity')
-                            ->get();
+                            ->get()
+                            ->sortBy(function($room) {
+                                return $room->hostel->name . ' ' . $room->room_number;
+                            });
 
         return view('students.create', compact('availableRooms'));
     }
@@ -104,11 +109,16 @@ class StudentController extends Controller
 
     public function edit(Student $student)
     {
-        $availableRooms = Room::where(function ($query) use ($student) {
-            $query->where('status', 'available')
-                  ->whereRaw('occupied < capacity')
-                  ->orWhere('id', $student->room_id);
-        })->get();
+        $availableRooms = Room::with('hostel')
+            ->where(function ($query) use ($student) {
+                $query->where('status', 'available')
+                      ->whereRaw('occupied < capacity')
+                      ->orWhere('id', $student->room_id);
+            })
+            ->get()
+            ->sortBy(function($room) {
+                return $room->hostel->name . ' ' . $room->room_number;
+            });
 
         return view('students.edit', compact('student', 'availableRooms'));
     }

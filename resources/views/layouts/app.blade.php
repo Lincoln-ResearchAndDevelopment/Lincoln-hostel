@@ -370,7 +370,8 @@
                 @php
                     // Determine authentication type based on current route and guards
                     $isOnSuperAdminRoute = request()->is('superadmin*');
-                    $isOnRegularAdminRoute = !request()->is('superadmin*') && !request()->is('student*');
+                    // Fix: Use 'student/*' to avoid matching 'students' (plural) admin routes
+                    $isOnRegularAdminRoute = !request()->is('superadmin*') && !request()->is('student/*') && !request()->is('student');
 
                     // Check authentication based on route context
                     if ($isOnSuperAdminRoute) {
@@ -410,6 +411,12 @@
                         @endif
 
                         @if($isRegularAdmin && !$isSuperAdmin)
+                            <li class="nav-item">
+                                <a class="nav-link {{ request()->routeIs('hostels.*') ? 'active' : '' }}" href="{{ route('hostels.index') }}">
+                                    <i class="fas fa-building"></i>
+                                    <span>Hostels</span>
+                                </a>
+                            </li>
                             <li class="nav-item">
                                 <a class="nav-link {{ request()->routeIs('rooms.*') ? 'active' : '' }}" href="{{ route('rooms.index') }}">
                                     <i class="fas fa-door-open"></i>

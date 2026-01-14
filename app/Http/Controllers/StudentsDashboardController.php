@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Announcement;
+use App\Models\HostelRule;
+use App\Models\AttendanceRecord;
+use App\Models\Notification;
 
 class StudentsDashboardController extends Controller
 {
@@ -12,38 +15,337 @@ class StudentsDashboardController extends Controller
         $this->middleware('auth:student');
     }
 
-   public function index()
-{
-    $student = auth()->guard('student')->user();
+    /**
+     * Student Dashboard - Main Overview
+     */
+    public function index()
+    {
+        $student = auth()->guard('student')->user();
 
-    $complaints = $student->complaints; // student's complaints
+        // Load relationships
+        $student->load(['room.hostel', 'payments', 'complaints', 'leaveRequests', 'attendanceRecords']);
 
-    // Fetch payments for payment history
-    $payments = $student->payments()->latest()->get();
+        $complaints = $student->complaints;
+        $payments = $student->payments()->latest()->get();
+        $leaveRequests = $student->leaveRequests()->latest()->take(5)->get();
 
-    $latestAnnouncements = Announcement::orderBy('created_at', 'desc')->take(5)->get();
-    $unreadAnnouncements = Announcement::count();
+        // Announcements
+        $latestAnnouncements = Announcement::orderBy('created_at', 'desc')->take(5)->get();
+        $unreadAnnouncements = Announcement::count();
 
-    // Dashboard summary stats for the student overview
-    $total_payments = $payments->count();
-    $total_paid = $payments->where('status', 'completed')->sum('amount');
-    $pending_payments = $payments->where('status', 'pending')->count();
+        // Unread Notifications
+        $unreadNotifications = $student->notifications()->unread()->latest()->take(5)->get();
 
-    $total_complaints = $complaints->count();
-    $pending_complaints = $complaints->whereIn('status', ['submitted', 'in progress'])->count();
+        // Dashboard summary stats
+        $total_payments = $payments->count();
+        $total_paid = $payments->where('status', 'completed')->sum('amount');
+        $pending_payments = $payments->where('status', 'pending')->count();
 
-    return view('student.dashboard', compact(
-        'student',
-        'latestAnnouncements',
-        'unreadAnnouncements',
-        'complaints',
-        'payments',
-        'total_payments',
-        'total_paid',
-        'pending_payments',
-        'total_complaints',
-        'pending_complaints'
-    ));
-}
+        $total_complaints = $complaints->count();
+        $pending_complaints = $complaints->whereIn('status', ['submitted', 'in progress'])->count();
 
+        // Attendance records (last 7 days)
+        $recentAttendance = $student->attendanceRecords()
+            ->where('recorded_at', '>=', now()->subDays(7))
+            ->orderBy('recorded_at', 'desc')
+            ->take(10)
+            ->get();
+
+        // Fee information
+        $feeInfo = [
+            'total_fee' => $student->hostel_fee_amount,
+            'paid' => $student->hostel_fee_paid,
+            'outstanding' => $student->outstanding_balance,
+            'status' => $student->hostel_fee_status,
+            'due_date' => $student->payment_due_date,
+            'is_overdue' => $student->isPaymentOverdue(),
+        ];
+
+        return view('student.dashboard', compact(
+            'student',
+            'latestAnnouncements',
+            'unreadAnnouncements',
+            'unreadNotifications',
+            'complaints',
+            'payments',
+            'leaveRequests',
+            'total_payments',
+            'total_paid',
+            'pending_payments',
+            'total_complaints',
+            'pending_complaints',
+            'recentAttendance',
+            'feeInfo'
+        ));
+    }
+
+    /**
+     * View Personal Profile
+     */
+    public function profile()
+    {
+        $student = auth()->guard('student')->user();
+        $student->load(['room.hostel', 'hostelApplication']);
+        
+        return view('student.profile.index', compact('student'));
+    }
+
+    /**
+     * View Room & Hostel Allocation Details
+     */
+    public function roomDetails()
+    {
+        $student = auth()->guard('student')->user();
+        $student->load(['room.hostel', 'room.students']);
+        
+        if (!$student->room) {
+            return redirect()->route('student.dashboard')
+                ->with('info', 'You do not have a room assigned yet.');
+        }
+
+        $room = $student->room;
+        $hostel = $room->hostel;
+        $roommates = $room->students->where('id', '!=', $student->id);
+
+        return view('student.room.details', compact('student', 'room', 'hostel', 'roommates'));
+    }
+
+    /**
+     * View Hostel Rules & Regulations
+     */
+    public function hostelRules()
+    {
+        $student = auth()->guard('student')->user();
+        $hostelId = $student->room ? $student->room->hostel_id : null;
+
+        // Get rules applicable to student's hostel (or all global rules)
+        $rules = HostelRule::active()
+            ->when($hostelId, function($query) use ($hostelId) {
+                return $query->forHostel($hostelId);
+            }, function($query) {
+                return $query->global();
+            })
+            ->orderBy('category')
+            ->orderBy('order')
+            ->get()
+            ->groupBy('category');
+
+        $categories = HostelRule::getCategories();
+
+        return view('student.hostel.rules', compact('rules', 'categories', 'student'));
+    }
+
+    /**
+     * View Announcements & Notices
+     */
+    public function announcements()
+    {
+        $announcements = Announcement::orderBy('created_at', 'desc')->paginate(10);
+        
+        return view('student.announcements.index', compact('announcements'));
+    }
+
+    /**
+     * View Single Announcement
+     */
+    public function showAnnouncement(Announcement $announcement)
+    {
+        return view('student.announcements.show', compact('announcement'));
+    }
+
+    /**
+     * View Attendance / In-Out Records
+     */
+    public function attendance(Request $request)
+    {
+        $student = auth()->guard('student')->user();
+        
+        // Filter by date range
+        $startDate = $request->get('start_date', now()->startOfMonth()->format('Y-m-d'));
+        $endDate = $request->get('end_date', now()->format('Y-m-d'));
+
+        $attendanceRecords = $student->attendanceRecords()
+            ->whereBetween('recorded_at', [$startDate, $endDate . ' 23:59:59'])
+            ->orderBy('recorded_at', 'desc')
+            ->paginate(20);
+
+        // Summary stats
+        $checkIns = $student->attendanceRecords()
+            ->whereBetween('recorded_at', [$startDate, $endDate . ' 23:59:59'])
+            ->where('type', 'check_in')
+            ->count();
+
+        $checkOuts = $student->attendanceRecords()
+            ->whereBetween('recorded_at', [$startDate, $endDate . ' 23:59:59'])
+            ->where('type', 'check_out')
+            ->count();
+
+        return view('student.attendance.index', compact(
+            'student',
+            'attendanceRecords',
+            'startDate',
+            'endDate',
+            'checkIns',
+            'checkOuts'
+        ));
+    }
+
+    /**
+     * View Hostel Fee Details & Payment Status
+     */
+    public function feeDetails()
+    {
+        $student = auth()->guard('student')->user();
+        $student->load('payments');
+
+        $payments = $student->payments()->orderBy('created_at', 'desc')->get();
+
+        $feeInfo = [
+            'total_fee' => $student->hostel_fee_amount,
+            'paid' => $student->hostel_fee_paid,
+            'outstanding' => $student->outstanding_balance,
+            'status' => $student->hostel_fee_status,
+            'due_date' => $student->payment_due_date,
+            'is_overdue' => $student->isPaymentOverdue(),
+            'payment_percentage' => $student->payment_percentage,
+        ];
+
+        return view('student.fees.index', compact('student', 'payments', 'feeInfo'));
+    }
+
+    /**
+     * View Complaints History & Status
+     */
+    public function complaints()
+    {
+        $student = auth()->guard('student')->user();
+        $complaints = $student->complaints()->orderBy('created_at', 'desc')->paginate(10);
+
+        return view('student.complaints.index', compact('student', 'complaints'));
+    }
+
+    /**
+     * View Single Complaint Details
+     */
+    public function showComplaint($id)
+    {
+        $student = auth()->guard('student')->user();
+        $complaint = $student->complaints()->findOrFail($id);
+
+        return view('student.complaints.show', compact('student', 'complaint'));
+    }
+
+    /**
+     * View Leave Requests History & Status
+     */
+    public function leaveRequests()
+    {
+        $student = auth()->guard('student')->user();
+        $leaveRequests = $student->leaveRequests()->orderBy('created_at', 'desc')->paginate(10);
+
+        return view('student.leave.index', compact('student', 'leaveRequests'));
+    }
+
+    /**
+     * Browse Available Hostels
+     */
+    public function hostels(Request $request)
+    {
+        $query = \App\Models\Hostel::where('status', 'active');
+        
+        if ($request->has('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('address', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->has('type') && in_array($request->type, ['male', 'female', 'mixed'])) {
+            $query->where('type', $request->type);
+        }
+
+        $hostels = $query->withCount(['rooms' => function($q) {
+            $q->where('status', 'available');
+        }])->get();
+
+        return view('student.hostels.index', compact('hostels'));
+    }
+
+    /**
+     * View Single Hostel Details
+     */
+    public function showHostel(\App\Models\Hostel $hostel)
+    {
+        $rooms = $hostel->rooms()
+            ->where('status', 'available')
+            ->whereRaw('occupied < capacity')
+            ->orderBy('room_number')
+            ->get();
+
+        return view('student.hostels.show', compact('hostel', 'rooms'));
+    }
+
+    /**
+     * Book a Room
+     */
+    public function bookRoom(Request $request, \App\Models\Room $room)
+    {
+        $student = auth()->guard('student')->user();
+
+        // Validation
+        if ($room->status !== 'available') {
+            return back()->with('error', 'This room is not available.');
+        }
+
+        if ($room->occupied >= $room->capacity) {
+            return back()->with('error', 'This room is fully occupied.');
+        }
+
+        if ($student->room_id) {
+            return back()->with('error', 'You already have a room assigned.');
+        }
+
+        // Assign Room
+        $student->room_id = $room->id;
+        $student->check_in_date = now();
+        $student->save();
+
+        // Update Room Occupancy
+        $room->increment('occupied');
+        if ($room->occupied >= $room->capacity) {
+            $room->status = 'full';
+        }
+        $room->save();
+
+        // Create attendance record for check-in
+        AttendanceRecord::create([
+            'student_id' => $student->id,
+            'type' => 'check_in',
+            'recorded_at' => now(),
+            'recorded_by' => 'System',
+            'notes' => 'Initial room assignment',
+            'location' => 'Online Booking',
+        ]);
+
+        return redirect()->route('student.dashboard')
+            ->with('success', 'Room booked successfully! Welcome to ' . $room->hostel->name);
+    }
+
+    /**
+     * View Application Details (if student came from application)
+     */
+    public function applicationDetails()
+    {
+        $student = auth()->guard('student')->user();
+        
+        if (!$student->application_id) {
+            return redirect()->route('student.dashboard')
+                ->with('info', 'No application record found.');
+        }
+
+        $application = $student->hostelApplication;
+
+        return view('student.application.details', compact('student', 'application'));
+    }
 }

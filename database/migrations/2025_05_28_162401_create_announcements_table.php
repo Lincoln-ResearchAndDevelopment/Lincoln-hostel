@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('announcements', function (Blueprint $table) {
             $table->id();
             $table->string('title');
-            $table->text('body')->nullable();
+            $table->text('description')->nullable();
             $table->string('attachment')->nullable();
             $table->string('attachment_original_name')->nullable();
             $table->string('attachment_type')->nullable();

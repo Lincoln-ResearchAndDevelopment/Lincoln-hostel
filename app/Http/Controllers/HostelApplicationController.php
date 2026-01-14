@@ -5,11 +5,15 @@ namespace App\Http\Controllers;
 use Exception;
 use Illuminate\Http\Request;
 use App\Mail\HostelApplicationMail;
+use App\Mail\AdminApplicationNotificationMail;
+use App\Models\HostelApplication;
+use App\Models\User;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class HostelApplicationController extends Controller
 {
-
     public function create()
     {
         return view('apply');
@@ -19,60 +23,215 @@ class HostelApplicationController extends Controller
     {
         // Validate form inputs
         $validated = $request->validate([
-            'academic_year'         => 'required|string|max:255',
-            'passport_photo'        => 'required|image|mimes:jpg,jpeg,png|max:2048',
-            'name'                  => 'required|string|max:255',
-            'reg_number'            => 'required|string|max:255',
-            'intake'                => 'required|string|max:255',
-            'program'               => 'required|string|max:255',
-            'department'            => 'required|string|max:255',
-            'medical_condition'     => 'nullable|string|max:255',
-            'emergency_contact'     => 'required|string|max:255',
-            'declaration_name'      => 'required|string|max:255',
-            'applicant_signature'   => 'required|string|max:255',
-            'date'                  => 'required|date',
-            'guardian_signature'    => 'required|string|max:255',
-            'guardian_date'         => 'required|date',
-            'amount_paid'           => 'required|string|max:255',
+            // Academic Information
+            'academic_year' => 'required|string|max:255',
+            'amount_paid' => 'required|string|max:255',
+            
+            // Student Information
+            'full_name' => 'required|string|max:255',
+            'reg_number' => 'required|string|max:255|unique:hostel_applications,reg_number',
+            'intake' => 'required|string|max:255',
+            'program' => 'required|string|max:255',
+            'department' => 'required|string|max:255',
+            'gender' => 'required|in:male,female',
+            'date_of_birth' => 'required|date|before:today',
+            'phone_number' => 'required|string|max:20',
+            'email' => 'required|email|max:255',
+            'home_address' => 'required|string|max:1000',
+            'nationality' => 'required|string|max:100',
+            'state_of_origin' => 'required|string|max:100',
+            'local_government' => 'required|string|max:100',
+            
+            // Parent/Guardian Information
+            'parent_full_name' => 'required|string|max:255',
+            'parent_relationship' => 'required|string|max:100',
+            'parent_phone' => 'required|string|max:20',
+            'parent_email' => 'nullable|email|max:255',
+            'parent_address' => 'required|string|max:1000',
+            'parent_occupation' => 'required|string|max:255',
+            'parent_workplace' => 'nullable|string|max:255',
+            
+            // Emergency Contact
+            'emergency_contact_name' => 'required|string|max:255',
+            'emergency_contact_phone' => 'required|string|max:20',
+            'emergency_contact_relationship' => 'required|string|max:100',
+            'emergency_contact_address' => 'required|string|max:1000',
+            
+            // Medical Information
+            'medical_conditions' => 'nullable|string|max:1000',
+            'allergies' => 'nullable|string|max:1000',
+            'medications' => 'nullable|string|max:1000',
+            'blood_group' => 'nullable|string|max:10',
+            'genotype' => 'nullable|string|max:10',
+            'dietary_requirements' => 'nullable|string|max:1000',
+            'has_disability' => 'boolean',
+            'disability_details' => 'nullable|string|max:1000',
+            
+            // Accommodation Preferences
+            'preferred_hostel_type' => 'nullable|in:male,female,mixed',
+            'preferred_room_type' => 'nullable|in:single,double,triple,quad,dormitory',
+            'special_accommodation_needs' => 'nullable|string|max:1000',
+            
+            // Documents
+            'passport_photo' => 'required|image|mimes:jpg,jpeg,png|max:2048',
+            'applicationform_receipt' => 'required|image|mimes:jpg,jpeg,png,pdf|max:2048',
+            'hostelfee_receipt' => 'required|image|mimes:jpg,jpeg,png,pdf|max:2048',
+            'medical_report' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            'birth_certificate' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            'admission_letter' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            
+            // Declaration and Signatures
+            'declaration_name' => 'required|string|max:255',
+            'applicant_signature' => 'required|string|max:255',
+            'applicant_date' => 'required|date',
+            'guardian_signature' => 'required|string|max:255',
+            'guardian_date' => 'required|date',
+            
+            // Additional Information
+            'previous_hostel_experience' => 'nullable|string|max:1000',
+            'why_choose_hostel' => 'nullable|string|max:1000',
         ]);
 
-        // Handle passport upload
-        if ($request->hasFile('passport_photo')) {
-            $file = $request->file('passport_photo');
-            $filename = time() . '_' . $file->getClientOriginalName();
-            $file->move(public_path('uploads/passports'), $filename);
-            $validated['passport_photo'] = asset('uploads/passports/' . $filename);
-        } else {
-            $validated['passport_photo'] = null;
+        // Handle file uploads
+        $fileFields = [
+            'passport_photo',
+            'applicationform_receipt', 
+            'hostelfee_receipt',
+            'medical_report',
+            'birth_certificate',
+            'admission_letter'
+        ];
+
+        foreach ($fileFields as $field) {
+            if ($request->hasFile($field)) {
+                $validated[$field] = $this->handleFileUpload($request->file($field), $field);
+            }
         }
 
-        // Handle Application Form Receipt upload
-        if ($request->hasFile('applicationform_receipt')) {
-            $file = $request->file('applicationform_receipt');
-            $filename = time() . '_' . $file->getClientOriginalName();
-            $file->move(public_path('uploads/receipts'), $filename);
-            $validated['applicationform_receipt'] = asset('uploads/receipts/' . $filename);
-        } else {
-            $validated['applicationform_receipt'] = null;
-        }
-
-        // Handle Hostel Fee Receipt upload
-        if ($request->hasFile('hostelfee_receipt')) {
-            $file = $request->file('hostelfee_receipt');
-            $filename = time() . '_' . $file->getClientOriginalName();
-            $file->move(public_path('uploads/receipts'), $filename);
-            $validated['hostelfee_receipt'] = asset('uploads/receipts/' . $filename);
-        } else {
-            $validated['hostelfee_receipt'] = null;
-        }
-
-        // Try to send email and catch any possible errors
+        // Create the application
         try {
-            Mail::to('lotannaemmanuelotikpo@gmail.com')->send(new HostelApplicationMail($validated));
+            $application = HostelApplication::create($validated);
 
-            return redirect()->back()->with('success', 'Application submitted successfully! We will get back to you shortly.');
+            // Send email to student
+            Mail::to($validated['email'])->send(new HostelApplicationMail($application));
+
+            // Send notification to all admin users
+            $adminUsers = User::where('is_admin', true)->where('is_active', true)->get();
+            foreach ($adminUsers as $admin) {
+                Mail::to($admin->email)->send(new AdminApplicationNotificationMail($application));
+            }
+
+            return redirect()->back()->with('success', 
+                'Application submitted successfully! Your application number is: ' . $application->application_number . 
+                '. We will get back to you shortly via email or phone.'
+            );
+
         } catch (Exception $e) {
-            return redirect()->back()->with('error', 'Something went wrong while sending your application. Please try again.');
+            // Clean up uploaded files if database save fails
+            foreach ($fileFields as $field) {
+                if (isset($validated[$field]) && $validated[$field]) {
+                    $this->deleteFile($validated[$field]);
+                }
+            }
+
+            return redirect()->back()->with('error', 
+                'Something went wrong while submitting your application. Please try again.'
+            )->withInput();
         }
+    }
+
+    /**
+     * Handle file upload
+     */
+    private function handleFileUpload($file, $fieldName)
+    {
+        $directory = 'hostel_applications/' . $fieldName;
+        $filename = time() . '_' . Str::random(10) . '.' . $file->getClientOriginalExtension();
+        
+        // Create directory if it doesn't exist
+        if (!file_exists(public_path('uploads/' . $directory))) {
+            mkdir(public_path('uploads/' . $directory), 0755, true);
+        }
+        
+        $file->move(public_path('uploads/' . $directory), $filename);
+        
+        return 'uploads/' . $directory . '/' . $filename;
+    }
+
+    /**
+     * Delete uploaded file
+     */
+    private function deleteFile($filePath)
+    {
+        if ($filePath && file_exists(public_path($filePath))) {
+            unlink(public_path($filePath));
+        }
+    }
+
+    /**
+     * Show application details (for students to view their application)
+     */
+    public function show($applicationNumber)
+    {
+        $application = HostelApplication::where('application_number', $applicationNumber)->firstOrFail();
+        return view('application-details', compact('application'));
+    }
+
+    /**
+     * Admin view for managing applications
+     */
+    public function adminIndex(Request $request)
+    {
+        $query = HostelApplication::with('reviewer');
+        
+        // Filter by status if provided
+        if ($request->has('status') && $request->status) {
+            $query->where('status', $request->status);
+        }
+        
+        $applications = $query->orderBy('created_at', 'desc')->paginate(20);
+            
+        return view('admin.applications.index', compact('applications'));
+    }
+
+    /**
+     * Admin view for single application
+     */
+    public function adminShow(HostelApplication $application)
+    {
+        return view('admin.applications.show', compact('application'));
+    }
+
+    /**
+     * Update application status
+     */
+    public function updateStatus(Request $request, HostelApplication $application)
+    {
+        $request->validate([
+            'status' => 'required|in:pending,under_review,approved,rejected',
+            'admin_notes' => 'nullable|string|max:1000',
+        ]);
+
+        $application->update([
+            'status' => $request->status,
+            'admin_notes' => $request->admin_notes,
+            'reviewed_by' => auth()->id(),
+            'reviewed_at' => now(),
+        ]);
+
+        // Send status update email to student
+        try {
+            Mail::to($application->email)->send(new \App\Mail\ApplicationStatusUpdateMail($application));
+        } catch (Exception $e) {
+            // Log the error but don't fail the status update
+            \Log::error('Failed to send status update email: ' . $e->getMessage());
+        }
+
+        // Return JSON for AJAX requests
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true, 'message' => 'Application status updated successfully.']);
+        }
+
+        return redirect()->back()->with('success', 'Application status updated successfully.');
     }
 }
