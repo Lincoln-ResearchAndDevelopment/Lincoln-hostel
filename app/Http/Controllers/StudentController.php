@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Student;
 use App\Models\Room;
 use App\Models\User;
+use App\Models\HostelApplication;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
@@ -12,6 +13,24 @@ use Carbon\Carbon;
 
 class StudentController extends Controller
 {
+    /**
+     * Search for approved applications
+     */
+    public function searchApplications(Request $request)
+    {
+        $search = $request->get('q');
+        
+        $applications = HostelApplication::where('status', 'approved')
+            ->where(function($query) use ($search) {
+                $query->where('full_name', 'like', "%$search%")
+                      ->orWhere('reg_number', 'like', "%$search%");
+            })
+            ->limit(10)
+            ->get();
+
+        return response()->json($applications);
+    }
+
     public function index()
     {
         $search = request('search');
@@ -67,7 +86,17 @@ class StudentController extends Controller
             'expected_check_out_date' => 'required|date|after:check_in_date',
         ]);
 
-        DB::transaction(function () use ($validated) {
+        // Verify if student is registered (has an approved application)
+        $application = HostelApplication::where('reg_number', $validated['admission_number'])
+            ->where('status', 'approved')
+            ->first();
+
+        if (!$application) {
+            return back()->withErrors(['admission_number' => 'This student does not have an approved hostel application.'])
+                         ->withInput();
+        }
+
+        DB::transaction(function () use ($validated, $application) {
             $user = User::create([
                 'name' => $validated['full_name'],
                 'email' => $validated['email'],
@@ -77,9 +106,11 @@ class StudentController extends Controller
 
             Student::create([
                 'user_id' => $user->id,
+                'application_id' => $application->id,
                 'room_id' => $validated['room_id'],
                 'admission_number' => $validated['admission_number'],
                 'full_name' => $validated['full_name'],
+                'email' => $validated['email'],
                 'gender' => $validated['gender'],
                 'department' => $validated['department'],
                 'semester' => $validated['semester'],
@@ -90,6 +121,9 @@ class StudentController extends Controller
                 'check_in_date' => Carbon::parse($validated['check_in_date']),
                 'expected_check_out_date' => Carbon::parse($validated['expected_check_out_date']),
                 'status' => 'active',
+                'hostel_fee_amount' => $application->amount_paid ?? 0,
+                'hostel_fee_paid' => $application->amount_paid ?? 0,
+                'hostel_fee_status' => 'paid',
             ]);
 
             Room::where('id', $validated['room_id'])->update([

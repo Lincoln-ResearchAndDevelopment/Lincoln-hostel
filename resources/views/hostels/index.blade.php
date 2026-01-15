@@ -1,6 +1,14 @@
 @extends('layouts.admin')
 
-@section('page-title', 'Hostels Management')
+@section('page-title')
+    @if(request('type') == 'male')
+        Boys Hostels
+    @elseif(request('type') == 'female')
+        Girls Hostels
+    @else
+        Hostels Management
+    @endif
+@endsection
 
 @section('content')
 <div class="row mb-4">
@@ -60,9 +68,9 @@
             <div class="col-md-3">
                 <select class="form-select form-select-sm" id="typeFilter">
                     <option value="">All Types</option>
-                    <option value="male">Male</option>
-                    <option value="female">Female</option>
-                    <option value="mixed">Mixed</option>
+                    <option value="male" {{ request('type') == 'male' ? 'selected' : '' }}>Male</option>
+                    <option value="female" {{ request('type') == 'female' ? 'selected' : '' }}>Female</option>
+                    <option value="mixed" {{ request('type') == 'mixed' ? 'selected' : '' }}>Mixed</option>
                 </select>
             </div>
             <div class="col-md-5 text-end">
@@ -149,5 +157,29 @@ function deleteHostel(id) {
         document.getElementById('deleteForm').submit();
     }
 }
+
+document.getElementById('typeFilter').addEventListener('change', function() {
+    const type = this.value;
+    const url = new URL(window.location.href);
+    if (type) {
+        url.searchParams.set('type', type);
+    } else {
+        url.searchParams.delete('type');
+    }
+    window.location.href = url.toString();
+});
+
+document.getElementById('searchInput').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        const search = this.value;
+        const url = new URL(window.location.href);
+        if (search) {
+            url.searchParams.set('search', search);
+        } else {
+            url.searchParams.delete('search');
+        }
+        window.location.href = url.toString();
+    }
+});
 </script>
 @endpush

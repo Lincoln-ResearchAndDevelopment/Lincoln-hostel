@@ -18,12 +18,14 @@ class AnnouncementController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'target_audience' => 'required|in:General,Male,Female',
             'attachment' => 'nullable|file|max:10240', // 10MB max file size
         ]);
 
         $announcementData = [
             'title' => $request->title,
             'description' => $request->description,
+            'target_audience' => $request->target_audience,
         ];
 
         // Handle file upload if present
@@ -46,12 +48,14 @@ class AnnouncementController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
+            'target_audience' => 'required|in:General,Male,Female',
             'attachment' => 'nullable|file|max:10240', // 10MB max file size
         ]);
 
         $announcementData = [
             'title' => $request->title,
             'description' => $request->description,
+            'target_audience' => $request->target_audience,
         ];
 
         // Handle file upload if present

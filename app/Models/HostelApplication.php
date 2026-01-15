@@ -60,6 +60,11 @@ class HostelApplication extends Model
         'dietary_requirements',
         'has_disability',
         'disability_details',
+        'smoking_status',
+        'vaccination_status',
+        'insurance_info',
+        'preferred_hospital',
+        'physical_restrictions',
         
         // Accommodation Preferences
         'preferred_hostel_type',

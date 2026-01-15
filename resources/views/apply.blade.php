@@ -499,6 +499,52 @@
                 </div>
             </div>
         </div>
+
+        <!-- Accommodation Preferences Card -->
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <div class="form-card">
+                    <div class="card-header">
+                        <h4 class="card-title">
+                            <i class="fas fa-bed"></i>
+                            Accommodation Preferences & Needs
+                        </h4>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="preferred_hostel_type">Preferred Hostel Type</label>
+                                <select name="preferred_hostel_type" id="preferred_hostel_type" class="form-select">
+                                    <option value="">No Preference</option>
+                                    <option value="male" {{ old('preferred_hostel_type') == 'male' ? 'selected' : '' }}>Male Only</option>
+                                    <option value="female" {{ old('preferred_hostel_type') == 'female' ? 'selected' : '' }}>Female Only</option>
+                                    <option value="mixed" {{ old('preferred_hostel_type') == 'mixed' ? 'selected' : '' }}>Mixed</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="preferred_room_type">Preferred Room Type</label>
+                                <select name="preferred_room_type" id="preferred_room_type" class="form-select">
+                                    <option value="">No Preference</option>
+                                    <option value="single" {{ old('preferred_room_type') == 'single' ? 'selected' : '' }}>Single Room</option>
+                                    <option value="double" {{ old('preferred_room_type') == 'double' ? 'selected' : '' }}>Double Room</option>
+                                    <option value="triple" {{ old('preferred_room_type') == 'triple' ? 'selected' : '' }}>Triple Room</option>
+                                    <option value="quad" {{ old('preferred_room_type') == 'quad' ? 'selected' : '' }}>Quad Room</option>
+                                    <option value="dormitory" {{ old('preferred_room_type') == 'dormitory' ? 'selected' : '' }}>Dormitory</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group mt-3">
+                        <label for="special_accommodation_needs">Special Accommodation Needs</label>
+                        <textarea name="special_accommodation_needs" id="special_accommodation_needs" rows="2" class="form-control" placeholder="Any special room requirements or accommodations (e.g., ground floor, near exit, etc.)">{{ old('special_accommodation_needs') }}</textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
     <!-- SECTION 2: PARENT/GUARDIAN DETAILS -->
     <div class="form-section" id="section-2">
@@ -712,41 +758,43 @@
                         <textarea name="disability_details" id="disability_details" rows="3" placeholder="Please describe your disability and any special accommodations needed">{{ old('disability_details') }}</textarea>
                     </div>
 
-                    <div class="form-group">
-                        <label for="special_accommodation_needs">Special Accommodation Needs</label>
-                        <textarea name="special_accommodation_needs" id="special_accommodation_needs" rows="2" placeholder="Any special room requirements or accommodations">{{ old('special_accommodation_needs') }}</textarea>
-                    </div>
-
-                    <!-- Accommodation Preferences -->
-                    <div class="mt-3">
-                        <h6><i class="fas fa-bed text-primary me-2"></i>Accommodation Preferences</h6>
-                        
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="preferred_hostel_type">Preferred Hostel Type</label>
-                                    <select name="preferred_hostel_type" id="preferred_hostel_type">
-                                        <option value="">No Preference</option>
-                                        <option value="male" {{ old('preferred_hostel_type') == 'male' ? 'selected' : '' }}>Male Only</option>
-                                        <option value="female" {{ old('preferred_hostel_type') == 'female' ? 'selected' : '' }}>Female Only</option>
-                                        <option value="mixed" {{ old('preferred_hostel_type') == 'mixed' ? 'selected' : '' }}>Mixed</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="preferred_room_type">Preferred Room Type</label>
-                                    <select name="preferred_room_type" id="preferred_room_type">
-                                        <option value="">No Preference</option>
-                                        <option value="single" {{ old('preferred_room_type') == 'single' ? 'selected' : '' }}>Single Room</option>
-                                        <option value="double" {{ old('preferred_room_type') == 'double' ? 'selected' : '' }}>Double Room</option>
-                                        <option value="triple" {{ old('preferred_room_type') == 'triple' ? 'selected' : '' }}>Triple Room</option>
-                                        <option value="quad" {{ old('preferred_room_type') == 'quad' ? 'selected' : '' }}>Quad Room</option>
-                                        <option value="dormitory" {{ old('preferred_room_type') == 'dormitory' ? 'selected' : '' }}>Dormitory</option>
-                                    </select>
-                                </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="smoking_status">Smoking Status <span class="required-field">*</span></label>
+                                <select name="smoking_status" id="smoking_status" class="form-select" required>
+                                    <option value="non-smoker" {{ old('smoking_status') == 'non-smoker' ? 'selected' : '' }}>Non-Smoker</option>
+                                    <option value="smoker" {{ old('smoking_status') == 'smoker' ? 'selected' : '' }}>Smoker</option>
+                                </select>
+                                <small class="text-muted">Important for roommate matching</small>
                             </div>
                         </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="vaccination_status">Vaccination Status</label>
+                                <input type="text" name="vaccination_status" id="vaccination_status" placeholder="e.g. Meningitis, COVID, Hep B" value="{{ old('vaccination_status') }}" class="form-control">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="insurance_info">Health Insurance (NHIS/HMO)</label>
+                                <input type="text" name="insurance_info" id="insurance_info" placeholder="Provider & ID Number" value="{{ old('insurance_info') }}" class="form-control">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="preferred_hospital">Preferred Emergency Hospital</label>
+                                <input type="text" name="preferred_hospital" id="preferred_hospital" placeholder="Name of clinic/hospital" value="{{ old('preferred_hospital') }}" class="form-control">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="physical_restrictions">Physical Activity Restrictions</label>
+                        <textarea name="physical_restrictions" id="physical_restrictions" rows="2" class="form-control" placeholder="Any restrictions on climbing stairs or physical exertion?">{{ old('physical_restrictions') }}</textarea>
                     </div>
                 </div>
             </div>
@@ -773,20 +821,29 @@
                     
                     <div class="form-group file-input-group">
                         <label for="passport_photo">Passport Photo <span class="required-field">*</span></label>
-                        <input type="file" name="passport_photo" id="passport_photo" accept="image/*" required>
-                        <small class="text-muted">Upload a clear passport-sized photograph (JPG, PNG)</small>
+                        <input type="file" name="passport_photo" id="passport_photo" accept="image/*" required class="@error('passport_photo') is-invalid @enderror">
+                        @error('passport_photo')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                        <small class="text-muted">Upload a clear passport-sized photograph (JPG, PNG, max 10MB)</small>
                     </div>
 
                     <div class="form-group file-input-group">
                         <label for="applicationform_receipt">Application Form Receipt <span class="required-field">*</span></label>
-                        <input type="file" name="applicationform_receipt" id="applicationform_receipt" accept="image/*,application/pdf" required>
-                        <small class="text-muted">Receipt for ₦2,000 application form fee</small>
+                        <input type="file" name="applicationform_receipt" id="applicationform_receipt" accept="image/*,application/pdf" required class="@error('applicationform_receipt') is-invalid @enderror">
+                        @error('applicationform_receipt')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                        <small class="text-muted">Receipt for ₦2,000 application form fee (max 10MB)</small>
                     </div>
 
                     <div class="form-group file-input-group">
                         <label for="hostelfee_receipt">Hostel Fees Receipt <span class="required-field">*</span></label>
-                        <input type="file" name="hostelfee_receipt" id="hostelfee_receipt" accept="image/*,application/pdf" required>
-                        <small class="text-muted">Receipt for ₦180,000 (semester) or ₦400,000 (year)</small>
+                        <input type="file" name="hostelfee_receipt" id="hostelfee_receipt" accept="image/*,application/pdf" required class="@error('hostelfee_receipt') is-invalid @enderror">
+                        @error('hostelfee_receipt')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                        <small class="text-muted">Receipt for ₦180,000 (semester) or ₦400,000 (year) (max 10MB)</small>
                     </div>
 
                     <button type="button" class="account-details-btn" data-bs-toggle="modal" data-bs-target="#paymentDetailsModal">
@@ -807,20 +864,29 @@
                     
                     <div class="form-group file-input-group">
                         <label for="medical_report">Medical Report</label>
-                        <input type="file" name="medical_report" id="medical_report" accept="image/*,application/pdf">
-                        <small class="text-muted">Recent medical examination report (recommended)</small>
+                        <input type="file" name="medical_report" id="medical_report" accept="image/*,application/pdf" class="@error('medical_report') is-invalid @enderror">
+                        @error('medical_report')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                        <small class="text-muted">Recent medical examination report (max 10MB)</small>
                     </div>
 
                     <div class="form-group file-input-group">
                         <label for="birth_certificate">Birth Certificate</label>
-                        <input type="file" name="birth_certificate" id="birth_certificate" accept="image/*,application/pdf">
-                        <small class="text-muted">Copy of birth certificate or age declaration</small>
+                        <input type="file" name="birth_certificate" id="birth_certificate" accept="image/*,application/pdf" class="@error('birth_certificate') is-invalid @enderror">
+                        @error('birth_certificate')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                        <small class="text-muted">Copy of birth certificate or age declaration (max 10MB)</small>
                     </div>
 
                     <div class="form-group file-input-group">
                         <label for="admission_letter">Admission Letter</label>
-                        <input type="file" name="admission_letter" id="admission_letter" accept="image/*,application/pdf">
-                        <small class="text-muted">Copy of university admission letter</small>
+                        <input type="file" name="admission_letter" id="admission_letter" accept="image/*,application/pdf" class="@error('admission_letter') is-invalid @enderror">
+                        @error('admission_letter')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                        <small class="text-muted">Copy of university admission letter (max 10MB)</small>
                     </div>
 
                     <!-- Additional Information -->

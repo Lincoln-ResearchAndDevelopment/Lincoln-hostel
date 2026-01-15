@@ -308,8 +308,14 @@
                 
                 <!-- Hostel Management -->
                 <div class="nav-section-title">Hostel Management</div>
-                <a class="nav-link {{ request()->routeIs('hostels.*') ? 'active' : '' }}" href="{{ route('hostels.index') }}">
-                    <i class="fas fa-building"></i><span>Hostels</span>
+                <a class="nav-link {{ request()->routeIs('hostels.index') && !request('type') ? 'active' : '' }}" href="{{ route('hostels.index') }}">
+                    <i class="fas fa-building"></i><span>All Hostels</span>
+                </a>
+                <a class="nav-link {{ request('type') == 'male' ? 'active' : '' }}" href="{{ route('hostels.index', ['type' => 'male']) }}" style="padding-left: 2rem;">
+                    <i class="fas fa-mars text-primary"></i><span>Boys Hostels</span>
+                </a>
+                <a class="nav-link {{ request('type') == 'female' ? 'active' : '' }}" href="{{ route('hostels.index', ['type' => 'female']) }}" style="padding-left: 2rem;">
+                    <i class="fas fa-venus text-danger"></i><span>Girls Hostels</span>
                 </a>
                 <a class="nav-link {{ request()->routeIs('rooms.*') ? 'active' : '' }}" href="{{ route('rooms.index') }}">
                     <i class="fas fa-door-open"></i><span>Rooms & Beds</span>

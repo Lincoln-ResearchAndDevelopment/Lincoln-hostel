@@ -32,14 +32,26 @@
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
-
                     <div class="mb-4">
-                        <label class="form-label">Description <span class="text-danger">*</span></label>
+                        <label class="form-label">Message <span class="text-danger">*</span></label>
                         <textarea name="description" class="form-control @error('description') is-invalid @enderror" rows="8" placeholder="Write your announcement here..." required>{{ old('description') }}</textarea>
                         @error('description')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
-                        <small class="text-muted">You can use basic formatting. This will be visible to all students.</small>
+                        <small class="text-muted">You can use basic formatting.</small>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label">Target Audience <span class="text-danger">*</span></label>
+                        <select name="target_audience" class="form-select @error('target_audience') is-invalid @enderror" required>
+                            <option value="General" {{ old('target_audience') == 'General' ? 'selected' : '' }}>General (All Students)</option>
+                            <option value="Male" {{ old('target_audience') == 'Male' ? 'selected' : '' }}>Boys Only</option>
+                            <option value="Female" {{ old('target_audience') == 'Female' ? 'selected' : '' }}>Girls Only</option>
+                        </select>
+                        @error('target_audience')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                        <small class="text-muted">Select who should see this announcement.</small>
                     </div>
 
                     <div class="mb-4">
@@ -70,7 +82,7 @@
                     <li class="mb-2">Keep titles clear and concise for better visibility</li>
                     <li class="mb-2">Important announcements should be highlighted in the description</li>
                     <li class="mb-2">Attach relevant documents like schedules, forms, or guidelines</li>
-                    <li>All students will be able to see this announcement on their dashboard</li>
+                    <li>Announcements will be visible on the student dashboard based on the selected audience</li>
                 </ul>
             </div>
         </div>

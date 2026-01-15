@@ -169,6 +169,84 @@
     </div>
 </div>
 
+<!-- Announcements Section -->
+<div class="row mt-4">
+    <!-- Quick Announcement Form -->
+    <div class="col-lg-7">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white py-3">
+                <h6 class="mb-0 fw-bold"><i class="fas fa-edit me-2" style="color: #cc0000;"></i>Quick Announcement</h6>
+            </div>
+            <div class="card-body">
+                <form action="{{ route('admin.announcements.store') }}" method="POST">
+                    @csrf
+                    <div class="mb-3">
+                        <input type="text" name="title" class="form-control @error('title') is-invalid @enderror" placeholder="Announcement Title" value="{{ old('title') }}" required>
+                        @error('title')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+                    <div class="mb-3">
+                        <textarea name="description" class="form-control @error('description') is-invalid @enderror" rows="3" placeholder="What's happening?" required>{{ old('description') }}</textarea>
+                        @error('description')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+                    <div class="row g-2 align-items-center">
+                        <div class="col-sm-6">
+                            <select name="target_audience" class="form-select form-select-sm" required>
+                                <option value="General">Target: General</option>
+                                <option value="Male">Target: Boys Only</option>
+                                <option value="Female">Target: Girls Only</option>
+                            </select>
+                        </div>
+                        <div class="col-sm-6 text-end">
+                            <button type="submit" class="btn btn-primary btn-sm px-4">
+                                <i class="fas fa-paper-plane me-1"></i> Post
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Announcements List -->
+    <div class="col-lg-5">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 fw-bold"><i class="fas fa-bullhorn me-2" style="color: #cc0000;"></i>Recent</h6>
+                <a href="{{ route('admin.announcements.index') }}" class="btn btn-sm btn-link text-decoration-none">View All</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    @forelse($announcements as $ann)
+                    <div class="list-group-item py-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <h6 class="mb-0 fw-bold small">{{ Str::limit($ann->title, 40) }}</h6>
+                            <small class="text-muted" style="font-size: 0.7rem;">{{ $ann->created_at->diffForHumans() }}</small>
+                        </div>
+                        <p class="mb-1 small text-muted text-truncate">{{ strip_tags($ann->description) }}</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            @if($ann->target_audience == 'Male')
+                                <span class="badge bg-primary-soft text-primary p-1 small" style="font-size: 0.6rem; background: #e7f1ff;">Boys</span>
+                            @elseif($ann->target_audience == 'Female')
+                                <span class="badge bg-danger-soft text-danger p-1 small" style="font-size: 0.6rem; background: #fff5f5;">Girls</span>
+                            @else
+                                <span class="badge bg-secondary-soft text-secondary p-1 small" style="font-size: 0.6rem; background: #f8f9fa;">General</span>
+                            @endif
+                            <a href="{{ route('admin.announcements.edit', $ann) }}" class="small text-primary"><i class="fas fa-edit"></i></a>
+                        </div>
+                    </div>
+                    @empty
+                    <div class="text-center py-4 text-muted">No announcements found.</div>
+                    @endforelse
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Hostels Overview -->
 <div class="row mt-4">
     <div class="col-12">

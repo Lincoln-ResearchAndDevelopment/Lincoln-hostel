@@ -82,6 +82,8 @@ Route::middleware(['admin'])->group(function () {
         'visitors'   => VisitorController::class,
     ]);
 
+    Route::get('/students-search-applications', [StudentController::class, 'searchApplications'])->name('students.search-applications');
+
     // Additional hostel routes
     Route::get('/hostels/{hostel}/rooms', [HostelController::class, 'rooms'])->name('hostels.rooms');
 

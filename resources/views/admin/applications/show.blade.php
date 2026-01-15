@@ -113,25 +113,28 @@
         </div>
     </div>
 
-    <!-- Medical Information -->
-    @if($application->medical_conditions || $application->allergies || $application->blood_group || $application->has_disability)
+    <!-- Medical & Lifestyle Information -->
     <div class="col-md-6">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-header bg-white py-3">
-                <h6 class="mb-0 fw-bold"><i class="fas fa-heartbeat me-2" style="color: #cc0000;"></i>Medical Information</h6>
+                <h6 class="mb-0 fw-bold"><i class="fas fa-heartbeat me-2" style="color: #cc0000;"></i>Health & Lifestyle</h6>
             </div>
             <div class="card-body">
                 <div class="row g-3">
-                    @if($application->blood_group)<div class="col-6"><label class="text-muted small">Blood Group</label><p class="mb-0">{{ $application->blood_group }}</p></div>@endif
-                    @if($application->genotype)<div class="col-6"><label class="text-muted small">Genotype</label><p class="mb-0">{{ $application->genotype }}</p></div>@endif
+                    <div class="col-6"><label class="text-muted small">Blood Group</label><p class="mb-0">{{ $application->blood_group ?: 'N/A' }}</p></div>
+                    <div class="col-6"><label class="text-muted small">Genotype</label><p class="mb-0">{{ $application->genotype ?: 'N/A' }}</p></div>
+                    <div class="col-6"><label class="text-muted small">Smoking Status</label><p class="mb-0"><span class="badge {{ $application->smoking_status == 'smoker' ? 'bg-danger' : 'bg-success' }}">{{ ucfirst($application->smoking_status) }}</span></p></div>
+                    <div class="col-6"><label class="text-muted small">Vaccination Status</label><p class="mb-0">{{ $application->vaccination_status ?: 'N/A' }}</p></div>
+                    <div class="col-6"><label class="text-muted small">Insurance Info</label><p class="mb-0">{{ $application->insurance_info ?: 'N/A' }}</p></div>
+                    <div class="col-6"><label class="text-muted small">Preferred Hospital</label><p class="mb-0">{{ $application->preferred_hospital ?: 'N/A' }}</p></div>
                     @if($application->medical_conditions)<div class="col-12"><label class="text-muted small">Medical Conditions</label><p class="mb-0">{{ $application->medical_conditions }}</p></div>@endif
                     @if($application->allergies)<div class="col-12"><label class="text-muted small">Allergies</label><p class="mb-0">{{ $application->allergies }}</p></div>@endif
-                    @if($application->has_disability)<div class="col-12"><div class="alert alert-warning mb-0"><strong>Has Disability:</strong> {{ $application->disability_details ?? 'Yes' }}</div></div>@endif
+                    @if($application->physical_restrictions)<div class="col-12"><label class="text-muted small">Physical Restrictions</label><p class="mb-0 text-danger small">{{ $application->physical_restrictions }}</p></div>@endif
+                    @if($application->has_disability)<div class="col-12"><div class="alert alert-warning mb-0 p-2 small"><strong>Disability:</strong> {{ $application->disability_details ?? 'Yes' }}</div></div>@endif
                 </div>
             </div>
         </div>
     </div>
-    @endif
 
     <!-- Documents -->
     <div class="col-12">
@@ -142,38 +145,56 @@
             <div class="card-body">
                 <div class="row g-3">
                     @if($application->passport_photo)
-                    <div class="col-md-3 col-6">
-                        <div class="border rounded p-3 text-center">
-                            <i class="fas fa-image fa-2x text-primary mb-2"></i>
-                            <p class="small mb-2">Passport Photo</p>
+                    <div class="col-md-2 col-6">
+                        <div class="border rounded p-3 text-center h-100 d-flex flex-column justify-content-between">
+                            <i class="fas fa-user-circle fa-2x text-primary mb-2"></i>
+                            <p class="small mb-2 fw-semibold">Passport Photo</p>
                             <a href="{{ asset($application->passport_photo) }}" target="_blank" class="btn btn-sm btn-outline-primary">View</a>
                         </div>
                     </div>
                     @endif
                     @if($application->applicationform_receipt)
-                    <div class="col-md-3 col-6">
-                        <div class="border rounded p-3 text-center">
-                            <i class="fas fa-receipt fa-2x text-success mb-2"></i>
-                            <p class="small mb-2">Application Receipt</p>
+                    <div class="col-md-2 col-6">
+                        <div class="border rounded p-3 text-center h-100 d-flex flex-column justify-content-between">
+                            <i class="fas fa-file-invoice-dollar fa-2x text-success mb-2"></i>
+                            <p class="small mb-2 fw-semibold">App. Receipt</p>
                             <a href="{{ asset($application->applicationform_receipt) }}" target="_blank" class="btn btn-sm btn-outline-primary">View</a>
                         </div>
                     </div>
                     @endif
                     @if($application->hostelfee_receipt)
-                    <div class="col-md-3 col-6">
-                        <div class="border rounded p-3 text-center">
+                    <div class="col-md-2 col-6">
+                        <div class="border rounded p-3 text-center h-100 d-flex flex-column justify-content-between">
                             <i class="fas fa-receipt fa-2x text-success mb-2"></i>
-                            <p class="small mb-2">Hostel Fee Receipt</p>
+                            <p class="small mb-2 fw-semibold">Hostel Receipt</p>
                             <a href="{{ asset($application->hostelfee_receipt) }}" target="_blank" class="btn btn-sm btn-outline-primary">View</a>
                         </div>
                     </div>
                     @endif
                     @if($application->medical_report)
-                    <div class="col-md-3 col-6">
-                        <div class="border rounded p-3 text-center">
+                    <div class="col-md-2 col-6">
+                        <div class="border rounded p-3 text-center h-100 d-flex flex-column justify-content-between">
                             <i class="fas fa-file-medical fa-2x text-info mb-2"></i>
-                            <p class="small mb-2">Medical Report</p>
+                            <p class="small mb-2 fw-semibold">Medical Report</p>
                             <a href="{{ asset($application->medical_report) }}" target="_blank" class="btn btn-sm btn-outline-primary">View</a>
+                        </div>
+                    </div>
+                    @endif
+                    @if($application->birth_certificate)
+                    <div class="col-md-2 col-6">
+                        <div class="border rounded p-3 text-center h-100 d-flex flex-column justify-content-between">
+                            <i class="fas fa-child fa-2x text-warning mb-2"></i>
+                            <p class="small mb-2 fw-semibold">Birth Cert.</p>
+                            <a href="{{ asset($application->birth_certificate) }}" target="_blank" class="btn btn-sm btn-outline-primary">View</a>
+                        </div>
+                    </div>
+                    @endif
+                    @if($application->admission_letter)
+                    <div class="col-md-2 col-6">
+                        <div class="border rounded p-3 text-center h-100 d-flex flex-column justify-content-between">
+                            <i class="fas fa-university fa-2x text-dark mb-2"></i>
+                            <p class="small mb-2 fw-semibold">Admission Letter</p>
+                            <a href="{{ asset($application->admission_letter) }}" target="_blank" class="btn btn-sm btn-outline-primary">View</a>
                         </div>
                     </div>
                     @endif

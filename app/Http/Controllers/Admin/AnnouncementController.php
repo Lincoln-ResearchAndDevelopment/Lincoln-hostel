@@ -30,12 +30,14 @@ class AnnouncementController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
+            'target_audience' => 'required|in:General,Male,Female',
             'attachment' => 'nullable|file|max:10240',
         ]);
 
         $data = [
             'title' => $request->title,
             'description' => $request->description,
+            'target_audience' => $request->target_audience,
             'created_by' => auth()->id(),
         ];
 
@@ -48,7 +50,7 @@ class AnnouncementController extends Controller
 
         Announcement::create($data);
 
-        return redirect()->route('admin.announcements.index')->with('success', 'Announcement published successfully.');
+        return redirect()->back()->with('success', 'Announcement published successfully.');
     }
 
     public function edit(Announcement $announcement)
@@ -61,12 +63,14 @@ class AnnouncementController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
+            'target_audience' => 'required|in:General,Male,Female',
             'attachment' => 'nullable|file|max:10240',
         ]);
 
         $data = [
             'title' => $request->title,
             'description' => $request->description,
+            'target_audience' => $request->target_audience,
         ];
 
         if ($request->has('remove_attachment') && $announcement->attachment_path) {

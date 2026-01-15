@@ -30,8 +30,12 @@ class StudentsDashboardController extends Controller
         $leaveRequests = $student->leaveRequests()->latest()->take(5)->get();
 
         // Announcements
-        $latestAnnouncements = Announcement::orderBy('created_at', 'desc')->take(5)->get();
-        $unreadAnnouncements = Announcement::count();
+        $gender = $student->gender; // Male or Female
+        $latestAnnouncements = Announcement::whereIn('target_audience', ['General', $gender])
+            ->orderBy('created_at', 'desc')
+            ->take(5)
+            ->get();
+        $unreadAnnouncements = Announcement::whereIn('target_audience', ['General', $gender])->count();
 
         // Unread Notifications
         $unreadNotifications = $student->notifications()->unread()->latest()->take(5)->get();
@@ -140,7 +144,12 @@ class StudentsDashboardController extends Controller
      */
     public function announcements()
     {
-        $announcements = Announcement::orderBy('created_at', 'desc')->paginate(10);
+        $student = auth()->guard('student')->user();
+        $gender = $student->gender;
+
+        $announcements = Announcement::whereIn('target_audience', ['General', $gender])
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
         
         return view('student.announcements.index', compact('announcements'));
     }
@@ -150,6 +159,14 @@ class StudentsDashboardController extends Controller
      */
     public function showAnnouncement(Announcement $announcement)
     {
+        $student = auth()->guard('student')->user();
+        $gender = $student->gender;
+
+        if (!in_array($announcement->target_audience, ['General', $gender])) {
+            return redirect()->route('student.announcements.index')
+                ->with('error', 'You are not authorized to view this announcement.');
+        }
+
         return view('student.announcements.show', compact('announcement'));
     }
 
@@ -251,8 +268,17 @@ class StudentsDashboardController extends Controller
      */
     public function hostels(Request $request)
     {
+        $student = auth()->guard('student')->user();
+        $gender = strtolower($student->gender);
+        
         $query = \App\Models\Hostel::where('status', 'active');
         
+        // Filter by student gender
+        $query->where(function($q) use ($gender) {
+            $q->where('type', $gender)
+              ->orWhere('type', 'mixed');
+        });
+
         if ($request->has('search')) {
             $search = $request->search;
             $query->where(function($q) use ($search) {
@@ -262,7 +288,12 @@ class StudentsDashboardController extends Controller
         }
 
         if ($request->has('type') && in_array($request->type, ['male', 'female', 'mixed'])) {
-            $query->where('type', $request->type);
+            // Further restrict if they try to filter for a type they shouldn't see
+            $requestedType = $request->type;
+            if ($requestedType !== 'mixed' && $requestedType !== $gender) {
+                return redirect()->route('student.hostels.index')->with('error', 'You can only view hostels matching your gender.');
+            }
+            $query->where('type', $requestedType);
         }
 
         $hostels = $query->withCount(['rooms' => function($q) {
@@ -277,6 +308,14 @@ class StudentsDashboardController extends Controller
      */
     public function showHostel(\App\Models\Hostel $hostel)
     {
+        $student = auth()->guard('student')->user();
+        $gender = strtolower($student->gender);
+
+        // Security check: Ensure student matches hostel type
+        if ($hostel->type !== 'mixed' && $hostel->type !== $gender) {
+            return redirect()->route('student.hostels.index')->with('error', 'You cannot view this hostel as it is not designated for your gender.');
+        }
+
         $rooms = $hostel->rooms()
             ->where('status', 'available')
             ->whereRaw('occupied < capacity')
@@ -294,6 +333,13 @@ class StudentsDashboardController extends Controller
         $student = auth()->guard('student')->user();
 
         // Validation
+        $gender = strtolower($student->gender);
+        $hostel = $room->hostel;
+
+        if ($hostel->type !== 'mixed' && $hostel->type !== $gender) {
+            return back()->with('error', 'You cannot book a room in this hostel as it is not designated for your gender.');
+        }
+
         if ($room->status !== 'available') {
             return back()->with('error', 'This room is not available.');
         }

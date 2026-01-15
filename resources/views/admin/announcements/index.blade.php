@@ -29,6 +29,7 @@
                     <th class="ps-3">Title</th>
                     <th>Preview</th>
                     <th>Attachment</th>
+                    <th>Target</th>
                     <th>Published</th>
                     <th>Actions</th>
                 </tr>
@@ -47,6 +48,15 @@
                             </a>
                         @else
                             <span class="text-muted">-</span>
+                        @endif
+                    </td>
+                    <td>
+                        @if(($announcement->target_audience ?? 'General') == 'Male')
+                            <span class="badge bg-primary">Boys Only</span>
+                        @elseif(($announcement->target_audience ?? 'General') == 'Female')
+                            <span class="badge bg-danger">Girls Only</span>
+                        @else
+                            <span class="badge bg-secondary">General</span>
                         @endif
                     </td>
                     <td>

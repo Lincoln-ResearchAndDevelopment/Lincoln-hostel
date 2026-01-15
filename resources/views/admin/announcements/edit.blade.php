@@ -42,6 +42,18 @@
                         @enderror
                     </div>
 
+                    <div class="mb-4">
+                        <label class="form-label">Target Audience <span class="text-danger">*</span></label>
+                        <select name="target_audience" class="form-select @error('target_audience') is-invalid @enderror" required>
+                            <option value="General" {{ old('target_audience', $announcement->target_audience) == 'General' ? 'selected' : '' }}>General (All Students)</option>
+                            <option value="Male" {{ old('target_audience', $announcement->target_audience) == 'Male' ? 'selected' : '' }}>Boys Only</option>
+                            <option value="Female" {{ old('target_audience', $announcement->target_audience) == 'Female' ? 'selected' : '' }}>Girls Only</option>
+                        </select>
+                        @error('target_audience')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
                     @if($announcement->attachment_path)
                     <div class="mb-4">
                         <label class="form-label">Current Attachment</label>

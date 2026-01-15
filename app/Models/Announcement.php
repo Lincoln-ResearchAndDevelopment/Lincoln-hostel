@@ -15,6 +15,7 @@ class Announcement extends Model
         'attachment',
         'attachment_original_name',
         'attachment_type',
+        'target_audience',
     ];
     
     public function hasAttachment()

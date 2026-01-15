@@ -10,6 +10,7 @@ use App\Models\HostelApplication;
 use App\Models\User;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class HostelApplicationController extends Controller
@@ -66,6 +67,11 @@ class HostelApplicationController extends Controller
             'dietary_requirements' => 'nullable|string|max:1000',
             'has_disability' => 'boolean',
             'disability_details' => 'nullable|string|max:1000',
+            'smoking_status' => 'required|in:non-smoker,smoker',
+            'vaccination_status' => 'nullable|string|max:255',
+            'insurance_info' => 'nullable|string|max:255',
+            'preferred_hospital' => 'nullable|string|max:255',
+            'physical_restrictions' => 'nullable|string|max:1000',
             
             // Accommodation Preferences
             'preferred_hostel_type' => 'nullable|in:male,female,mixed',
@@ -73,12 +79,12 @@ class HostelApplicationController extends Controller
             'special_accommodation_needs' => 'nullable|string|max:1000',
             
             // Documents
-            'passport_photo' => 'required|image|mimes:jpg,jpeg,png|max:2048',
-            'applicationform_receipt' => 'required|image|mimes:jpg,jpeg,png,pdf|max:2048',
-            'hostelfee_receipt' => 'required|image|mimes:jpg,jpeg,png,pdf|max:2048',
-            'medical_report' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
-            'birth_certificate' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
-            'admission_letter' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            'passport_photo' => 'required|image|mimes:jpg,jpeg,png|max:10240',
+            'applicationform_receipt' => 'required|image|mimes:jpg,jpeg,png,pdf|max:10240',
+            'hostelfee_receipt' => 'required|image|mimes:jpg,jpeg,png,pdf|max:10240',
+            'medical_report' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:10240',
+            'birth_certificate' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:10240',
+            'admission_letter' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:10240',
             
             // Declaration and Signatures
             'declaration_name' => 'required|string|max:255',
@@ -108,17 +114,25 @@ class HostelApplicationController extends Controller
             }
         }
 
-        // Create the application
+        // Use a transaction for reliability
+        DB::beginTransaction();
         try {
             $application = HostelApplication::create($validated);
+            DB::commit();
 
-            // Send email to student
-            Mail::to($validated['email'])->send(new HostelApplicationMail($application));
+            // Send emails (non-breaking if they fail)
+            try {
+                // Send email to student
+                Mail::to($validated['email'])->send(new HostelApplicationMail($application));
 
-            // Send notification to all admin users
-            $adminUsers = User::where('is_admin', true)->where('is_active', true)->get();
-            foreach ($adminUsers as $admin) {
-                Mail::to($admin->email)->send(new AdminApplicationNotificationMail($application));
+                // Send notification to all admin users
+                $adminUsers = User::where('is_admin', true)->where('is_active', true)->get();
+                foreach ($adminUsers as $admin) {
+                    Mail::to($admin->email)->send(new AdminApplicationNotificationMail($application));
+                }
+            } catch (Exception $mailEx) {
+                // Just log mail errors, don't fail the application
+                \Log::warning('Hostel application emails failed: ' . $mailEx->getMessage());
             }
 
             return redirect()->back()->with('success', 
@@ -127,6 +141,8 @@ class HostelApplicationController extends Controller
             );
 
         } catch (Exception $e) {
+            DB::rollBack();
+            
             // Clean up uploaded files if database save fails
             foreach ($fileFields as $field) {
                 if (isset($validated[$field]) && $validated[$field]) {
@@ -134,8 +150,9 @@ class HostelApplicationController extends Controller
                 }
             }
 
+            \Log::error('Hostel application submission failed: ' . $e->getMessage());
             return redirect()->back()->with('error', 
-                'Something went wrong while submitting your application. Please try again.'
+                'Something went wrong while submitting your application: ' . $e->getMessage()
             )->withInput();
         }
     }
@@ -145,17 +162,10 @@ class HostelApplicationController extends Controller
      */
     private function handleFileUpload($file, $fieldName)
     {
-        $directory = 'hostel_applications/' . $fieldName;
         $filename = time() . '_' . Str::random(10) . '.' . $file->getClientOriginalExtension();
+        $path = $file->storeAs('hostel_applications/' . $fieldName, $filename, 'public');
         
-        // Create directory if it doesn't exist
-        if (!file_exists(public_path('uploads/' . $directory))) {
-            mkdir(public_path('uploads/' . $directory), 0755, true);
-        }
-        
-        $file->move(public_path('uploads/' . $directory), $filename);
-        
-        return 'uploads/' . $directory . '/' . $filename;
+        return 'storage/' . $path;
     }
 
     /**
@@ -163,8 +173,18 @@ class HostelApplicationController extends Controller
      */
     private function deleteFile($filePath)
     {
-        if ($filePath && file_exists(public_path($filePath))) {
-            unlink(public_path($filePath));
+        if (!$filePath) return;
+
+        // Try Storage first (for new files)
+        $storagePath = str_replace('storage/', '', $filePath);
+        if (Storage::disk('public')->exists($storagePath)) {
+            Storage::disk('public')->delete($storagePath);
+            return;
+        }
+
+        // Try public_path (for old files)
+        if (file_exists(public_path($filePath))) {
+            @unlink(public_path($filePath));
         }
     }
 

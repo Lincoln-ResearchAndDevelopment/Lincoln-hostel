@@ -13,6 +13,16 @@
                 </div>
 
                 <div class="card-body">
+                    <div class="mb-4 p-3 bg-light rounded border">
+                        <label class="form-label fw-bold">Search Approved Registrations</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-search"></i></span>
+                            <input type="text" id="applicant_search" class="form-control" placeholder="Type student name or registration number...">
+                        </div>
+                        <div id="search_results" class="list-group mt-2 shadow-sm" style="display: none; position: absolute; z-index: 1000; width: calc(100% - 40px);"></div>
+                        <small class="text-muted mt-1 d-block italic">Searching will fetch details from approved hostel applications.</small>
+                    </div>
+
                     <form method="POST" action="{{ route('students.store') }}" id="studentForm">
                         @csrf
 
@@ -27,7 +37,7 @@
                                        value="{{ old('admission_number') }}" 
                                        required
                                        maxlength="50"
-                                       autofocus>
+                                       readonly>
                                 @error('admission_number')
                                     <span class="invalid-feedback" role="alert">
                                         <strong>{{ $message }}</strong>
@@ -46,7 +56,8 @@
                                        name="full_name" 
                                        value="{{ old('full_name') }}" 
                                        required
-                                       maxlength="255">
+                                       maxlength="255"
+                                       readonly>
                                 @error('full_name')
                                     <span class="invalid-feedback" role="alert">
                                         <strong>{{ $message }}</strong>
@@ -62,7 +73,8 @@
                             <div class="col-md-6">
                                 <select id="gender" 
                                         class="form-select @error('gender') is-invalid @enderror" 
-                                        name="gender" required>
+                                        name="gender" required
+                                        style="pointer-events: none; background-color: #f8f9fa;">
                                     <option value="" disabled selected>Select Gender</option>
                                     <option value="Male" {{ old('gender') == 'Male' ? 'selected' : '' }}>Male</option>
                                     <option value="Female" {{ old('gender') == 'Female' ? 'selected' : '' }}>Female</option>
@@ -84,7 +96,8 @@
                                        class="form-control @error('email') is-invalid @enderror" 
                                        name="email" 
                                        value="{{ old('email') }}" 
-                                       required>
+                                       required
+                                       readonly>
                                 @error('email')
                                     <span class="invalid-feedback" role="alert">
                                         <strong>{{ $message }}</strong>
@@ -101,7 +114,8 @@
                                 <select id="department" 
                                         class="form-select @error('department') is-invalid @enderror" 
                                         name="department" 
-                                        required>
+                                        required
+                                        style="pointer-events: none; background-color: #f8f9fa;">
                                     <option value="">Select Department</option>
                                     <option value="Computer Software Engineering" {{ old('department') == 'Computer Software Engineering' ? 'selected' : '' }}>Computer Software Engineering</option>
                                     <option value="Foundation of Nursing" {{ old('department') == 'Foundation of Nursing' ? 'selected' : '' }}>Foundation of Nursing</option>
@@ -125,7 +139,8 @@
                                 <select id="semester" 
                                         class="form-select @error('semester') is-invalid @enderror" 
                                         name="semester" 
-                                        required>
+                                        required
+                                        style="pointer-events: none; background-color: #f8f9fa;">
                                     <option value="">Select Semester</option>
                                     @for($i = 1; $i <= 8; $i++)
                                         <option value="{{ $i }}" {{ old('semester') == $i ? 'selected' : '' }}>Semester {{ $i }}</option>
@@ -147,7 +162,8 @@
                                 <select id="intake" 
                                         class="form-select @error('intake') is-invalid @enderror" 
                                         name="intake" 
-                                        required>
+                                        required
+                                        style="pointer-events: none; background-color: #f8f9fa;">
                                     <option value="">Select Intake</option>
                                     <option value="March 2023" {{ old('intake') == 'March 2023' ? 'selected' : '' }}>March 2023</option>
                                     <option value="July 2023" {{ old('intake') == 'July 2023' ? 'selected' : '' }}>July 2023</option>
@@ -200,7 +216,8 @@
                                        name="contact_number" 
                                        value="{{ old('contact_number') }}" 
                                        required
-                                       maxlength="20">
+                                       maxlength="20"
+                                       readonly>
                                 @error('contact_number')
                                     <span class="invalid-feedback" role="alert">
                                         <strong>{{ $message }}</strong>
@@ -219,7 +236,8 @@
                                        name="emergency_contact" 
                                        value="{{ old('emergency_contact') }}" 
                                        required
-                                       maxlength="20">
+                                       maxlength="20"
+                                       readonly>
                                 @error('emergency_contact')
                                     <span class="invalid-feedback" role="alert">
                                         <strong>{{ $message }}</strong>
@@ -237,7 +255,8 @@
                                           class="form-control @error('address') is-invalid @enderror" 
                                           name="address" 
                                           required
-                                          maxlength="255">{{ old('address') }}</textarea>
+                                          maxlength="255"
+                                          readonly>{{ old('address') }}</textarea>
                                 @error('address')
                                     <span class="invalid-feedback" role="alert">
                                         <strong>{{ $message }}</strong>
@@ -256,7 +275,8 @@
                                        name="check_in_date" 
                                        value="{{ old('check_in_date', now()->format('Y-m-d')) }}" 
                                        min="{{ now()->format('Y-m-d') }}" 
-                                       required>
+                                       required
+                                       readonly>
                                 @error('check_in_date')
                                     <span class="invalid-feedback" role="alert">
                                         <strong>{{ $message }}</strong>
@@ -300,27 +320,143 @@
     </div>
 </div>
 
-@section('scripts')
+@endsection
+
+@push('scripts')
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Set minimum check-out date based on check-in date
-        const checkInDate = document.getElementById('check_in_date');
-        const checkOutDate = document.getElementById('expected_check_out_date');
+        const applicantSearch = document.getElementById('applicant_search');
+        const searchResults = document.getElementById('search_results');
+        const studentForm = document.getElementById('studentForm');
+        
+        // Form fields to auto-fill
+        const fields = {
+            admission_number: document.getElementById('admission_number'),
+            full_name: document.getElementById('full_name'),
+            email: document.getElementById('email'),
+            gender: document.getElementById('gender'),
+            department: document.getElementById('department'),
+            contact_number: document.getElementById('contact_number'),
+            emergency_contact: document.getElementById('emergency_contact'),
+            address: document.getElementById('address'),
+            intake: document.getElementById('intake'),
+            semester: document.getElementById('semester')
+        };
 
-        checkInDate.addEventListener('change', function() {
-            if (this.value) {
-                checkOutDate.min = this.value;
-                if (checkOutDate.value && checkOutDate.value < this.value) {
-                    checkOutDate.value = '';
+        let debounceTimer;
+
+        applicantSearch.addEventListener('input', function() {
+            clearTimeout(debounceTimer);
+            const query = this.value.trim();
+
+            if (query.length < 2) {
+                searchResults.style.display = 'none';
+                return;
+            }
+
+            debounceTimer = setTimeout(() => {
+                fetch(`{{ route('students.search-applications') }}?q=${encodeURIComponent(query)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        searchResults.innerHTML = '';
+                        if (data.length > 0) {
+                            data.forEach(item => {
+                                const btn = document.createElement('button');
+                                btn.type = 'button';
+                                btn.className = 'list-group-item list-group-item-action p-3';
+                                btn.innerHTML = `
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <div class="fw-bold text-primary">${item.full_name}</div>
+                                            <div class="small text-muted">
+                                                <i class="fas fa-id-card me-1"></i>${item.reg_number} | 
+                                                <i class="fas fa-graduation-cap me-1"></i>${item.department}
+                                            </div>
+                                        </div>
+                                        <span class="badge bg-primary rounded-pill"><i class="fas fa-plus"></i></span>
+                                    </div>
+                                `;
+                                btn.onclick = () => selectApplicant(item);
+                                searchResults.appendChild(btn);
+                            });
+                            searchResults.style.display = 'block';
+                        } else {
+                            searchResults.innerHTML = '<div class="list-group-item text-muted p-3">No approved registrations found for "' + query + '".</div>';
+                            searchResults.style.display = 'block';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching registrations:', error);
+                        searchResults.innerHTML = '<div class="list-group-item text-danger p-3">Error searching for registrations.</div>';
+                        searchResults.style.display = 'block';
+                    });
+            }, 300);
+        });
+
+        function selectApplicant(item) {
+            fields.admission_number.value = item.reg_number || '';
+            fields.full_name.value = item.full_name || '';
+            fields.email.value = item.email || '';
+            
+            // Handle selects
+            if (item.gender) setSelectedValue(fields.gender, item.gender);
+            if (item.department) setSelectedValue(fields.department, item.department);
+            if (item.intake) setSelectedValue(fields.intake, item.intake);
+            
+            // Default Semester to 1 for new students
+            setSelectedValue(fields.semester, "1");
+
+            fields.contact_number.value = item.phone_number || '';
+            fields.emergency_contact.value = item.emergency_contact_phone || item.parent_phone || '';
+            fields.address.value = item.home_address || '';
+
+            searchResults.style.display = 'none';
+            applicantSearch.value = item.full_name;
+            
+            // Highlight filled fields
+            Object.values(fields).forEach(field => {
+                if (field && field.value) {
+                    field.classList.add('is-valid');
+                    setTimeout(() => field.classList.remove('is-valid'), 2000);
                 }
+            });
+        }
+
+        function setSelectedValue(selectElement, value) {
+            if (!selectElement) return;
+            for (let i = 0; i < selectElement.options.length; i++) {
+                if (selectElement.options[i].value === value || selectElement.options[i].text === value) {
+                    selectElement.selectedIndex = i;
+                    return;
+                }
+            }
+        }
+
+        // Close results when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!applicantSearch.contains(e.target) && !searchResults.contains(e.target)) {
+                searchResults.style.display = 'none';
             }
         });
 
-        // Initialize the min date for check-out if check-in has a value
-        if (checkInDate.value) {
-            checkOutDate.min = checkInDate.value;
+        // Existing date logic
+        const checkInDate = document.getElementById('check_in_date');
+        const checkOutDate = document.getElementById('expected_check_out_date');
+
+        if (checkInDate) {
+            checkInDate.addEventListener('change', function() {
+                if (this.value && checkOutDate) {
+                    checkOutDate.min = this.value;
+                    if (checkOutDate.value && checkOutDate.value < this.value) {
+                        checkOutDate.value = '';
+                    }
+                }
+            });
+
+            if (checkInDate.value && checkOutDate) {
+                checkOutDate.min = checkInDate.value;
+            }
         }
     });
 </script>
-@endsection
-@endsection
+@endpush
