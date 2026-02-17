@@ -34,6 +34,22 @@
         </div>
     </div>
 </div>
+<!-- Pending Booking Alert -->
+@if(isset($pendingBooking) && $pendingBooking)
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="alert alert-warning border-0 shadow-sm d-flex align-items-center mb-0" role="alert" style="background-color: #fff3cd; border-left: 5px solid #ffc107 !important;">
+            <div class="p-2 bg-warning rounded-circle me-3 text-white">
+                <i class="fas fa-clock fa-fw"></i>
+            </div>
+            <div>
+                <h6 class="alert-heading fw-bold mb-1">Room Booking Awaiting Approval</h6>
+                <p class="mb-0">Your request for <strong>Room {{ $pendingBooking->room->room_number }}</strong> in <strong>{{ $pendingBooking->room->hostel->name }}</strong> is currently being reviewed. We will notify you once it's approved.</p>
+            </div>
+        </div>
+    </div>
+</div>
+@endif
 
 <!-- Notifications Alert -->
 @if(isset($unreadNotifications) && $unreadNotifications->count() > 0)
@@ -57,7 +73,7 @@
 
 <!-- Quick Stats Row -->
 <div class="row g-4 mb-4">
-    <div class="col-md-3">
+    <div class="col-6 col-md-3">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center mb-2">
@@ -71,7 +87,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-6 col-md-3">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center mb-2">
@@ -85,7 +101,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-6 col-md-3">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center mb-2">
@@ -99,7 +115,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-6 col-md-3">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center mb-2">
@@ -117,7 +133,7 @@
 
 <!-- Second Stats Row -->
 <div class="row g-4 mb-4">
-    <div class="col-md-3">
+    <div class="col-6 col-md-3">
         <a href="{{ route('student.leave.index') }}" class="text-decoration-none">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body">
@@ -134,7 +150,7 @@
         </a>
     </div>
     @if($student->room_id)
-    <div class="col-md-3">
+    <div class="col-6 col-md-3">
         <a href="{{ route('student.room.details') }}" class="text-decoration-none">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body">
@@ -171,10 +187,18 @@
                     </div>
                     <div class="col-md-6">
                         <div class="p-3 bg-light rounded">
-                            <small class="text-muted d-block text-uppercase">Admission No</small>
+                            <small class="text-muted d-block text-uppercase">Student ID / Admission No</small>
                             <span class="fw-bold">{{ $student->admission_number }}</span>
                         </div>
                     </div>
+                    @if($student->application)
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded">
+                            <small class="text-muted d-block text-uppercase">Application Number</small>
+                            <span class="fw-bold">{{ $student->application->application_number }}</span>
+                        </div>
+                    </div>
+                    @endif
                     <div class="col-md-6">
                         <div class="p-3 bg-light rounded">
                             <small class="text-muted d-block text-uppercase">Department</small>
@@ -233,25 +257,25 @@
             </div>
             <div class="card-body">
                 <div class="row g-3">
-                    <div class="col-md-3">
+                    <div class="col-6 col-md-3">
                         <a href="{{ route('student.hostel.rules') }}" class="btn btn-outline-secondary w-100 py-3">
                             <i class="fas fa-book fa-2x mb-2 d-block" style="color: #cc0000;"></i>
                             Hostel Rules
                         </a>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-6 col-md-3">
                         <a href="{{ route('student.complaints.index') }}" class="btn btn-outline-secondary w-100 py-3">
                             <i class="fas fa-exclamation-circle fa-2x mb-2 d-block" style="color: #cc0000;"></i>
                             Report Issue
                         </a>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-6 col-md-3">
                         <a href="{{ route('student.leave.create') }}" class="btn btn-outline-secondary w-100 py-3">
                             <i class="fas fa-calendar-alt fa-2x mb-2 d-block" style="color: #cc0000;"></i>
                             Request Leave
                         </a>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-6 col-md-3">
                         <a href="{{ route('student.fees.index') }}" class="btn btn-outline-secondary w-100 py-3">
                             <i class="fas fa-money-bill fa-2x mb-2 d-block" style="color: #cc0000;"></i>
                             View Fees

@@ -22,15 +22,16 @@ class HostelApplicationController extends Controller
 
     public function store(Request $request)
     {
-        // Validate form inputs
-        $validated = $request->validate([
+        \Log::info('Hostel application store request received', ['data' => $request->except(['passport_photo', 'applicationform_receipt', 'hostelfee_receipt', 'medical_report', 'birth_certificate', 'admission_letter'])]);
+        
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
             // Academic Information
             'academic_year' => 'required|string|max:255',
             'amount_paid' => 'required|string|max:255',
             
             // Student Information
             'full_name' => 'required|string|max:255',
-            'reg_number' => 'required|string|max:255|unique:hostel_applications,reg_number',
+            'student_id' => 'required|string|max:255|unique:hostel_applications,student_id',
             'intake' => 'required|string|max:255',
             'program' => 'required|string|max:255',
             'department' => 'required|string|max:255',
@@ -55,7 +56,6 @@ class HostelApplicationController extends Controller
             // Emergency Contact
             'emergency_contact_name' => 'required|string|max:255',
             'emergency_contact_phone' => 'required|string|max:20',
-            'emergency_contact_relationship' => 'required|string|max:100',
             'emergency_contact_address' => 'required|string|max:1000',
             
             // Medical Information
@@ -98,6 +98,13 @@ class HostelApplicationController extends Controller
             'why_choose_hostel' => 'nullable|string|max:1000',
         ]);
 
+        if ($validator->fails()) {
+            \Log::error('Hostel application validation failed', ['errors' => $validator->errors()->toArray()]);
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+
+        $validated = $validator->validated();
+
         // Handle file uploads
         $fileFields = [
             'passport_photo',
@@ -130,6 +137,15 @@ class HostelApplicationController extends Controller
                 foreach ($adminUsers as $admin) {
                     Mail::to($admin->email)->send(new AdminApplicationNotificationMail($application));
                 }
+
+                // Dashboard Notification to Admins
+                \App\Models\Notification::notifyAllAdmins(
+                    'application',
+                    'New Hostel Application',
+                    'New application received from ' . $application->full_name,
+                    ['application_id' => $application->id]
+                );
+
             } catch (Exception $mailEx) {
                 // Just log mail errors, don't fail the application
                 \Log::warning('Hostel application emails failed: ' . $mailEx->getMessage());
@@ -246,6 +262,18 @@ class HostelApplicationController extends Controller
             // Log the error but don't fail the status update
             \Log::error('Failed to send status update email: ' . $e->getMessage());
         }
+
+        // Dashboard Notification if user_id exists (meaning they are a registered student, though applications might come from guests)
+        /* 
+           Note: HostelApplication model usually links to a user/student if they are registered.
+           If the application is from a guest (new student), we might not have a student_id yet to notify via dashboard.
+           However, let's assume we notify if we can link it.
+           Based on migration, there isn't a direct student_id link always, but maybe email matches?
+           Let's skip dashboard notification for guest applications for now as they can't login to see it.
+           But if they are converted to students, they might see it.
+           Let's check if the system converts them.
+           For now, I will assume dashboard notifications are only relevant for logged-in users.
+        */
 
         // Return JSON for AJAX requests
         if ($request->expectsJson()) {

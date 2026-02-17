@@ -59,9 +59,10 @@
                         <table class="table table-striped table-hover">
                             <thead class="table-light">
                                 <tr>
-                                    <th>Admission #</th>
+                                    <th style="white-space: nowrap;">Student ID / Admission #</th> <!-- Updated Label -->
+                                    <th style="white-space: nowrap;">Application #</th> <!-- Added Column -->
                                     <th>Name</th>
-                                    <th>Gender</th> <!-- Added Gender column -->
+                                    <th>Gender</th>
                                     <th>Department</th>
                                     <th>Semester</th>
                                     <th>Intake</th>
@@ -76,7 +77,14 @@
                                 @forelse ($students as $student)
                                     <tr>
                                         <td>{{ $student->admission_number }}</td>
-                                        <td>{{ $student->full_name }}</td>
+                                        <td>
+                                            @if($student->application)
+                                                <small class="fw-bold">{{ $student->application->application_number }}</small>
+                                            @else
+                                                <span class="text-muted small">N/A</span>
+                                            @endif
+                                        </td>
+                                        <td class="fw-bold">{{ $student->full_name }}</td>
                                         <td>{{ ucfirst($student->gender) }}</td> 
                                         <td>{{ $student->department }}</td>
                                         <td>{{ $student->semester }}</td>

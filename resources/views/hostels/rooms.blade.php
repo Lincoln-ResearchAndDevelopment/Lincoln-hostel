@@ -44,8 +44,8 @@
                                     {{ $room->capacity }} Students
                                 </td>
                                 <td>
-                                    <div><small class="text-muted">Sem:</small> ${{ number_format($room->price_per_semester, 2) }}</div>
-                                    <div><small class="text-muted">Year:</small> ${{ number_format($room->price_per_year, 2) }}</div>
+                                    <div><small class="text-muted">Sem:</small> ₦{{ number_format($room->price_per_semester, 2) }}</div>
+                                    <div><small class="text-muted">Year:</small> ₦{{ number_format($room->price_per_year, 2) }}</div>
                                 </td>
                                 <td>
                                     @if($room->status == 'available')

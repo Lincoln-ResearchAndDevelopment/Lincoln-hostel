@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
+use App\Services\SmsService;
 
 class StudentLeaveController extends Controller
 {
@@ -59,8 +60,16 @@ class StudentLeaveController extends Controller
         // Send email to parent/guardian
         $this->notifyParent($leaveRequest);
 
+        // In-app notification for all admins
+        try {
+            $msg = $leaveRequest->student->full_name . ' submitted a leave request (' . $leaveRequest->type . ') from ' . $leaveRequest->start_date->format('M d') . ' to ' . $leaveRequest->end_date->format('M d, Y') . '.';
+            Notification::notifyAllAdmins('leave_submitted', 'New Leave Request', $msg, ['leave_request_id' => $leaveRequest->id]);
+        } catch (\Exception $e) {
+            Log::error('Failed to create in-app leave notification for admins: ' . $e->getMessage());
+        }
+
         return redirect()->route('student.leave.index')
-            ->with('success', 'Leave request submitted successfully. Admin and your parent/guardian have been notified.');
+            ->with('success', 'Leave request submitted successfully and has been sent to the admin for approval.');
     }
 
     /**
@@ -93,13 +102,52 @@ class StudentLeaveController extends Controller
     {
         try {
             $student = $leaveRequest->student;
-            
-            // Check if parent email exists
-            if ($student->parent_email) {
-                Mail::to($student->parent_email)->send(new LeaveRequestSubmittedMail($leaveRequest, 'parent'));
+            $parentEmail = $student->parent_email;
+            $parentPhone = $student->parent_phone;
+
+            // Fallback to application data if student profile is incomplete
+            if (($this->isMissing($parentEmail) || $this->isMissing($parentPhone)) && $student->hostelApplication) {
+                if ($this->isMissing($parentEmail)) {
+                    $parentEmail = $student->hostelApplication->parent_email;
+                }
+                if ($this->isMissing($parentPhone)) {
+                    $parentPhone = $student->hostelApplication->parent_phone;
+                }
+                
+                // Also try to patch missing name for the email template
+                if (empty($student->parent_name)) {
+                    $student->parent_name = $student->hostelApplication->parent_full_name;
+                }
             }
+            
+            // Send Email
+            if (!empty($parentEmail)) {
+                Log::info("Sending leave request email to parent: {$parentEmail}");
+                Mail::to($parentEmail)->send(new LeaveRequestSubmittedMail($leaveRequest, 'parent'));
+            } else {
+                Log::warning("No parent email found for student ID {$student->id} during leave request notification.");
+            }
+
+            // Send SMS
+            if (!empty($parentPhone)) {
+                Log::info("Sending leave request SMS to parent: {$parentPhone}");
+                $smsService = new SmsService();
+                $message = "LincHostel: Your ward {$student->full_name} has applied for leave ({$leaveRequest->type}) from {$leaveRequest->start_date->format('d/m/Y')} to {$leaveRequest->end_date->format('d/m/Y')}. Reason: " . \Illuminate\Support\Str::limit($leaveRequest->reason, 40);
+                $smsService->sendSms($parentPhone, $message);
+            } else {
+                Log::warning("No parent phone found for student ID {$student->id} during leave request notification.");
+            }
+
         } catch (\Exception $e) {
             Log::error('Failed to send leave request notification to parent: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Helper to check if a value is effectively empty
+     */
+    private function isMissing($value)
+    {
+        return empty($value) || $value === 'N/A';
     }
 }

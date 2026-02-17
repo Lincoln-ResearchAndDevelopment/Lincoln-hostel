@@ -70,6 +70,14 @@
                             </a>
                         </div>
                         @endif
+
+                        @if(isset($notification->data['room_id']))
+                        <div class="mt-2">
+                            <a href="{{ route('student.dashboard') }}" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-eye me-1"></i>View Booking Status
+                            </a>
+                        </div>
+                        @endif
                         
                         @if(isset($notification->data['rejection_reason']) && $notification->data['rejection_reason'])
                         <div class="mt-2 p-2 bg-danger bg-opacity-10 rounded">

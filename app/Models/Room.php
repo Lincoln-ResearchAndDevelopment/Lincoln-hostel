@@ -17,6 +17,7 @@ class Room extends Model
         'price_per_year',
         'floor_number',
         'capacity',
+        'occupied', // <- IMPORTANT: Use database column, not accessor
         'status',
         'description',
         'gender_type',
@@ -44,12 +45,15 @@ class Room extends Model
         return $this->hasMany(Student::class);
     }
 
-    // Computed property to count current students
-    public function getOccupiedAttribute()
+    /**
+     * Get count of students actually assigned to this room
+     * Note: Use $room->students_count for relationship count
+     * Use $room->occupied for the tracked database column
+     */
+    public function getStudentsCountAttribute()
     {
         return $this->students()->count();
     }
-
 
     // Computed property to determine room status
     public function getCurrentStatusAttribute()
@@ -99,5 +103,32 @@ class Room extends Model
         ];
 
         return $types[$this->room_type] ?? ucfirst($this->room_type);
+    }
+
+    /**
+     * Get available slots in room
+     */
+    public function getAvailableSlotsAttribute()
+    {
+        return max(0, $this->capacity - $this->occupied);
+    }
+
+    /**
+     * Check if room can accept new bookings
+     */
+    public function canAcceptBooking()
+    {
+        return $this->status === 'available' && $this->occupied < $this->capacity;
+    }
+
+    /**
+     * Get occupancy percentage
+     */
+    public function getOccupancyPercentageAttribute()
+    {
+        if ($this->capacity <= 0) {
+            return 0;
+        }
+        return round(($this->occupied / $this->capacity) * 100, 2);
     }
 }

@@ -87,6 +87,22 @@ class Hostel extends Model
     }
 
     /**
+     * Get minimum room price for this hostel
+     */
+    public function getMinPriceAttribute()
+    {
+        return $this->rooms()->where('status', 'available')->min('price_per_semester');
+    }
+
+    /**
+     * Get maximum room price for this hostel
+     */
+    public function getMaxPriceAttribute()
+    {
+        return $this->rooms()->where('status', 'available')->max('price_per_semester');
+    }
+
+    /**
      * Scope for active hostels
      */
     public function scopeActive($query)

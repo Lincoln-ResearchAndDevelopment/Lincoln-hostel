@@ -232,6 +232,15 @@
             color: #dc3545;
         }
 
+        @media (min-width: 768px) {
+            .border-end-md {
+                border-right: 1px solid var(--border-color-light);
+            }
+            body[data-theme="dark"] .border-end-md {
+                border-right: 1px solid var(--border-color-dark);
+            }
+        }
+
         @media (max-width: 768px) {
             .form-card {
                 margin-bottom: 20px;
@@ -294,7 +303,30 @@
     </div>
   </div>
 
-  <a href="/"><img src="{{ asset('assets/img/favicon.ico') }}" alt="Lincoln Logo" style="height: 100px; width: 200px; margin-right: 20px; margin-bottom:20px; border-radius: 10px;"></a>
+  <a href="/"><img src="{{ asset('assets/img/lincoln-logo.png') }}" alt="Lincoln University Logo" style="height: 100px; width: auto; max-width: 100%; margin-right: 20px; margin-bottom: 20px; object-fit: contain;"></a>
+
+  <!-- Account Details Card -->
+  <div class="card mb-4 border-0 shadow-sm" style="background: rgba(204, 0, 0, 0.05); border-left: 5px solid var(--primary-color) !important;">
+    <div class="card-body py-3">
+        <h5 class="card-title text-danger mb-3 fw-bold" style="font-size: 1.1rem;">
+            <i class="fas fa-university me-2"></i>Account Details for Payment
+        </h5>
+        <div class="row">
+            <div class="col-md-4 mb-2 mb-md-0 border-end-md">
+                <small class="text-muted d-block text-uppercase fw-bold" style="font-size: 0.75rem; letter-spacing: 0.5px;">Bank Name</small>
+                <div class="fw-bold text-dark">Zenith Bank</div>
+            </div>
+            <div class="col-md-4 mb-2 mb-md-0 border-end-md">
+                <small class="text-muted d-block text-uppercase fw-bold" style="font-size: 0.75rem; letter-spacing: 0.5px;">Account Number</small>
+                <div class="fw-bold fs-5 text-danger font-monospace">1311150112</div>
+            </div>
+            <div class="col-md-4">
+                <small class="text-muted d-block text-uppercase fw-bold" style="font-size: 0.75rem; letter-spacing: 0.5px;">Account Name</small>
+                <div class="fw-bold text-dark">Lincoln ODL LTD (GOperation)</div>
+            </div>
+        </div>
+    </div>
+  </div>
       
   <h2>Comprehensive Hostel Application Form</h2>
 
@@ -381,9 +413,10 @@
                         <input type="text" name="full_name" id="full_name" value="{{ old('full_name') }}" required>
                     </div>
 
+
                     <div class="form-group">
-                        <label for="reg_number">Registration Number <span class="required-field">*</span></label>
-                        <input type="text" name="reg_number" id="reg_number" value="{{ old('reg_number') }}" required>
+                        <label for="student_id">Student ID <span class="required-field">*</span></label>
+                        <input type="text" name="student_id" id="student_id" value="{{ old('student_id') }}" required>
                     </div>
 
                     <div class="row">
@@ -432,9 +465,23 @@
                         </h4>
                     </div>
                     
-                    <div class="form-group">
-                        <label for="academic_year">Academic Year <span class="required-field">*</span></label>
-                        <input type="text" name="academic_year" id="academic_year" placeholder="e.g. 2024-2025" value="{{ old('academic_year') }}" required>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="academic_year">Academic Year <span class="required-field">*</span></label>
+                                <input type="text" name="academic_year" id="academic_year" placeholder="e.g. 2024-2025" value="{{ old('academic_year') }}" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="amount_paid">Amount Paid (₦) <span class="required-field">*</span></label>
+                                <select name="amount_paid" id="amount_paid" required style="width: 100%; padding: 10px; border: 1px solid #ced4da; border-radius: 4px;">
+                                    <option value="">Select Amount Paid</option>
+                                    <option value="85,000" {{ old('amount_paid') == '85,000' ? 'selected' : '' }}>₦85,000 (Semester)</option>
+                                    <option value="250,000" {{ old('amount_paid') == '250,000' ? 'selected' : '' }}>₦250,000 (Full Year)</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="form-group">
@@ -450,11 +497,6 @@
                     <div class="form-group">
                         <label for="department">Department <span class="required-field">*</span></label>
                         <input type="text" name="department" id="department" value="{{ old('department') }}" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="amount_paid">Amount Paid (₦) <span class="required-field">*</span></label>
-                        <input type="text" name="amount_paid" id="amount_paid" value="{{ old('amount_paid') }}" required>
                     </div>
                 </div>
             </div>
@@ -495,52 +537,6 @@
                     <div class="form-group">
                         <label for="home_address">Home Address <span class="required-field">*</span></label>
                         <textarea name="home_address" id="home_address" rows="3" required>{{ old('home_address') }}</textarea>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Accommodation Preferences Card -->
-        <div class="row mt-4">
-            <div class="col-md-12">
-                <div class="form-card">
-                    <div class="card-header">
-                        <h4 class="card-title">
-                            <i class="fas fa-bed"></i>
-                            Accommodation Preferences & Needs
-                        </h4>
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="preferred_hostel_type">Preferred Hostel Type</label>
-                                <select name="preferred_hostel_type" id="preferred_hostel_type" class="form-select">
-                                    <option value="">No Preference</option>
-                                    <option value="male" {{ old('preferred_hostel_type') == 'male' ? 'selected' : '' }}>Male Only</option>
-                                    <option value="female" {{ old('preferred_hostel_type') == 'female' ? 'selected' : '' }}>Female Only</option>
-                                    <option value="mixed" {{ old('preferred_hostel_type') == 'mixed' ? 'selected' : '' }}>Mixed</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="preferred_room_type">Preferred Room Type</label>
-                                <select name="preferred_room_type" id="preferred_room_type" class="form-select">
-                                    <option value="">No Preference</option>
-                                    <option value="single" {{ old('preferred_room_type') == 'single' ? 'selected' : '' }}>Single Room</option>
-                                    <option value="double" {{ old('preferred_room_type') == 'double' ? 'selected' : '' }}>Double Room</option>
-                                    <option value="triple" {{ old('preferred_room_type') == 'triple' ? 'selected' : '' }}>Triple Room</option>
-                                    <option value="quad" {{ old('preferred_room_type') == 'quad' ? 'selected' : '' }}>Quad Room</option>
-                                    <option value="dormitory" {{ old('preferred_room_type') == 'dormitory' ? 'selected' : '' }}>Dormitory</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="form-group mt-3">
-                        <label for="special_accommodation_needs">Special Accommodation Needs</label>
-                        <textarea name="special_accommodation_needs" id="special_accommodation_needs" rows="2" class="form-control" placeholder="Any special room requirements or accommodations (e.g., ground floor, near exit, etc.)">{{ old('special_accommodation_needs') }}</textarea>
                     </div>
                 </div>
             </div>
@@ -642,12 +638,7 @@
                                     <input type="tel" name="emergency_contact_phone" id="emergency_contact_phone" value="{{ old('emergency_contact_phone') }}" required>
                                 </div>
                             </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="emergency_contact_relationship">Relationship <span class="required-field">*</span></label>
-                                    <input type="text" name="emergency_contact_relationship" id="emergency_contact_relationship" value="{{ old('emergency_contact_relationship') }}" required>
-                                </div>
-                            </div>
+
                         </div>
 
                         <div class="form-group">
@@ -680,7 +671,7 @@
                     
                     <div class="form-group">
                         <label for="medical_conditions">Medical Conditions</label>
-                        <textarea name="medical_conditions" id="medical_conditions" rows="3" placeholder="List any chronic conditions, disabilities, or ongoing medical issues">{{ old('medical_conditions') }}</textarea>
+                        <textarea name="medical_conditions" id="medical_conditions" rows="3" placeholder="List any chronic conditions e.g Asthma, Arthritis">{{ old('medical_conditions') }}</textarea>
                         <small class="text-muted">Leave blank if none</small>
                     </div>
 
@@ -838,12 +829,12 @@
                     </div>
 
                     <div class="form-group file-input-group">
-                        <label for="hostelfee_receipt">Hostel Fees Receipt <span class="required-field">*</span></label>
+                        <label for="hostelfee_receipt">Hostel form fee <span class="required-field">*</span></label>
                         <input type="file" name="hostelfee_receipt" id="hostelfee_receipt" accept="image/*,application/pdf" required class="@error('hostelfee_receipt') is-invalid @enderror">
                         @error('hostelfee_receipt')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
-                        <small class="text-muted">Receipt for ₦180,000 (semester) or ₦400,000 (year) (max 10MB)</small>
+                        <small class="text-muted">Receipt for ₦85,000 (semester) or ₦250,000 (year) (max 10MB)</small>
                     </div>
 
                     <button type="button" class="account-details-btn" data-bs-toggle="modal" data-bs-target="#paymentDetailsModal">
@@ -869,15 +860,6 @@
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                         <small class="text-muted">Recent medical examination report (max 10MB)</small>
-                    </div>
-
-                    <div class="form-group file-input-group">
-                        <label for="birth_certificate">Birth Certificate</label>
-                        <input type="file" name="birth_certificate" id="birth_certificate" accept="image/*,application/pdf" class="@error('birth_certificate') is-invalid @enderror">
-                        @error('birth_certificate')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                        <small class="text-muted">Copy of birth certificate or age declaration (max 10MB)</small>
                     </div>
 
                     <div class="form-group file-input-group">
@@ -1039,9 +1021,9 @@
             </thead>
             <tbody>
               <tr>
-                <td><strong>EcoBank Nigeria PLC</strong></td>
-                <td><code class="fs-5">3680086084</code></td>
-                <td><strong>Lincoln Logistics Service Limited</strong></td>
+                <td><strong>Zenith Bank</strong></td>
+                <td><code class="fs-5">1311150112</code></td>
+                <td><strong>Lincoln ODL LTD (GOperation)</strong></td>
               </tr>
             </tbody>
           </table>
@@ -1057,10 +1039,10 @@
           </div>
           <div class="col-md-6">
             <div class="alert alert-success">
-              <h6><i class="fas fa-home me-2"></i>Hostel Accommodation Fee</h6>
+              <h6><i class="fas fa-home me-2"></i>Hostel form fee</h6>
               <p class="mb-0">
-                <strong>Semester: ₦180,000</strong><br>
-                <strong>Full Year: ₦400,000</strong><br>
+                <strong>Semester: ₦85,000</strong><br>
+                <strong>Full Year: ₦250,000</strong><br>
                 <small>Choose based on your preference</small>
               </p>
             </div>
@@ -1069,7 +1051,7 @@
         
         <div class="alert alert-danger mt-3">
           <i class="fas fa-exclamation-triangle me-2"></i>
-          <strong>Important:</strong> After making your payment, kindly upload your payment receipt using the form above for verification. Both receipts (application form fee and hostel fee) are required.
+          <strong>Important:</strong> After making your payment, kindly upload your payment receipt using the form above for verification. Both receipts (application form fee and hostel form fee) are required.
         </div>
       </div>
       <div class="modal-footer">
@@ -1182,7 +1164,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const emergencyName = document.getElementById('emergency_contact_name');
     const emergencyPhone = document.getElementById('emergency_contact_phone');
     const emergencyAddress = document.getElementById('emergency_contact_address');
-    const emergencyRelationship = document.getElementById('emergency_contact_relationship');
     
     function autoFillEmergencyContact() {
         if (emergencyName.value === '' && parentName.value !== '') {
@@ -1194,9 +1175,6 @@ document.addEventListener('DOMContentLoaded', function() {
         if (emergencyAddress.value === '' && parentAddress.value !== '') {
             emergencyAddress.value = parentAddress.value;
         }
-        if (emergencyRelationship.value === '' && parentRelationship.value !== '') {
-            emergencyRelationship.value = parentRelationship.value;
-        }
     }
     
     [parentName, parentPhone, parentAddress, parentRelationship].forEach(field => {
@@ -1206,6 +1184,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Form validation enhancement
     const form = document.getElementById('hostelApplicationForm');
     form.addEventListener('submit', function(e) {
+        console.log('Form submit triggered');
+        // alert('Submitting form...'); 
         const requiredFields = form.querySelectorAll('input[required], select[required], textarea[required]');
         let isValid = true;
         

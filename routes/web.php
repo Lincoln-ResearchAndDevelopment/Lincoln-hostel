@@ -82,6 +82,9 @@ Route::middleware(['admin'])->group(function () {
         'visitors'   => VisitorController::class,
     ]);
 
+    Route::post('/payments/{payment}/approve', [PaymentController::class, 'approve'])->name('payments.approve');
+    Route::post('/payments/{payment}/reject', [PaymentController::class, 'reject'])->name('payments.reject');
+
     Route::get('/students-search-applications', [StudentController::class, 'searchApplications'])->name('students.search-applications');
 
     // Additional hostel routes
@@ -174,6 +177,11 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/reports/occupancy', [App\Http\Controllers\Admin\ReportController::class, 'occupancy'])->name('reports.occupancy');
         Route::get('/reports/fees', [App\Http\Controllers\Admin\ReportController::class, 'fees'])->name('reports.fees');
         Route::get('/reports/complaints', [App\Http\Controllers\Admin\ReportController::class, 'complaints'])->name('reports.complaints');
+
+        // Notifications
+        Route::get('/notifications', [App\Http\Controllers\Admin\NotificationController::class, 'index'])->name('notifications.index');
+        Route::get('/notifications/{id}/mark-read', [App\Http\Controllers\Admin\NotificationController::class, 'markAsRead'])->name('notifications.mark-read');
+        Route::post('/notifications/mark-all-read', [App\Http\Controllers\Admin\NotificationController::class, 'markAllRead'])->name('notifications.mark-all-read');
     });
 });
 
@@ -186,11 +194,6 @@ Route::middleware(['auth'])->group(function () {
 Route::prefix('student')->name('student.')->group(function () {
     Route::get('/login', [StudentsAuthController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [StudentsAuthController::class, 'login'])->name('login.post');
-    // Student Hostel Routes
-    Route::get('/hostels', [App\Http\Controllers\StudentsDashboardController::class, 'hostels'])->name('hostels.index');
-    Route::get('/hostels/{hostel}', [App\Http\Controllers\StudentsDashboardController::class, 'showHostel'])->name('hostels.show');
-    Route::post('/rooms/{room}/book', [App\Http\Controllers\StudentsDashboardController::class, 'bookRoom'])->name('rooms.book');
-
     Route::post('/logout', [StudentsAuthController::class, 'logout'])->name('logout');
 });
 /*
@@ -210,6 +213,12 @@ Route::prefix('student')->name('student.')->middleware('student.auth')->group(fu
     Route::post('/profile/change-password', [\App\Http\Controllers\StudentProfileController::class, 'changePassword'])->name('password.update');
 
     // Room & Hostel Details
+    Route::get('/hostels', [StudentsDashboardController::class, 'hostels'])->name('hostels.index');
+    Route::get('/hostels/{hostel}', [StudentsDashboardController::class, 'showHostel'])->name('hostels.show');
+    Route::post('/rooms/{room}/book', [StudentsDashboardController::class, 'bookRoom'])->name('rooms.book');
+    Route::get('/rooms/{room}/payment', [StudentsDashboardController::class, 'showBookingPayment'])->name('rooms.booking_payment');
+    Route::post('/rooms/{room}/submit-payment', [StudentsDashboardController::class, 'submitBookingPayment'])->name('rooms.submit_booking_payment');
+    
     Route::get('/room', [StudentsDashboardController::class, 'roomDetails'])->name('room.details');
     Route::get('/hostel/rules', [StudentsDashboardController::class, 'hostelRules'])->name('hostel.rules');
 
@@ -236,8 +245,9 @@ Route::prefix('student')->name('student.')->middleware('student.auth')->group(fu
     Route::get('/leave/create', [App\Http\Controllers\StudentLeaveController::class, 'create'])->name('leave.create');
     Route::post('/leave', [App\Http\Controllers\StudentLeaveController::class, 'store'])->name('leave.store');
 
-    // Notification Preferences
+    // Notifications
     Route::get('/notifications', [\App\Http\Controllers\StudentNotificationsController::class, 'index'])->name('notifications');
+    Route::get('/notifications/fetch', [\App\Http\Controllers\StudentNotificationsController::class, 'fetchNew'])->name('notifications.fetch');
     Route::post('/notifications', [\App\Http\Controllers\StudentNotificationsController::class, 'update'])->name('notifications.update');
     Route::get('/notifications/{id}/mark-read', [\App\Http\Controllers\StudentNotificationsController::class, 'markAsRead'])->name('notifications.mark-read');
     Route::post('/notifications/mark-all-read', [\App\Http\Controllers\StudentNotificationsController::class, 'markAllAsRead'])->name('notifications.mark-all-read');

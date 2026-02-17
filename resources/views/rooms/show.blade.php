@@ -64,14 +64,14 @@
                     <div class="mb-3">
                         <label class="small text-muted text-uppercase fw-bold">Per Semester</label>
                         <div class="d-flex align-items-center text-success">
-                            <span class="h2 mb-0">₵{{ $room->formatted_price_per_semester }}</span>
+                            <span class="h2 mb-0">₦{{ $room->formatted_price_per_semester }}</span>
                         </div>
                     </div>
 
                     <div class="mb-4 border-top pt-3">
                         <label class="small text-muted text-uppercase fw-bold">Per Year</label>
                         <div class="d-flex align-items-center">
-                            <span class="h4 mb-0 text-dark">₵{{ $room->formatted_price_per_year }}</span>
+                            <span class="h4 mb-0 text-dark">₦{{ $room->formatted_price_per_year }}</span>
                         </div>
                     </div>
 

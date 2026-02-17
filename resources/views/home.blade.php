@@ -68,7 +68,7 @@
   <div class="container d-flex align-items-center justify-content-between">
     <div class="logo-container">
       <a href="/">
-        <img src="{{ asset('assets/img/favicon.ico') }}" alt="Lincoln Logo" style="height: 70px; width: 150px; margin-right: 10px; border-radius: 10px;">
+        <img src="{{ asset('assets/img/lincoln-logo.png') }}" alt="Lincoln University Logo">
       </a>
       <h1 class="logo-text">
         <a href="/" style="text-decoration: none; color: inherit;"><span></span></a>
@@ -451,7 +451,7 @@
               </div>
               <div id="faq1" class="collapse" data-bs-parent=".faq-list">
                 <p>
-                  Hostel fees are #180,000 or #400,000 per semester, depending on the hostel you pick. Contact the hostel office for the latest rates.
+                  Hostel fees are ₦85,000 per semester and ₦250,000 per year, depending on the hostel you pick. Contact the hostel office for the latest rates.
                 </p>
               </div>
             </li>
@@ -548,7 +548,7 @@
           <div class="info-box mb-4">
             <i class="bx bx-map"></i>
             <h3>Our Address</h3>
-            <p>Along Jikwoyi-Karshi road Azhata, Kurudu, Federal Capital Territory</p>
+            <p>Lincoln University Malaysia admin block,<br> Nassarawa State University, Keffi.<br> Lincoln University Malaysia, Kumo Gombe State.</p>
           </div>
         </div>
 
@@ -792,12 +792,13 @@
       <div class="row">
         <div class="col-lg-3 col-md-6 footer-contact">
         <h3><a href="/" style="text-decoration: none; color: inherit;">LincHostel<span>.</span></a></h3>
+        <p>Lincoln University Malaysia admin block,<br> Nassarawa State University, Keffi.<br> Lincoln University Malaysia, Kumo Gombe State.</p>
           <p>
-            Along jikwoyi-karshi road Azhata,<br>
+            <!-- Along jikwoyi-karshi road Azhata,<br>
             Kurudu,<br>
-            Federal Capital Territory.<br><br>
-            <strong>Phone:</strong> +234 803 834 1496<br>
-            <strong>Email:</strong> info@lincoln.edu.ng<br>
+            Federal Capital Territory.<br><br> -->
+            <strong style="color: red;">Phone:</strong> +234 803 834 1496<br>
+            <strong style="color: red;">Email:</strong> info@lincoln.edu.ng<br>
           </p>
         </div>
 

@@ -102,6 +102,109 @@
     </div>
 </div>
 
+<!-- PENDING ROOM BOOKINGS ALERT (Prominent) -->
+@if(isset($pending_bookings) && $pending_bookings->count() > 0)
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="alert alert-warning border-start border-warning border-4 shadow-sm" role="alert">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="alert-heading mb-1">
+                        <i class="fas fa-exclamation-triangle me-2"></i>🔔 {{ $pending_bookings->count() }} Room Booking(s) Awaiting Approval
+                    </h5>
+                    <p class="mb-0">Students have submitted booking payments and are waiting for room assignment.</p>
+                </div>
+                <a href="{{ route('payments.index') }}" class="btn btn-warning">Review Bookings</a>
+            </div>
+        </div>
+        
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-warning bg-opacity-10 py-3">
+                <h6 class="mb-0 fw-bold text-dark">
+                    <i class="fas fa-home me-2"></i>Pending Room Bookings - Action Required
+                </h6>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-3">Student</th>
+                                <th>Room Request</th>
+                                <th>Plan</th>
+                                <th>Amount</th>
+                                <th>Occupancy</th>
+                                <th>Time</th>
+                                <th class="text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($pending_bookings as $booking)
+                            <tr>
+                                <td class="ps-3">
+                                    <strong>{{ $booking->student->full_name }}</strong><br>
+                                    <small class="text-muted">{{ $booking->student->admission_number }}</small>
+                                </td>
+                                <td>
+                                    <strong>Room {{ $booking->room->room_number }}</strong><br>
+                                    <small class="text-muted">{{ $booking->room->hostel->name }}</small><br>
+                                    <span class="badge bg-secondary-subtle text-secondary border small mt-1" style="font-size: 0.65rem;">
+                                        {{ $booking->room->room_type_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info-subtle text-info border border-info-subtle">{{ ucfirst($booking->payment_plan) }}</span>
+                                    <div class="small text-muted" style="font-size: 0.7rem;">Duration</div>
+                                </td>
+                                <td><strong>₦{{ number_format($booking->amount, 2) }}</strong></td>
+                                <td>
+                                    @php
+                                        $room = $booking->room;
+                                        $remaining = $room->capacity - $room->occupied;
+                                    @endphp
+                                    <span class="badge {{ $remaining > 0 ? 'bg-success' : 'bg-danger' }}">
+                                        {{ $room->occupied }}/{{ $room->capacity }}
+                                        @if($remaining > 0)
+                                            <br><small>({{ $remaining }} left)</small>
+                                        @else
+                                            <br><small>(FULL!)</small>
+                                        @endif
+                                    </span>
+                                </td>
+                                <td><small>{{ $booking->created_at->diffForHumans() }}</small></td>
+                                <td class="text-center">
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <form action="{{ route('payments.approve', $booking) }}" method="POST" class="d-inline">
+                                            @csrf
+                                            <button type="submit" class="btn btn-success btn-sm" 
+                                                    onclick="return confirm('Approve booking and assign Room {{ $booking->room->room_number }} to {{ $booking->student->full_name }}?')"
+                                                    {{ $remaining <= 0 ? 'disabled title=Room is full' : '' }}>
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                        </form>
+                                        <form action="{{ route('payments.reject', $booking) }}" method="POST" class="d-inline">
+                                            @csrf
+                                            <button type="submit" class="btn btn-danger btn-sm" 
+                                                    onclick="return confirm('Reject this booking?')">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </form>
+                                        <a href="{{ route('payments.show', $booking) }}" class="btn btn-info btn-sm">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endif
+
 <div class="row g-4">
     <!-- Recent Applications -->
     <div class="col-lg-6">

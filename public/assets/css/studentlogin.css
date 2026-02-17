@@ -9,16 +9,16 @@
     --border-color: #e2eefd;
     --card-shadow: 0 0 29px 0 rgba(68, 88, 144, 0.12);
     --card-shadow-hover: 0px 0 25px 0 rgba(16, 110, 234, 0.1);
-    --primary-color: red;
-    --primary-hover: #cc0000;
+    --primary-color: #cc0000;
+    --primary-hover: #990000;
     --navbar-bg: #ffffff;
-    --topbar-bg: red;
+    --topbar-bg: #cc0000;
     --hero-overlay: rgba(0, 0, 0, 0.7);
     --input-bg: #ffffff;
     --input-border: #ced4da;
     --footer-bg: #f1f6fe;
-    --gradient-primary: linear-gradient(135deg, red 0%, #cc0000 100%);
-    --gradient-student: linear-gradient(135deg, red 0%, #cc0000 50%, #b30000 100%);
+    --gradient-primary: linear-gradient(135deg, #cc0000 0%, #990000 100%);
+    --gradient-student: linear-gradient(135deg, #cc0000 0%, #990000 50%, #7d0000 100%);
 }
 
 [data-theme="dark"] {
@@ -32,16 +32,16 @@
     --border-color: #495057;
     --card-shadow: 0 0 29px 0 rgba(0, 0, 0, 0.3);
     --card-shadow-hover: 0px 0 25px 0 rgba(255, 255, 255, 0.1);
-    --primary-color: red;
-    --primary-hover: #cc0000;
+    --primary-color: #cc0000;
+    --primary-hover: #990000;
     --navbar-bg: #2d2d2d;
-    --topbar-bg: red;
+    --topbar-bg: #cc0000;
     --hero-overlay: rgba(0, 0, 0, 0.8);
     --input-bg: #404040;
     --input-border: #6c757d;
     --footer-bg: #2d2d2d;
-    --gradient-primary: linear-gradient(135deg, red 0%, #cc0000 100%);
-    --gradient-student: linear-gradient(135deg, red 0%, #cc0000 50%, #b30000 100%);
+    --gradient-primary: linear-gradient(135deg, #cc0000 0%, #990000 100%);
+    --gradient-student: linear-gradient(135deg, #cc0000 0%, #990000 50%, #7d0000 100%);
 }
 
 * {
@@ -133,9 +133,12 @@ body {
 }
 
 @keyframes float {
-    0%, 100% {
+
+    0%,
+    100% {
         transform: translateY(0) scale(1);
     }
+
     50% {
         transform: translateY(-10px) scale(1.05);
     }
@@ -317,8 +320,13 @@ body {
 }
 
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 /* Links Styling - ENLARGED */
@@ -352,34 +360,34 @@ body {
     .login-container {
         padding: 15px;
     }
-    
+
     .form-section .card-body {
         padding: 2rem;
     }
-    
+
     .student-section {
         display: none;
     }
-    
+
     .login-card {
         margin-top: 2rem;
         max-width: 500px;
         min-height: auto;
     }
-    
+
     .mobile-logo {
         height: 60px;
     }
-    
+
     .login-title {
         font-size: 1.75rem;
     }
-    
+
     .form-control {
         padding: 0.875rem 1rem;
         font-size: 1rem;
     }
-    
+
     .login-btn {
         padding: 0.875rem 1.5rem;
         font-size: 1.1rem;
@@ -390,16 +398,16 @@ body {
     .form-section .card-body {
         padding: 1.5rem;
     }
-    
+
     .login-btn {
         padding: 0.75rem 1.25rem;
         font-size: 1rem;
     }
-    
+
     .login-title {
         font-size: 1.5rem;
     }
-    
+
     .mobile-logo {
         height: 50px;
     }
@@ -410,28 +418,28 @@ body {
     .student-icon-wrapper i {
         font-size: 10rem;
     }
-    
+
     .student-content h2 {
         font-size: 3rem;
     }
-    
+
     .student-content p {
         font-size: 1.4rem;
     }
-    
+
     .form-section .card-body {
         padding: 4rem;
     }
-    
+
     .feature-item {
         padding: 1.25rem;
         margin-bottom: 1.25rem;
     }
-    
+
     .feature-item i {
         font-size: 1.5rem;
     }
-    
+
     .feature-item span {
         font-size: 1.1rem;
     }

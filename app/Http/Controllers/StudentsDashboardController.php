@@ -65,6 +65,14 @@ class StudentsDashboardController extends Controller
             'is_overdue' => $student->isPaymentOverdue(),
         ];
 
+        // Check for pending room booking
+        $pendingBooking = $student->payments()
+            ->where('status', 'pending')
+            ->whereNotNull('room_id')
+            ->with(['room.hostel'])
+            ->latest()
+            ->first();
+
         return view('student.dashboard', compact(
             'student',
             'latestAnnouncements',
@@ -79,7 +87,8 @@ class StudentsDashboardController extends Controller
             'total_complaints',
             'pending_complaints',
             'recentAttendance',
-            'feeInfo'
+            'feeInfo',
+            'pendingBooking'
         ));
     }
 
@@ -306,10 +315,11 @@ class StudentsDashboardController extends Controller
     /**
      * View Single Hostel Details
      */
-    public function showHostel(\App\Models\Hostel $hostel)
+    public function showHostel(\App\Models\Hostel $hostel, Request $request)
     {
         $student = auth()->guard('student')->user();
         $gender = strtolower($student->gender);
+        $roomType = $request->get('room_type');
 
         // Security check: Ensure student matches hostel type
         if ($hostel->type !== 'mixed' && $hostel->type !== $gender) {
@@ -317,8 +327,12 @@ class StudentsDashboardController extends Controller
         }
 
         $rooms = $hostel->rooms()
+            ->where('gender_type', $gender)
             ->where('status', 'available')
             ->whereRaw('occupied < capacity')
+            ->when($roomType, function($query) use ($roomType) {
+                return $query->where('room_type', $roomType);
+            })
             ->orderBy('room_number')
             ->get();
 
@@ -333,49 +347,137 @@ class StudentsDashboardController extends Controller
         $student = auth()->guard('student')->user();
 
         // Validation
+        $request->validate([
+            'payment_plan' => 'required|in:semester,year',
+        ]);
+
         $gender = strtolower($student->gender);
         $hostel = $room->hostel;
 
+        // Check 1: Gender compatibility
         if ($hostel->type !== 'mixed' && $hostel->type !== $gender) {
             return back()->with('error', 'You cannot book a room in this hostel as it is not designated for your gender.');
         }
 
+        if ($room->gender_type !== $gender) {
+            return back()->with('error', 'This room is designated for ' . $room->gender_type . ' students only.');
+        }
+
+        // Check 2: Room status
         if ($room->status !== 'available') {
-            return back()->with('error', 'This room is not available.');
+            return back()->with('error', 'This room is currently not available for booking.');
         }
 
+        // Check 3: Room capacity - CRITICAL: Refresh from database to get latest occupancy
+        $room->refresh();
+        $remainingSlots = $room->capacity - $room->occupied;
+        
         if ($room->occupied >= $room->capacity) {
-            return back()->with('error', 'This room is fully occupied.');
+            return back()->with('error', 'Sorry! This room was just filled. Please select another room.');
         }
 
+        // Check 4: Student already has a room
         if ($student->room_id) {
-            return back()->with('error', 'You already have a room assigned.');
+            return back()->with('error', 'You already have a room assigned. Please contact admin if you need to change rooms.');
         }
 
-        // Assign Room
-        $student->room_id = $room->id;
-        $student->check_in_date = now();
-        $student->save();
-
-        // Update Room Occupancy
-        $room->increment('occupied');
-        if ($room->occupied >= $room->capacity) {
-            $room->status = 'full';
+        // Check 5: Student already has a pending booking
+        $pendingBooking = \App\Models\Payment::where('student_id', $student->id)
+            ->where('status', 'pending')
+            ->whereNotNull('room_id')
+            ->exists();
+            
+        if ($pendingBooking) {
+            return back()->with('error', 'You already have a pending room booking. Please wait for admin approval.');
         }
-        $room->save();
 
-        // Create attendance record for check-in
-        AttendanceRecord::create([
-            'student_id' => $student->id,
-            'type' => 'check_in',
-            'recorded_at' => now(),
-            'recorded_by' => 'System',
-            'notes' => 'Initial room assignment',
-            'location' => 'Online Booking',
+        // All checks passed - proceed to payment
+        return redirect()->route('student.rooms.booking_payment', [
+            'room' => $room->id,
+            'plan' => $request->payment_plan
+        ])->with('info', "Great choice! Room has {$remainingSlots} slot(s) remaining. Complete payment to secure your spot.");
+    }
+
+    /**
+     * Show booking payment page
+     */
+    public function showBookingPayment(\App\Models\Room $room, Request $request)
+    {
+        $student = auth()->guard('student')->user();
+        $plan = $request->query('plan', 'semester');
+        
+        if (!in_array($plan, ['semester', 'year'])) {
+            $plan = 'semester';
+        }
+
+        $amount = ($plan === 'semester') ? $room->price_per_semester : $room->price_per_year;
+
+        return view('student.hostels.booking_payment', compact('room', 'plan', 'amount', 'student'));
+    }
+
+    /**
+     * Submit booking payment receipt
+     */
+    public function submitBookingPayment(Request $request, \App\Models\Room $room)
+    {
+        $student = auth()->guard('student')->user();
+
+        $request->validate([
+            'payment_plan' => 'required|in:semester,year',
+            'amount' => 'required|numeric',
+            'receipt' => 'required|file|mimes:jpg,jpeg,png,pdf|max:5120',
+            'payment_method' => 'required|string',
+            'notes' => 'nullable|string|max:500',
         ]);
 
+        // Create the payment record linked to the room
+        $payment = \App\Models\Payment::create([
+            'student_id' => $student->id,
+            'room_id' => $room->id,
+            'payment_plan' => $request->payment_plan,
+            'amount' => $request->amount,
+            'payment_method' => $request->payment_method,
+            'notes' => $request->notes,
+            'status' => 'pending',
+            'payment_date' => now(),
+            'receipt_number' => 'BR-'.strtoupper(\Illuminate\Support\Str::random(10)),
+        ]);
+
+        if ($request->hasFile('receipt')) {
+            $file = $request->file('receipt');
+            $fileName = 'booking_receipt_' . time() . '_' . \Illuminate\Support\Str::random(10) . '.' . $file->getClientOriginalExtension();
+            $filePath = $file->storeAs('receipts', $fileName, 'public');
+            
+            $payment->receipt_path = $filePath;
+            $payment->save();
+        }
+
+        // Notify Admins with detailed information
+        \App\Models\Notification::notifyAllAdmins(
+            'payment',
+            '🏠 New Room Booking Payment Received',
+            "Student: {$student->full_name} ({$student->admission_number})\n" .
+            "Room: {$room->room_number} in {$room->hostel->name}\n" .
+            "Payment Plan: " . ucfirst($request->payment_plan) . "\n" .
+            "Amount: ₦" . number_format($payment->amount, 2) . "\n" .
+            "Current Occupancy: {$room->occupied}/{$room->capacity}\n" .
+            "Action Required: Review and approve this booking payment.",
+            ['payment_id' => $payment->id, 'student_id' => $student->id, 'room_id' => $room->id]
+        );
+
+        // Notify Student that request is pending
+        \App\Models\Notification::notifyStudent(
+            $student->id,
+            'payment',
+            'Room Booking Submitted 🏠',
+            "Your booking request for Room {$room->room_number} in {$room->hostel->name} has been received. " .
+            "We are currently verifying your payment of ₦" . number_format($payment->amount, 2) . ". " .
+            "You will be notified once an admin approves your booking and assigns your room.",
+            ['payment_id' => $payment->id, 'room_id' => $room->id]
+        );
+
         return redirect()->route('student.dashboard')
-            ->with('success', 'Room booked successfully! Welcome to ' . $room->hostel->name);
+            ->with('success', 'Booking payment submitted successfully! Your room will be assigned once the admin approves your payment. We will notify you.');
     }
 
     /**

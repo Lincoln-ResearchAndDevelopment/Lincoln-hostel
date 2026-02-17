@@ -11,6 +11,11 @@ class Student extends Authenticatable
 {
     use HasFactory, Notifiable;
 
+    public function notifications()
+    {
+        return $this->morphMany(\App\Models\Notification::class, 'notifiable')->latest();
+    }
+
     protected $guard = 'student';
 
     protected $fillable = [
@@ -116,11 +121,6 @@ class Student extends Authenticatable
         return $this->hasMany(LeaveRequest::class);
     }
 
-    public function notifications()
-    {
-        return $this->morphMany(Notification::class, 'notifiable')->latest();
-    }
-
     public function unreadNotifications()
     {
         return $this->notifications()->unread();
@@ -129,6 +129,11 @@ class Student extends Authenticatable
     public function attendanceRecords()
     {
         return $this->hasMany(AttendanceRecord::class);
+    }
+
+    public function application()
+    {
+        return $this->belongsTo(HostelApplication::class, 'application_id');
     }
 
     public function hostelApplication()

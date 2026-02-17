@@ -106,7 +106,7 @@
                                         <td>
                                             <div class="badge bg-info text-dark mb-1">{{ $room->room_type_display }}</div>
                                             <div class="small text-success fw-bold">
-                                                GHC {{ $room->formatted_price_per_semester }}/Sem
+                                                ₦{{ $room->formatted_price_per_semester }}/Sem
                                             </div>
                                         </td>
                                         <td>

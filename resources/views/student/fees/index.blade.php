@@ -214,15 +214,15 @@
                     <table class="table table-borderless">
                         <tr>
                             <td class="text-muted">Bank Name:</td>
-                            <td class="fw-bold">EcoBank Nigeria PLC</td>
+                            <td class="fw-bold">Zenith Bank</td>
                         </tr>
                         <tr>
                             <td class="text-muted">Account Number:</td>
-                            <td class="fw-bold"><code class="fs-5">3680086084</code></td>
+                            <td class="fw-bold"><code class="fs-5">1311150112</code></td>
                         </tr>
                         <tr>
                             <td class="text-muted">Account Name:</td>
-                            <td class="fw-bold">Lincoln Logistics Service Limited</td>
+                            <td class="fw-bold">Lincoln ODL LTD (GOperation)</td>
                         </tr>
                     </table>
                 </div>

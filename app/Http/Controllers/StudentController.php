@@ -23,7 +23,7 @@ class StudentController extends Controller
         $applications = HostelApplication::where('status', 'approved')
             ->where(function($query) use ($search) {
                 $query->where('full_name', 'like', "%$search%")
-                      ->orWhere('reg_number', 'like', "%$search%");
+                      ->orWhere('student_id', 'like', "%$search%");
             })
             ->limit(10)
             ->get();
@@ -56,16 +56,7 @@ class StudentController extends Controller
 
     public function create()
     {
-        // Fetch available rooms with their hostel
-        $availableRooms = Room::with('hostel')
-                            ->where('status', 'available')
-                            ->whereRaw('occupied < capacity')
-                            ->get()
-                            ->sortBy(function($room) {
-                                return $room->hostel->name . ' ' . $room->room_number;
-                            });
-
-        return view('students.create', compact('availableRooms'));
+        return view('students.create');
     }
 
     public function store(Request $request)
@@ -78,7 +69,7 @@ class StudentController extends Controller
             'department' => 'required|string|max:255',
             'semester' => 'required|integer|min:1|max:20',
             'intake' => 'required|in:March 2023,July 2023,November 2023,March 2024,July 2024,November 2024,March 2025',
-            'room_id' => 'required|exists:rooms,id',
+            // Room assignment removed - students must book through the portal
             'contact_number' => 'required|string|max:20',
             'emergency_contact' => 'required|string|max:20',
             'address' => 'required|string|max:255',
@@ -86,15 +77,11 @@ class StudentController extends Controller
             'expected_check_out_date' => 'required|date|after:check_in_date',
         ]);
 
-        // Verify if student is registered (has an approved application)
-        $application = HostelApplication::where('reg_number', $validated['admission_number'])
+
+        // Check if there is an approved application (optional for manual entry)
+        $application = HostelApplication::where('student_id', $validated['admission_number'])
             ->where('status', 'approved')
             ->first();
-
-        if (!$application) {
-            return back()->withErrors(['admission_number' => 'This student does not have an approved hostel application.'])
-                         ->withInput();
-        }
 
         DB::transaction(function () use ($validated, $application) {
             $user = User::create([
@@ -106,8 +93,8 @@ class StudentController extends Controller
 
             Student::create([
                 'user_id' => $user->id,
-                'application_id' => $application->id,
-                'room_id' => $validated['room_id'],
+                'application_id' => $application ? $application->id : null,
+                'room_id' => null, // Students must book rooms through the booking portal
                 'admission_number' => $validated['admission_number'],
                 'full_name' => $validated['full_name'],
                 'email' => $validated['email'],
@@ -121,15 +108,36 @@ class StudentController extends Controller
                 'check_in_date' => Carbon::parse($validated['check_in_date']),
                 'expected_check_out_date' => Carbon::parse($validated['expected_check_out_date']),
                 'status' => 'active',
-                'hostel_fee_amount' => $application->amount_paid ?? 0,
-                'hostel_fee_paid' => $application->amount_paid ?? 0,
+                'hostel_fee_amount' => optional($application)->amount_paid ?? 0,
+                'hostel_fee_paid' => optional($application)->amount_paid ?? 0,
                 'hostel_fee_status' => 'paid',
+
+                // Transfer additional data from Application if available
+                'date_of_birth' => optional($application)->date_of_birth,
+                'nationality' => optional($application)->nationality,
+                'state_of_origin' => optional($application)->state_of_origin,
+                'local_government' => optional($application)->local_government,
+                
+                // Parent/Guardian Info
+                'parent_name' => optional($application)->parent_full_name,
+                'parent_relationship' => optional($application)->parent_relationship,
+                'parent_phone' => optional($application)->parent_phone,
+                'parent_email' => optional($application)->parent_email,
+                'parent_address' => optional($application)->parent_address,
+                'parent_occupation' => optional($application)->parent_occupation,
+                
+                // Medical Info
+                'blood_group' => optional($application)->blood_group,
+                'genotype' => optional($application)->genotype,
+                'medical_conditions' => optional($application)->medical_conditions,
+                'allergies' => optional($application)->allergies,
+                'medications' => optional($application)->medications,
+                'has_disability' => optional($application)->has_disability ?? false,
+                'disability_details' => optional($application)->disability_details,
             ]);
 
-            Room::where('id', $validated['room_id'])->update([
-                'occupied' => DB::raw('occupied + 1'),
-                'status' => DB::raw('CASE WHEN occupied + 1 >= capacity THEN "full" ELSE status END'),
-            ]);
+            // No room assignment during registration
+            // Students book rooms through the student portal
         });
 
         return redirect()->route('students.index')->with('success', 'Student registered successfully');

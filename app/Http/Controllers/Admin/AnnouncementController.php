@@ -4,8 +4,13 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Announcement;
+use App\Models\Student;
+use App\Models\Notification;
+use App\Mail\AnnouncementNotificationMail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 
 class AnnouncementController extends Controller
 {
@@ -48,7 +53,39 @@ class AnnouncementController extends Controller
             $data['attachment_mime_type'] = $file->getMimeType();
         }
 
-        Announcement::create($data);
+        $announcement = Announcement::create($data);
+
+        // Notify Students
+        try {
+            $studentsQuery = Student::where('status', 'active');
+            
+            if ($request->target_audience === 'Male') {
+                $studentsQuery->where('gender', 'Male');
+            } elseif ($request->target_audience === 'Female') {
+                $studentsQuery->where('gender', 'Female');
+            }
+
+            $students = $studentsQuery->get();
+
+            foreach ($students as $student) {
+                // Dashboard Notification
+                Notification::notifyStudent(
+                    $student->id,
+                    'announcement',
+                    $announcement->title,
+                    Str::limit(strip_tags($announcement->description), 100),
+                    ['announcement_id' => $announcement->id]
+                );
+
+                // Email Notification
+                if ($student->email) {
+                    Mail::to($student->email)->send(new AnnouncementNotificationMail($announcement));
+                }
+            }
+        } catch (\Exception $e) {
+            // Log error but don't stop the announcement from being published
+            \Log::error('Failed to notify students of announcement: ' . $e->getMessage());
+        }
 
         return redirect()->back()->with('success', 'Announcement published successfully.');
     }

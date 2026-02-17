@@ -9,17 +9,17 @@
     --border-color: #e2eefd;
     --card-shadow: 0 0 29px 0 rgba(68, 88, 144, 0.12);
     --card-shadow-hover: 0px 0 25px 0 rgba(16, 110, 234, 0.1);
-    --primary-color: #dc2626;
-    --primary-hover: #b91c1c;
+    --primary-color: #cc0000;
+    --primary-hover: #990000;
     --primary-light: #fecaca;
     --navbar-bg: #ffffff;
-    --topbar-bg: #dc2626;
+    --topbar-bg: #cc0000;
     --hero-overlay: rgba(0, 0, 0, 0.7);
     --input-bg: #ffffff;
     --input-border: #ced4da;
     --footer-bg: #f1f6fe;
-    --gradient-primary: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-    --gradient-shield: linear-gradient(135deg, #dc2626 0%, #b91c1c 50%, #991b1b 100%);
+    --gradient-primary: linear-gradient(135deg, #cc0000 0%, #990000 100%);
+    --gradient-shield: linear-gradient(135deg, #cc0000 0%, #990000 50%, #7d0000 100%);
 }
 
 [data-theme="dark"] {
@@ -33,17 +33,17 @@
     --border-color: #495057;
     --card-shadow: 0 0 29px 0 rgba(0, 0, 0, 0.3);
     --card-shadow-hover: 0px 0 25px 0 rgba(255, 255, 255, 0.1);
-    --primary-color: #ef4444;
-    --primary-hover: #dc2626;
+    --primary-color: #cc0000;
+    --primary-hover: #990000;
     --primary-light: #fecaca;
     --navbar-bg: #2d2d2d;
-    --topbar-bg: #dc2626;
+    --topbar-bg: #cc0000;
     --hero-overlay: rgba(0, 0, 0, 0.8);
     --input-bg: #404040;
     --input-border: #6c757d;
     --footer-bg: #2d2d2d;
-    --gradient-primary: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-    --gradient-shield: linear-gradient(135deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%);
+    --gradient-primary: linear-gradient(135deg, #cc0000 0%, #990000 100%);
+    --gradient-shield: linear-gradient(135deg, #cc0000 0%, #990000 50%, #7d0000 100%);
 }
 
 * {
@@ -124,9 +124,12 @@ body.theme-loaded {
 }
 
 @keyframes float {
-    0%, 100% {
+
+    0%,
+    100% {
         transform: translateY(0) scale(1);
     }
+
     50% {
         transform: translateY(-10px) scale(1.05);
     }
@@ -312,8 +315,13 @@ body.theme-loaded {
 }
 
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 /* Links Styling */
@@ -360,23 +368,23 @@ body.theme-loaded {
         margin-top: 20px;
         padding: 15px;
     }
-    
+
     .form-section .card-body {
         padding: 2rem 1.5rem;
     }
-    
+
     .shield-section {
         display: none;
     }
-    
+
     .login-card {
         min-height: auto;
     }
-    
+
     .mobile-logo {
         height: 50px;
     }
-    
+
     .login-title {
         font-size: 1.5rem;
     }
@@ -386,7 +394,7 @@ body.theme-loaded {
     .form-section .card-body {
         padding: 1.5rem 1rem;
     }
-    
+
     .login-btn {
         padding: 0.875rem 1.5rem;
         font-size: 1rem;
@@ -398,7 +406,7 @@ body.theme-loaded {
     .shield-icon-wrapper i {
         font-size: 10rem;
     }
-    
+
     .shield-content h2 {
         font-size: 3rem;
     }
@@ -426,19 +434,37 @@ body.theme-loaded {
         opacity: 0;
         transform: translate3d(0, 40px, 0);
     }
+
     to {
         opacity: 1;
         transform: translate3d(0, 0, 0);
     }
 }
 
-.form-section .card-body > * {
+.form-section .card-body>* {
     animation: fadeInUp 0.6s ease-out;
 }
 
-.form-section .card-body > *:nth-child(1) { animation-delay: 0.1s; }
-.form-section .card-body > *:nth-child(2) { animation-delay: 0.2s; }
-.form-section .card-body > *:nth-child(3) { animation-delay: 0.3s; }
-.form-section .card-body > *:nth-child(4) { animation-delay: 0.4s; }
-.form-section .card-body > *:nth-child(5) { animation-delay: 0.5s; }
-.form-section .card-body > *:nth-child(6) { animation-delay: 0.6s; }
+.form-section .card-body>*:nth-child(1) {
+    animation-delay: 0.1s;
+}
+
+.form-section .card-body>*:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.form-section .card-body>*:nth-child(3) {
+    animation-delay: 0.3s;
+}
+
+.form-section .card-body>*:nth-child(4) {
+    animation-delay: 0.4s;
+}
+
+.form-section .card-body>*:nth-child(5) {
+    animation-delay: 0.5s;
+}
+
+.form-section .card-body>*:nth-child(6) {
+    animation-delay: 0.6s;
+}

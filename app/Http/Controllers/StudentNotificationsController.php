@@ -49,6 +49,25 @@ class StudentNotificationsController extends Controller
     }
 
     /**
+     * Fetch latest notifications for polling (JSON)
+     */
+    public function fetchNew()
+    {
+        $student = Auth::guard('student')->user();
+        $notifications = $student->notifications()
+            ->unread()
+            ->latest()
+            ->take(5)
+            ->get();
+
+        return response()->json([
+            'notifications' => $notifications,
+            'unreadCount' => $student->notifications()->unread()->count(),
+            'totalCount' => $student->notifications()->count()
+        ]);
+    }
+
+    /**
      * Update notification preferences (placeholder for future)
      */
     public function update(Request $request)

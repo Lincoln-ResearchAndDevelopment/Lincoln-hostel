@@ -15,6 +15,37 @@ class StudentProfileController extends Controller
     public function index()
     {
         $student = auth('student')->user();
+
+        // Auto-sync missing data from application if available
+        if ($student->application_id && $student->hostelApplication) {
+            $application = $student->hostelApplication;
+            
+            // Only update if critical fields are missing to avoid overwriting user edits
+            if (empty($student->parent_name) || empty($student->date_of_birth)) {
+                $student->update([
+                    'date_of_birth' => $student->date_of_birth ?? $application->date_of_birth,
+                    'nationality' => $student->nationality ?? $application->nationality,
+                    'state_of_origin' => $student->state_of_origin ?? $application->state_of_origin,
+                    'local_government' => $student->local_government ?? $application->local_government,
+                    
+                    'parent_name' => $student->parent_name ?? $application->parent_full_name,
+                    'parent_relationship' => $student->parent_relationship ?? $application->parent_relationship,
+                    'parent_phone' => $student->parent_phone ?? $application->parent_phone,
+                    'parent_email' => $student->parent_email ?? $application->parent_email,
+                    'parent_address' => $student->parent_address ?? $application->parent_address,
+                    'parent_occupation' => $student->parent_occupation ?? $application->parent_occupation,
+                    
+                    'blood_group' => $student->blood_group ?? $application->blood_group,
+                    'genotype' => $student->genotype ?? $application->genotype,
+                    'medical_conditions' => $student->medical_conditions ?? $application->medical_conditions,
+                    'allergies' => $student->allergies ?? $application->allergies,
+                    'medications' => $student->medications ?? $application->medications,
+                    'has_disability' => $student->has_disability ? $student->has_disability : ($application->has_disability ?? false),
+                    'disability_details' => $student->disability_details ?? $application->disability_details,
+                ]);
+            }
+        }
+
         return view('student.profile.index', compact('student'));
     }
 

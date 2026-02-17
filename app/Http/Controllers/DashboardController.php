@@ -41,11 +41,23 @@ class DashboardController extends Controller
             'rejected_applications' => \App\Models\HostelApplication::where('status', 'rejected')->count(),
             'recent_applications' => \App\Models\HostelApplication::latest()->take(5)->get(),
             
+            
             // Leave Requests
             'pending_leave' => LeaveRequest::where('status', 'pending')->count(),
             
             // Recent Complaints
             'recent_complaints' => Complaint::with('student')->latest()->take(5)->get(),
+            
+            // Pending Room Bookings (NEW)
+            'pending_bookings' => Payment::with(['student', 'room.hostel'])
+                ->where('status', 'pending')
+                ->whereNotNull('room_id')
+                ->latest()
+                ->take(10)
+                ->get(),
+            'pending_bookings_count' => Payment::where('status', 'pending')
+                ->whereNotNull('room_id')
+                ->count(),
         ];
 
         return view('admin.dashboard', $data);

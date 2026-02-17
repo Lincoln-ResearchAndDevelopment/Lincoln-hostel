@@ -92,10 +92,22 @@
         .sidebar-brand {
             font-size: 1.35rem; font-weight: 700;
             color: var(--primary-color); text-decoration: none;
-            display: flex; align-items: center; gap: 0.5rem;
+            display: flex; align-items: center; gap: 0.75rem;
+        }
+        .sidebar-brand img {
+            height: 45px;
+            width: auto;
+            max-width: 45px;
+            object-fit: contain;
+            object-position: center;
+            transition: all var(--transition-speed);
         }
         .sidebar-brand:hover { color: var(--primary-hover); }
         .sidebar.collapsed .sidebar-brand span { display: none; }
+        .sidebar.collapsed .sidebar-brand img { 
+            height: 35px; 
+            max-width: 35px;
+        }
         .sidebar-nav { padding: 0.5rem 0; flex: 1; overflow-y: auto; }
         .nav-section-title {
             padding: 0.75rem 1.25rem 0.5rem;
@@ -279,9 +291,37 @@
             .page-title { font-size: 1rem; }
         }
         
-        @media (max-width: 576px) {
+        @media (max-width: 767.98px) {
             .content-container { padding: 1rem; }
+            .top-header { padding: 0 1rem; }
             .header-btn span { display: none; }
+            .header-btn { padding: 0.5rem; width: 40px; height: 40px; justify-content: center; }
+            .header-actions { gap: 0.25rem; }
+        }
+
+        /* Responsive Table Enhancement */
+        .table-responsive {
+            border: 0;
+            margin-bottom: 0;
+        }
+        
+        @media (max-width: 576px) {
+            .card-header { padding: 0.75rem 1rem; }
+            .card-body { padding: 1rem; }
+            .btn-sm { padding: 0.4rem 0.6rem; }
+            .breadcrumb { display: none; } /* Save space on tiny screens */
+            
+            /* Full width buttons on mobile */
+            .btn-mobile-full { width: 100%; margin-bottom: 0.5rem; }
+            .d-flex.gap-2 { flex-direction: column; }
+            .d-flex.gap-2 .btn { width: 100%; }
+        }
+
+        /* Prevent auto-zoom on iOS */
+        @media screen and (max-width: 768px) {
+            input, select, textarea {
+                font-size: 16px !important;
+            }
         }
     </style>
     @stack('styles')
@@ -294,7 +334,7 @@
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <a href="{{ route('dashboard') }}" class="sidebar-brand">
-                    <i class="fas fa-building"></i>
+                    <img src="{{ asset('assets/img/lincoln-logo.png') }}" alt="Lincoln University Logo">
                     <span>LincHostel</span>
                 </a>
             </div>
@@ -319,6 +359,13 @@
                 </a>
                 <a class="nav-link {{ request()->routeIs('rooms.*') ? 'active' : '' }}" href="{{ route('rooms.index') }}">
                     <i class="fas fa-door-open"></i><span>Rooms & Beds</span>
+                </a>
+                <a class="nav-link {{ request('type') == 'booking' ? 'active' : '' }}" href="{{ route('payments.index', ['type' => 'booking', 'status' => 'pending']) }}">
+                    <i class="fas fa-home"></i><span>Room Bookings</span>
+                    @php $pendingBookingsCount = \App\Models\Payment::where('status', 'pending')->whereNotNull('room_id')->count(); @endphp
+                    @if($pendingBookingsCount > 0)
+                        <span class="badge bg-warning text-dark">{{ $pendingBookingsCount }}</span>
+                    @endif
                 </a>
                 
                 <!-- Student Management -->
@@ -416,9 +463,11 @@
                         <button class="header-btn" data-bs-toggle="dropdown">
                             <i class="fas fa-bell"></i>
                             @php
+                                $pendingBookings = \App\Models\Payment::where('status', 'pending')->whereNotNull('room_id')->count();
                                 $notifCount = \App\Models\HostelApplication::where('status', 'pending')->count() 
                                             + \App\Models\LeaveRequest::where('status', 'pending')->count()
-                                            + \App\Models\Complaint::whereIn('status', ['submitted'])->count();
+                                            + \App\Models\Complaint::whereIn('status', ['submitted'])->count()
+                                            + $pendingBookings;
                             @endphp
                             @if($notifCount > 0)
                                 <span class="notification-badge">{{ $notifCount > 9 ? '9+' : $notifCount }}</span>
@@ -426,27 +475,66 @@
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end" style="min-width: 280px;">
                             <li class="dropdown-header fw-bold">Notifications</li>
+                            
+                            @if($pendingBookings > 0)
+                            <li><a class="dropdown-item d-flex align-items-center" href="{{ route('payments.index', ['status' => 'pending', 'type' => 'booking']) }}">
+                                <div class="bg-primary-subtle p-2 rounded-circle me-3">
+                                    <i class="fas fa-home text-primary"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold">{{ $pendingBookings }} New Room Bookings</div>
+                                    <small class="text-muted">Requires verification</small>
+                                </div>
+                            </a></li>
+                            @endif
+
                             @php $pendingApps = \App\Models\HostelApplication::where('status', 'pending')->count(); @endphp
                             @if($pendingApps > 0)
-                            <li><a class="dropdown-item" href="{{ route('applications.index', ['status' => 'pending']) }}">
-                                <i class="fas fa-file-alt text-warning me-2"></i>{{ $pendingApps }} pending applications
+                            <li><a class="dropdown-item d-flex align-items-center" href="{{ route('applications.index', ['status' => 'pending']) }}">
+                                <div class="bg-warning-subtle p-2 rounded-circle me-3">
+                                    <i class="fas fa-file-alt text-warning"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold">{{ $pendingApps }} Pending Applications</div>
+                                    <small class="text-muted">Review new students</small>
+                                </div>
                             </a></li>
                             @endif
+                            
                             @php $pendingLeave = \App\Models\LeaveRequest::where('status', 'pending')->count(); @endphp
                             @if($pendingLeave > 0)
-                            <li><a class="dropdown-item" href="{{ route('admin.leave.index') }}">
-                                <i class="fas fa-calendar-alt text-info me-2"></i>{{ $pendingLeave }} leave requests
+                            <li><a class="dropdown-item d-flex align-items-center" href="{{ route('admin.leave.index') }}">
+                                <div class="bg-info-subtle p-2 rounded-circle me-3">
+                                    <i class="fas fa-calendar-alt text-info"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold">{{ $pendingLeave }} Leave Requests</div>
+                                    <small class="text-muted">Approval required</small>
+                                </div>
                             </a></li>
                             @endif
+
                             @php $newComplaints = \App\Models\Complaint::where('status', 'submitted')->count(); @endphp
                             @if($newComplaints > 0)
-                            <li><a class="dropdown-item" href="{{ route('complaints.index') }}">
-                                <i class="fas fa-exclamation-circle text-danger me-2"></i>{{ $newComplaints }} new complaints
+                            <li><a class="dropdown-item d-flex align-items-center" href="{{ route('complaints.index') }}">
+                                <div class="bg-danger-subtle p-2 rounded-circle me-3">
+                                    <i class="fas fa-exclamation-circle text-danger"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold">{{ $newComplaints }} New Complaints</div>
+                                    <small class="text-muted">Urgent feedback</small>
+                                </div>
                             </a></li>
                             @endif
+
                             @if($notifCount == 0)
-                            <li><span class="dropdown-item text-muted">No new notifications</span></li>
+                            <li class="p-3 text-center">
+                                <i class="fas fa-bell-slash text-muted d-block mb-2"></i>
+                                <span class="text-muted small">No new notifications</span>
+                            </li>
                             @endif
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-center small text-primary fw-bold" href="{{ route('admin.notifications.index') }}">View All Notifications</a></li>
                         </ul>
                     </div>
                     

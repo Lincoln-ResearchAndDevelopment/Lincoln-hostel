@@ -36,8 +36,7 @@
                                        name="admission_number" 
                                        value="{{ old('admission_number') }}" 
                                        required
-                                       maxlength="50"
-                                       readonly>
+                                       maxlength="50">
                                 @error('admission_number')
                                     <span class="invalid-feedback" role="alert">
                                         <strong>{{ $message }}</strong>
@@ -56,8 +55,7 @@
                                        name="full_name" 
                                        value="{{ old('full_name') }}" 
                                        required
-                                       maxlength="255"
-                                       readonly>
+                                       maxlength="255">
                                 @error('full_name')
                                     <span class="invalid-feedback" role="alert">
                                         <strong>{{ $message }}</strong>
@@ -73,8 +71,7 @@
                             <div class="col-md-6">
                                 <select id="gender" 
                                         class="form-select @error('gender') is-invalid @enderror" 
-                                        name="gender" required
-                                        style="pointer-events: none; background-color: #f8f9fa;">
+                                        name="gender" required>
                                     <option value="" disabled selected>Select Gender</option>
                                     <option value="Male" {{ old('gender') == 'Male' ? 'selected' : '' }}>Male</option>
                                     <option value="Female" {{ old('gender') == 'Female' ? 'selected' : '' }}>Female</option>
@@ -96,8 +93,7 @@
                                        class="form-control @error('email') is-invalid @enderror" 
                                        name="email" 
                                        value="{{ old('email') }}" 
-                                       required
-                                       readonly>
+                                       required>
                                 @error('email')
                                     <span class="invalid-feedback" role="alert">
                                         <strong>{{ $message }}</strong>
@@ -114,8 +110,7 @@
                                 <select id="department" 
                                         class="form-select @error('department') is-invalid @enderror" 
                                         name="department" 
-                                        required
-                                        style="pointer-events: none; background-color: #f8f9fa;">
+                                        required>
                                     <option value="">Select Department</option>
                                     <option value="Computer Software Engineering" {{ old('department') == 'Computer Software Engineering' ? 'selected' : '' }}>Computer Software Engineering</option>
                                     <option value="Foundation of Nursing" {{ old('department') == 'Foundation of Nursing' ? 'selected' : '' }}>Foundation of Nursing</option>
@@ -139,8 +134,7 @@
                                 <select id="semester" 
                                         class="form-select @error('semester') is-invalid @enderror" 
                                         name="semester" 
-                                        required
-                                        style="pointer-events: none; background-color: #f8f9fa;">
+                                        required>
                                     <option value="">Select Semester</option>
                                     @for($i = 1; $i <= 8; $i++)
                                         <option value="{{ $i }}" {{ old('semester') == $i ? 'selected' : '' }}>Semester {{ $i }}</option>
@@ -162,8 +156,7 @@
                                 <select id="intake" 
                                         class="form-select @error('intake') is-invalid @enderror" 
                                         name="intake" 
-                                        required
-                                        style="pointer-events: none; background-color: #f8f9fa;">
+                                        required>
                                     <option value="">Select Intake</option>
                                     <option value="March 2023" {{ old('intake') == 'March 2023' ? 'selected' : '' }}>March 2023</option>
                                     <option value="July 2023" {{ old('intake') == 'July 2023' ? 'selected' : '' }}>July 2023</option>
@@ -182,31 +175,6 @@
                         </div>
 
                         <div class="row mb-3">
-                            <label for="room_id" class="col-md-4 col-form-label text-md-end">
-                                {{ __('Room') }} <span class="text-danger">*</span>
-                            </label>
-                            <div class="col-md-6">
-                                <select id="room_id" 
-                                        class="form-select @error('room_id') is-invalid @enderror" 
-                                        name="room_id" 
-                                        required>
-                                    <option value="">Select a room</option>
-                                    @php $currentHostel = null; @endphp
-                                    @foreach($availableRooms as $room)
-                                        <option value="{{ $room->id }}" {{ old('room_id') == $room->id ? 'selected' : '' }}>
-                                            {{ ucfirst($room->room_type) }} Room - {{ $room->room_number }} ({{ $room->hostel->name }})
-                                        </option>
-                                    @endforeach
-                                </select>
-                                @error('room_id')
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                @enderror
-                            </div>
-                        </div>
-
-                        <div class="row mb-3">
                             <label for="contact_number" class="col-md-4 col-form-label text-md-end">
                                 {{ __('Contact Number') }} <span class="text-danger">*</span>
                             </label>
@@ -216,8 +184,7 @@
                                        name="contact_number" 
                                        value="{{ old('contact_number') }}" 
                                        required
-                                       maxlength="20"
-                                       readonly>
+                                       maxlength="20">
                                 @error('contact_number')
                                     <span class="invalid-feedback" role="alert">
                                         <strong>{{ $message }}</strong>
@@ -236,8 +203,7 @@
                                        name="emergency_contact" 
                                        value="{{ old('emergency_contact') }}" 
                                        required
-                                       maxlength="20"
-                                       readonly>
+                                       maxlength="20">
                                 @error('emergency_contact')
                                     <span class="invalid-feedback" role="alert">
                                         <strong>{{ $message }}</strong>
@@ -255,8 +221,7 @@
                                           class="form-control @error('address') is-invalid @enderror" 
                                           name="address" 
                                           required
-                                          maxlength="255"
-                                          readonly>{{ old('address') }}</textarea>
+                                          maxlength="255">{{ old('address') }}</textarea>
                                 @error('address')
                                     <span class="invalid-feedback" role="alert">
                                         <strong>{{ $message }}</strong>
@@ -273,10 +238,8 @@
                                 <input id="check_in_date" type="date" 
                                        class="form-control @error('check_in_date') is-invalid @enderror" 
                                        name="check_in_date" 
-                                       value="{{ old('check_in_date', now()->format('Y-m-d')) }}" 
                                        min="{{ now()->format('Y-m-d') }}" 
-                                       required
-                                       readonly>
+                                       required>
                                 @error('check_in_date')
                                     <span class="invalid-feedback" role="alert">
                                         <strong>{{ $message }}</strong>
@@ -369,7 +332,7 @@
                                         <div>
                                             <div class="fw-bold text-primary">${item.full_name}</div>
                                             <div class="small text-muted">
-                                                <i class="fas fa-id-card me-1"></i>${item.reg_number} | 
+                                                <i class="fas fa-id-card me-1"></i>${item.student_id} | 
                                                 <i class="fas fa-graduation-cap me-1"></i>${item.department}
                                             </div>
                                         </div>
@@ -394,7 +357,7 @@
         });
 
         function selectApplicant(item) {
-            fields.admission_number.value = item.reg_number || '';
+            fields.admission_number.value = item.student_id || '';
             fields.full_name.value = item.full_name || '';
             fields.email.value = item.email || '';
             

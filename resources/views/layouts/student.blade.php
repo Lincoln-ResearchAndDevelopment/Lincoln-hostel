@@ -89,11 +89,23 @@
         .sidebar-brand {
             font-size: 1.35rem; font-weight: 700;
             color: var(--primary-color); text-decoration: none;
-            display: flex; align-items: center; gap: 0.5rem;
+            display: flex; align-items: center; gap: 0.75rem;
+        }
+        .sidebar-brand img {
+            height: 45px;
+            width: auto;
+            max-width: 45px;
+            object-fit: contain;
+            object-position: center;
+            transition: all var(--transition-speed);
         }
         .sidebar-brand:hover { color: var(--primary-hover); }
         .sidebar-brand i { color: var(--primary-color); }
         .sidebar.collapsed .sidebar-brand span { display: none; }
+        .sidebar.collapsed .sidebar-brand img { 
+            height: 35px; 
+            max-width: 35px;
+        }
         .sidebar-nav { padding: 0.5rem 0; flex: 1; }
         .nav-section-title {
             padding: 0.75rem 1.25rem 0.5rem;
@@ -213,6 +225,79 @@
             }
             .sidebar-overlay.active { display: block; }
         }
+
+        /* Bottom Nav for Mobile */
+        .bottom-nav {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--navbar-bg);
+            border-top: 1px solid var(--border-color);
+            z-index: 1000;
+            padding: 0.5rem 0;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+        }
+
+        .bottom-nav-inner {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+
+        .bottom-nav-link {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: var(--text-secondary);
+            font-size: 0.65rem;
+            gap: 2px;
+            transition: all 0.2s;
+            flex: 1;
+        }
+
+        .bottom-nav-link i {
+            font-size: 1.2rem;
+            margin-bottom: 2px;
+        }
+
+        .bottom-nav-link.active {
+            color: var(--primary-color);
+        }
+
+        @media (max-width: 767.98px) {
+            .bottom-nav { display: block; }
+            .content-container { padding: 1rem 1rem 5rem 1rem !important; }
+            .top-header { padding: 0 1rem; }
+            .page-title { font-size: 1.1rem; }
+            .theme-toggle span { display: none; }
+            .theme-toggle { padding: 0.4rem; }
+        }
+
+        /* Responsive Tables Enhancement */
+        .table-responsive {
+            border: 0;
+        }
+        
+        @media (max-width: 576px) {
+            .card-header { padding: 0.75rem 1rem; }
+            .card-body { padding: 1rem; }
+            .btn-sm { padding: 0.4rem 0.6rem; }
+
+            /* Full width buttons on mobile */
+            .btn-mobile-full { width: 100%; margin-bottom: 0.5rem; }
+            .d-flex.gap-2 { flex-direction: column; }
+            .d-flex.gap-2 .btn { width: 100%; }
+        }
+
+        /* Prevent auto-zoom on iOS */
+        @media screen and (max-width: 768px) {
+            input, select, textarea {
+                font-size: 16px !important;
+            }
+        }
     </style>
     @stack('styles')
 </head>
@@ -222,7 +307,7 @@
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <a href="{{ route('student.dashboard') }}" class="sidebar-brand">
-                    <i class="fas fa-building"></i>
+                    <img src="{{ asset('assets/img/lincoln-logo.png') }}" alt="Lincoln University Logo">
                     <span>LincHostel</span>
                 </a>
             </div>
@@ -271,9 +356,7 @@
                 <a class="nav-link {{ request()->routeIs('student.notifications') ? 'active' : '' }}" href="{{ route('student.notifications') }}">
                     <i class="fas fa-bell"></i><span>Notifications</span>
                     @php $unreadCount = auth()->guard('student')->user()->notifications()->unread()->count(); @endphp
-                    @if($unreadCount > 0)
-                        <span class="badge bg-danger ms-auto">{{ $unreadCount }}</span>
-                    @endif
+                    <span id="sidebar-notif-count" class="badge bg-danger ms-auto {{ $unreadCount > 0 ? '' : 'd-none' }}">{{ $unreadCount }}</span>
                 </a>
             </nav>
             <div class="sidebar-footer">
@@ -303,11 +386,9 @@
                     <a href="{{ route('student.notifications') }}" class="theme-toggle position-relative" style="text-decoration: none;">
                         <i class="fas fa-bell"></i>
                         @php $unreadCount = auth()->guard('student')->user()->notifications()->unread()->count(); @endphp
-                        @if($unreadCount > 0)
-                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65rem;">
-                                {{ $unreadCount > 9 ? '9+' : $unreadCount }}
-                            </span>
-                        @endif
+                        <span id="header-notif-count" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger {{ $unreadCount > 0 ? '' : 'd-none' }}" style="font-size: 0.65rem;">
+                            {{ $unreadCount > 9 ? '9+' : $unreadCount }}
+                        </span>
                     </a>
                     <button class="theme-toggle" id="themeToggle" type="button">
                         <i class="fas fa-sun" id="themeIcon"></i>
@@ -331,11 +412,56 @@
                 @yield('content')
             </div>
         </main>
+
+        <!-- Mobile Bottom Nav -->
+        <nav class="bottom-nav">
+            <div class="bottom-nav-inner">
+                <a href="{{ route('student.dashboard') }}" class="bottom-nav-link {{ request()->routeIs('student.dashboard') ? 'active' : '' }}">
+                    <i class="fas fa-home"></i>
+                    <span>Home</span>
+                </a>
+                <a href="{{ route('student.announcements.index') }}" class="bottom-nav-link {{ request()->routeIs('student.announcements.*') ? 'active' : '' }}">
+                    <i class="fas fa-bullhorn"></i>
+                    <span>Notices</span>
+                </a>
+                <a href="{{ route('student.fees.index') }}" class="bottom-nav-link {{ request()->routeIs('student.fees.*') ? 'active' : '' }}">
+                    <i class="fas fa-money-bill-wave"></i>
+                    <span>Fees</span>
+                </a>
+                <a href="{{ route('student.complaints.index') }}" class="bottom-nav-link {{ request()->routeIs('student.complaints.*') ? 'active' : '' }}">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span>Issues</span>
+                </a>
+                <a href="{{ route('student.profile.index') }}" class="bottom-nav-link {{ request()->routeIs('student.profile.*') ? 'active' : '' }}">
+                    <i class="fas fa-user"></i>
+                    <span>Profile</span>
+                </a>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Realtime Notification Toasts -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1060;">
+        <div id="notif-toast" class="toast hide border-0 shadow-lg" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header bg-primary text-white">
+                <i class="fas fa-bell me-2"></i>
+                <strong class="me-auto" id="toast-title">Notification</strong>
+                <small id="toast-time">Just now</small>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body bg-white text-dark py-3" id="toast-message">
+                New notification received.
+            </div>
+            <div class="toast-footer p-2 bg-light text-end">
+                <a href="{{ route('student.notifications') }}" class="btn btn-sm btn-outline-primary py-1">View All</a>
+            </div>
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Existing sidebar/theme logic
             const sidebar = document.getElementById('sidebar');
             const mainContent = document.getElementById('mainContent');
             const sidebarToggle = document.getElementById('sidebarToggle');
@@ -344,6 +470,62 @@
             const themeToggle = document.getElementById('themeToggle');
             const themeIcon = document.getElementById('themeIcon');
             const themeText = document.getElementById('themeText');
+
+            // --- REALTIME NOTIFICATION POLLING ---
+            let lastNotifId = localStorage.getItem('last_notif_id') || 0;
+            const toastEl = document.getElementById('notif-toast');
+            const toast = new bootstrap.Toast(toastEl, { delay: 10000 });
+            
+            function pollNotifications() {
+                fetch('{{ route("student.notifications.fetch") }}')
+                    .then(response => response.json())
+                    .then(data => {
+                        // Update UI counts
+                        const headerCount = document.getElementById('header-notif-count');
+                        const sidebarCount = document.getElementById('sidebar-notif-count');
+                        
+                        if (data.unreadCount > 0) {
+                            headerCount.classList.remove('d-none');
+                            headerCount.textContent = data.unreadCount > 9 ? '9+' : data.unreadCount;
+                            sidebarCount.classList.remove('d-none');
+                            sidebarCount.textContent = data.unreadCount;
+
+                            // Check for new notification to show Toast
+                            if (data.notifications.length > 0) {
+                                const latest = data.notifications[0];
+                                if (latest.id > lastNotifId) {
+                                    // If we are on the notifications list page and a new notification arrived, 
+                                    // we might want to refresh to show it in the list
+                                    const isNotificationPage = window.location.href.includes('/student/notifications');
+                                    
+                                    lastNotifId = latest.id;
+                                    localStorage.setItem('last_notif_id', lastNotifId);
+                                    
+                                    // Only show toast if NOT on the notifications page (to avoid redundancy)
+                                    // OR refresh if ON the notifications page
+                                    if (isNotificationPage) {
+                                        window.location.reload(); 
+                                    } else {
+                                        // Populate and show Toast
+                                        document.getElementById('toast-title').textContent = latest.title;
+                                        document.getElementById('toast-message').textContent = latest.message;
+                                        toast.show();
+                                    }
+                                }
+                            }
+                        } else {
+                            if(headerCount) headerCount.classList.add('d-none');
+                            if(sidebarCount) sidebarCount.classList.add('d-none');
+                        }
+                    })
+                    .catch(error => console.error('Error fetching notifications:', error));
+            }
+
+            // Start polling every 10 seconds
+            setInterval(pollNotifications, 10000);
+            // Initial poll
+            pollNotifications();
+            // --- END POLLING ---
 
             const currentTheme = window.__INITIAL_THEME__ || localStorage.getItem('theme') || 'light';
             updateThemeUI(currentTheme);

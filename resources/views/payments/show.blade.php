@@ -19,7 +19,35 @@
                             <p><strong>Receipt Number:</strong> {{ $payment->receipt_number }}</p>
                             <p><strong>Student:</strong> {{ $payment->student->full_name }}</p>
                             <p><strong>Admission Number:</strong> {{ $payment->student->admission_number }}</p>
-                            <p><strong>Room:</strong> {{ $payment->student->room ? $payment->student->room->room_number : 'Not Assigned' }}</p>
+                            
+                            @if($payment->room_id)
+                                <div class="alert alert-info py-3 border-0 shadow-sm" style="background: linear-gradient(135deg, #e7f1ff 0%, #ffffff 100%);">
+                                    <h6 class="fw-bold mb-3 text-primary uppercase small letter-spacing-1">Room Booking Verification</h6>
+                                    <div class="row g-2">
+                                        <div class="col-6">
+                                            <small class="text-muted d-block">Hostel</small>
+                                            <span class="fw-bold">{{ $payment->room->hostel->name }}</span>
+                                        </div>
+                                        <div class="col-6">
+                                            <small class="text-muted d-block">Room Number</small>
+                                            <span class="fw-bold">Room {{ $payment->room->room_number }}</span>
+                                        </div>
+                                        <div class="col-6 mt-2">
+                                            <small class="text-muted d-block">Room Type</small>
+                                            <span class="badge bg-white text-dark border">{{ $payment->room->room_type_display }}</span>
+                                        </div>
+                                        <div class="col-6 mt-2">
+                                            <small class="text-muted d-block">Payment Duration</small>
+                                            <span class="badge bg-primary text-white">{{ ucfirst($payment->payment_plan) }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            @elseif($payment->student->room)
+                                <p><strong>Assigned Room:</strong> {{ $payment->student->room->room_number }} ({{ $payment->student->room->hostel->name }})</p>
+                            @else
+                                <p><strong>Room:</strong> Not Assigned</p>
+                            @endif
+
                             <p><strong>Payment Receipt:</strong></p>
                             @if($payment->receipt_path)
                                 @php
@@ -74,6 +102,23 @@
                             <p><strong>Notes:</strong> {{ $payment->notes ?: 'No notes available' }}</p>
                         </div>
                     </div>
+
+                    @if($payment->status === 'pending')
+                    <div class="mt-4 border-top pt-3 d-flex gap-2">
+                        <form action="{{ route('payments.approve', $payment) }}" method="POST" onsubmit="return confirm('Approve this payment?')">
+                            @csrf
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-check me-1"></i> Approve Payment
+                            </button>
+                        </form>
+                        <form action="{{ route('payments.reject', $payment) }}" method="POST" onsubmit="return confirm('Reject this payment?')">
+                            @csrf
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-times me-1"></i> Reject Payment
+                            </button>
+                        </form>
+                    </div>
+                    @endif
                 </div>
             </div>
         </div>

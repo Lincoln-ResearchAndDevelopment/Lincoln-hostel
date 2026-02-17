@@ -72,14 +72,14 @@
                             <!-- Mobile Logo -->
                             <div class="d-md-none text-center mb-4">
                                 <a href="/">
-                                    <img src="{{ asset('assets/img/favicon.ico') }}" alt="Lincoln Logo" class="mobile-logo">
+                                    <img src="{{ asset('assets/img/lincoln-logo.png') }}" alt="Lincoln Logo" class="mobile-logo">
                                 </a>
                             </div>
 
                             <!-- Desktop Logo -->
                             <div class="d-none d-md-block text-center mb-4">
                                 <a href="/">
-                                    <img src="{{ asset('assets/img/favicon.ico') }}" alt="Lincoln Logo" class="desktop-logo">
+                                    <img src="{{ asset('assets/img/lincoln-logo.png') }}" alt="Lincoln Logo" class="desktop-logo">
                                 </a>
                             </div>
 

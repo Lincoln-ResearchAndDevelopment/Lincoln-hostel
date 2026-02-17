@@ -52,6 +52,14 @@ class StudentPaymentController extends Controller
             // Update the payment with the file path
             $payment->receipt_path = $filePath;
             $payment->save();
+
+            // Notify Admins
+            \App\Models\Notification::notifyAllAdmins(
+                'payment',
+                'New Payment Submitted',
+                $student->full_name . ' has submitted a payment of ₦' . number_format($payment->amount, 2) . '.',
+                ['payment_id' => $payment->id]
+            );
         } else {
             return back()->with('error', 'Receipt file is required');
         }

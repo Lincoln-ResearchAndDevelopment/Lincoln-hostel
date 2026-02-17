@@ -7,9 +7,11 @@ use App\Models\LeaveRequest;
 use App\Models\Notification;
 use App\Models\Student;
 use App\Mail\LeaveStatusUpdateMail;
+use App\Services\SmsService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class LeaveRequestController extends Controller
 {
@@ -78,8 +80,9 @@ class LeaveRequestController extends Controller
         // Create dashboard notification for student
         $this->createStudentNotification($leaveRequest, 'approved');
 
-        // Send email notifications
+        // Send email and SMS notifications
         $this->sendStatusUpdateEmails($leaveRequest);
+        $this->sendStatusUpdateSms($leaveRequest);
 
         return redirect()->back()->with('success', 'Leave request approved successfully. Student and parent have been notified.');
     }
@@ -103,10 +106,11 @@ class LeaveRequestController extends Controller
         // Create dashboard notification for student
         $this->createStudentNotification($leaveRequest, 'rejected');
 
-        // Send email notifications
+        // Send email and SMS notifications
         $this->sendStatusUpdateEmails($leaveRequest);
+        $this->sendStatusUpdateSms($leaveRequest);
 
-        return redirect()->back()->with('success', 'Leave request rejected. Student and parent have been notified.');
+        return redirect()->back()->with('success', 'Leave request rejected. Student has been notified.');
     }
 
     /**
@@ -142,20 +146,72 @@ class LeaveRequestController extends Controller
 
         // Send to student
         try {
-            if ($student->email) {
+            if (!empty($student->email)) {
                 Mail::to($student->email)->send(new LeaveStatusUpdateMail($leaveRequest, 'student'));
             }
         } catch (\Exception $e) {
             Log::error('Failed to send leave status email to student: ' . $e->getMessage());
         }
 
-        // Send to parent/guardian
+        // Send to parent/guardian ONLY when approved (not on rejection)
+        if ($leaveRequest->status === 'approved') {
+            $parentEmail = $student->parent_email;
+            if ($this->isMissing($parentEmail) && $student->hostelApplication) {
+                $parentEmail = $student->hostelApplication->parent_email ?? null;
+            }
+            try {
+                if (!empty($parentEmail)) {
+                    Mail::to($parentEmail)->send(new LeaveStatusUpdateMail($leaveRequest, 'parent'));
+                }
+            } catch (\Exception $e) {
+                Log::error('Failed to send leave status email to parent: ' . $e->getMessage());
+            }
+        }
+    }
+
+    /**
+     * Send SMS notifications to student and parent when leave is approved/rejected
+     */
+    private function sendStatusUpdateSms(LeaveRequest $leaveRequest)
+    {
         try {
-            if ($student->parent_email) {
-                Mail::to($student->parent_email)->send(new LeaveStatusUpdateMail($leaveRequest, 'parent'));
+            $student = $leaveRequest->student;
+            $student->load('hostelApplication');
+            $status = $leaveRequest->status;
+            $period = $leaveRequest->start_date->format('d/m/Y') . '-' . $leaveRequest->end_date->format('d/m/Y');
+            $smsService = new SmsService();
+
+            // SMS to student
+            $studentPhone = $student->contact_number ?? null;
+            if (!empty($studentPhone) && $studentPhone !== 'N/A') {
+                $msg = "LincHostel: Your leave request ({$period}) has been " . $status . '.';
+                if ($status === 'rejected' && $leaveRequest->rejection_reason) {
+                    $msg .= ' Reason: ' . Str::limit($leaveRequest->rejection_reason, 50);
+                }
+                $smsService->sendSms($studentPhone, $msg);
+            }
+
+            // SMS to parent ONLY when approved (not on rejection)
+            if ($status === 'approved') {
+                $parentPhone = $student->parent_phone;
+                if ($this->isMissing($parentPhone) && $student->hostelApplication) {
+                    $parentPhone = $student->hostelApplication->parent_phone ?? null;
+                }
+                if (!empty($parentPhone) && $parentPhone !== 'N/A') {
+                    $msg = "LincHostel: Your ward {$student->full_name}'s leave request has been approved.";
+                    $smsService->sendSms($parentPhone, $msg);
+                }
             }
         } catch (\Exception $e) {
-            Log::error('Failed to send leave status email to parent: ' . $e->getMessage());
+            Log::error('Failed to send leave status SMS: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Check if a value is effectively empty
+     */
+    private function isMissing($value)
+    {
+        return empty($value) || $value === 'N/A';
     }
 }

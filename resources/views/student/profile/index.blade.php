@@ -110,7 +110,7 @@
                     <div class="col-md-12">
                         <div class="p-3 bg-light rounded">
                             <small class="text-muted d-block text-uppercase">Home Address</small>
-                            <span class="fw-bold">{{ $student->home_address ?? 'N/A' }}</span>
+                            <span class="fw-bold">{{ $student->address ?? 'N/A' }}</span>
                         </div>
                     </div>
                 </div>
@@ -130,10 +130,18 @@
                 <div class="row g-3">
                     <div class="col-md-4">
                         <div class="p-3 bg-light rounded">
-                            <small class="text-muted d-block text-uppercase">Admission Number</small>
+                            <small class="text-muted d-block text-uppercase">Student ID / Admission No</small>
                             <span class="fw-bold">{{ $student->admission_number }}</span>
                         </div>
                     </div>
+                    @if($student->application)
+                    <div class="col-md-4">
+                        <div class="p-3 bg-light rounded">
+                            <small class="text-muted d-block text-uppercase">Application Number</small>
+                            <span class="fw-bold">{{ $student->application->application_number }}</span>
+                        </div>
+                    </div>
+                    @endif
                     <div class="col-md-4">
                         <div class="p-3 bg-light rounded">
                             <small class="text-muted d-block text-uppercase">Department</small>
@@ -176,37 +184,37 @@
                     <div class="col-md-6">
                         <div class="p-3 bg-light rounded">
                             <small class="text-muted d-block text-uppercase">Guardian Name</small>
-                            <span class="fw-bold">{{ $student->guardian_name ?? 'N/A' }}</span>
+                            <span class="fw-bold">{{ $student->parent_name ?? 'N/A' }}</span>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="p-3 bg-light rounded">
                             <small class="text-muted d-block text-uppercase">Relationship</small>
-                            <span class="fw-bold">{{ ucfirst($student->guardian_relationship ?? 'N/A') }}</span>
+                            <span class="fw-bold">{{ ucfirst($student->parent_relationship ?? 'N/A') }}</span>
                         </div>
                     </div>
                     <div class="col-md-4">
                         <div class="p-3 bg-light rounded">
                             <small class="text-muted d-block text-uppercase">Guardian Phone</small>
-                            <span class="fw-bold">{{ $student->guardian_phone ?? 'N/A' }}</span>
+                            <span class="fw-bold">{{ $student->parent_phone ?? 'N/A' }}</span>
                         </div>
                     </div>
                     <div class="col-md-4">
                         <div class="p-3 bg-light rounded">
                             <small class="text-muted d-block text-uppercase">Guardian Email</small>
-                            <span class="fw-bold">{{ $student->guardian_email ?? 'N/A' }}</span>
+                            <span class="fw-bold">{{ $student->parent_email ?? 'N/A' }}</span>
                         </div>
                     </div>
                     <div class="col-md-4">
                         <div class="p-3 bg-light rounded">
                             <small class="text-muted d-block text-uppercase">Guardian Occupation</small>
-                            <span class="fw-bold">{{ $student->guardian_occupation ?? 'N/A' }}</span>
+                            <span class="fw-bold">{{ $student->parent_occupation ?? 'N/A' }}</span>
                         </div>
                     </div>
                     <div class="col-md-12">
                         <div class="p-3 bg-light rounded">
                             <small class="text-muted d-block text-uppercase">Guardian Address</small>
-                            <span class="fw-bold">{{ $student->guardian_address ?? 'N/A' }}</span>
+                            <span class="fw-bold">{{ $student->parent_address ?? 'N/A' }}</span>
                         </div>
                     </div>
                 </div>
@@ -227,21 +235,16 @@
                     <div class="col-12">
                         <div class="p-3 bg-light rounded">
                             <small class="text-muted d-block text-uppercase">Contact Name</small>
-                            <span class="fw-bold">{{ $student->emergency_contact_name ?? 'N/A' }}</span>
+                            <span class="fw-bold">{{ $student->emergency_contact ?? 'N/A' }}</span>
                         </div>
                     </div>
                     <div class="col-12">
                         <div class="p-3 bg-light rounded">
                             <small class="text-muted d-block text-uppercase">Contact Phone</small>
-                            <span class="fw-bold">{{ $student->emergency_contact_phone ?? 'N/A' }}</span>
+                            <span class="fw-bold">{{ $student->emergency_contact ?? 'N/A' }}</span>
                         </div>
                     </div>
-                    <div class="col-12">
-                        <div class="p-3 bg-light rounded">
-                            <small class="text-muted d-block text-uppercase">Relationship</small>
-                            <span class="fw-bold">{{ ucfirst($student->emergency_contact_relationship ?? 'N/A') }}</span>
-                        </div>
-                    </div>
+
                 </div>
             </div>
         </div>
@@ -327,3 +330,4 @@
 </div>
 @endif
 @endsection
+

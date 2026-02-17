@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\User;
+use App\Models\Student;
 
 class Notification extends Model
 {
@@ -95,5 +97,31 @@ class Notification extends Model
             'message' => $message,
             'data' => $data,
         ]);
+    }
+
+    /**
+     * Create notification for admin
+     */
+    public static function notifyAdmin($adminId, $type, $title, $message, $data = [])
+    {
+        return self::create([
+            'notifiable_type' => User::class,
+            'notifiable_id' => $adminId,
+            'type' => $type,
+            'title' => $title,
+            'message' => $message,
+            'data' => $data,
+        ]);
+    }
+
+    /**
+     * Notify all administrators
+     */
+    public static function notifyAllAdmins($type, $title, $message, $data = [])
+    {
+        $admins = User::where('role', 'admin')->orWhere('is_admin', true)->get();
+        foreach ($admins as $admin) {
+            self::notifyAdmin($admin->id, $type, $title, $message, $data);
+        }
     }
 }

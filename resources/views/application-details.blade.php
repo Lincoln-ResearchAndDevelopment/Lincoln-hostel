@@ -250,8 +250,8 @@
                     <div class="info-value">{{ $application->full_name }}</div>
                 </div>
                 <div class="info-item">
-                    <div class="info-label">Registration Number</div>
-                    <div class="info-value">{{ $application->reg_number }}</div>
+                    <div class="info-label">Student ID</div>
+                    <div class="info-value">{{ $application->student_id }}</div>
                 </div>
                 <div class="info-item">
                     <div class="info-label">Department</div>

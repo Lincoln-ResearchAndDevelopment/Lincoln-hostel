@@ -83,9 +83,9 @@
                             </div>
 
                             <div class="col-md-3">
-                                <label for="price_per_semester" class="form-label">Price/Semester (GHC) <span class="text-danger">*</span></label>
+                                <label for="price_per_semester" class="form-label">Price/Semester (₦) <span class="text-danger">*</span></label>
                                 <div class="input-group">
-                                    <span class="input-group-text">₵</span>
+                                    <span class="input-group-text">₦</span>
                                     <input type="number" class="form-control @error('price_per_semester') is-invalid @enderror" 
                                            id="price_per_semester" name="price_per_semester" value="{{ old('price_per_semester', $room->price_per_semester) }}" required step="0.01">
                                 </div>
@@ -95,9 +95,9 @@
                             </div>
 
                             <div class="col-md-3">
-                                <label for="price_per_year" class="form-label">Price/Year (GHC) <span class="text-danger">*</span></label>
+                                <label for="price_per_year" class="form-label">Price/Year (₦) <span class="text-danger">*</span></label>
                                 <div class="input-group">
-                                    <span class="input-group-text">₵</span>
+                                    <span class="input-group-text">₦</span>
                                     <input type="number" class="form-control @error('price_per_year') is-invalid @enderror" 
                                            id="price_per_year" name="price_per_year" value="{{ old('price_per_year', $room->price_per_year) }}" required step="0.01">
                                 </div>

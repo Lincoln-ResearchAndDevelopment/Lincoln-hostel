@@ -135,6 +135,21 @@
             margin-right: 0.5rem;
         }
 
+        .sidebar-brand img {
+            height: 40px;
+            width: auto;
+            max-width: 40px;
+            object-fit: contain;
+            margin-right: 0.5rem;
+            transition: all var(--transition-speed);
+        }
+
+        .sidebar.collapsed .sidebar-brand img {
+            height: 30px;
+            max-width: 30px;
+            margin-right: 0;
+        }
+
         .sidebar.collapsed .sidebar-brand span {
             display: none;
         }
@@ -361,7 +376,7 @@
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <a href="{{ request()->is('superadmin*') ? route('superadmin.dashboard') : route('dashboard') }}" class="sidebar-brand">
-                    <i class="fas fa-building"></i>
+                    <img src="{{ asset('assets/img/lincoln-logo.png') }}" alt="Lincoln Logo">
                     <span>LincHostel</span>
                 </a>
             </div>

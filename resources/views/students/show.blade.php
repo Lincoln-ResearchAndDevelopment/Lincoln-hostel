@@ -16,7 +16,10 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-6">
-                            <p><strong>Admission Number:</strong> {{ $student->admission_number }}</p>
+                            <p><strong>Student ID / Admission No:</strong> {{ $student->admission_number }}</p>
+                            @if($student->application)
+                                <p><strong>Application Number:</strong> {{ $student->application->application_number }}</p>
+                            @endif
                             <p><strong>Full Name:</strong> {{ $student->full_name }}</p>
                             <p><strong>Gender:</strong> {{ $student->gender ?? 'Not Specified' }}</p>
                             <p><strong>Department:</strong> {{ $student->department }}</p>

@@ -23,7 +23,7 @@ class HostelApplication extends Model
         
         // Student Information
         'full_name',
-        'reg_number',
+        'student_id',
         'intake',
         'program',
         'department',

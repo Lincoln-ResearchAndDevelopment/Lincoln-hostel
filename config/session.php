@@ -37,90 +37,6 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Session Cookie Name
-    |--------------------------------------------------------------------------
-    |
-    | Here you may change the name of the cookie used to identify a session
-    | instance by ID. The name specified here will get placed in the "name"
-    | and "ID" attributes of the session cookie.
-    |
-    */
-
-    'cookie' => env(
-        'SESSION_COOKIE',
-        Str::slug(env('APP_NAME', 'laravel'), '_').'_session'
-    ),
-
-    /*
-    |--------------------------------------------------------------------------
-    | Session Cookie Path
-    |--------------------------------------------------------------------------
-    |
-    | The session cookie path determines the path for which the cookie will
-    | be regarded as available. Typically, this will be the root path of
-    | your application but you are free to change this when necessary.
-    |
-    */
-
-    'path' => '/',
-
-    /*
-    |--------------------------------------------------------------------------
-    | Session Cookie Domain
-    |--------------------------------------------------------------------------
-    |
-    | Here you may change the domain of the session cookies for this application.
-    | This will determine which domains the cookie is available to in your
-    | application. Typically, this will be the current domain.
-    |
-    */
-
-    'domain' => env('SESSION_DOMAIN'),
-
-    /*
-    |--------------------------------------------------------------------------
-    | HTTPS Only Cookies
-    |--------------------------------------------------------------------------
-    |
-    | By setting this option to true, session cookies will only be sent if
-    | the request is being made over HTTPS. However, for local development
-    | you will typically leave this disabled as cookies are not sent over
-    | HTTPS in local development.
-    |
-    */
-
-    'secure' => env('SESSION_SECURE_COOKIE', false),
-
-    /*
-    |--------------------------------------------------------------------------
-    | HTTP Only Cookies
-    |--------------------------------------------------------------------------
-    |
-    | By setting this option to true, session cookies will only be accessible
-    | through the HTTP protocol. This means that JavaScript will not be
-    | able to access the value of the cookie.
-    |
-    */
-
-    'http_only' => true,
-
-    /*
-    |--------------------------------------------------------------------------
-    | Same-Site Cookies
-    |--------------------------------------------------------------------------
-    |
-    | This option determines how your cookies behave when cross-site requests
-    | take place, and can be used to mitigate CSRF attacks. By default, we
-    | will set this value to "lax" to permit cross-site requests.
-    |
-    | See: https://web.dev/samesite-cookies-explained/
-    |
-    */
-
-    'same_site' => 'lax',
-
-    /*
-    |--------------------------------------------------------------------------
     | Session Encryption
     |--------------------------------------------------------------------------
     |
@@ -252,7 +168,7 @@ return [
     |
     */
 
-    'secure' => env('SESSION_SECURE_COOKIE'),
+    'secure' => env('SESSION_SECURE_COOKIE', false),
 
     /*
     |--------------------------------------------------------------------------

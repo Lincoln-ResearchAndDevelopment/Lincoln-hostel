@@ -12,6 +12,8 @@ class Payment extends Model
 
     protected $fillable = [
         'student_id',
+        'room_id',
+        'payment_plan',
         'amount',
         'payment_date',
         'payment_method',
@@ -40,6 +42,11 @@ class Payment extends Model
     public function student()
     {
         return $this->belongsTo(Student::class);
+    }
+
+    public function room()
+    {
+        return $this->belongsTo(Room::class);
     }
 
     public function getReceiptUrlAttribute()
