@@ -112,10 +112,16 @@
                                     <label for="password" class="form-label">
                                         <i class="fas fa-lock me-2"></i>{{ __('Password') }}
                                     </label>
-                                    <input id="password" type="password" 
-                                           class="form-control @error('password') is-invalid @enderror" 
-                                           name="password" required
-                                           placeholder="Enter your password">
+                                    <div class="position-relative">
+                                        <input id="password" type="password" 
+                                               class="form-control @error('password') is-invalid @enderror" 
+                                               name="password" required
+                                               placeholder="Enter your password"
+                                               style="padding-right: 45px;">
+                                        <button type="button" id="togglePassword" class="position-absolute end-0 top-50 translate-middle-y border-0 bg-transparent pe-3 text-muted" style="cursor: pointer; z-index: 10;">
+                                            <i class="fas fa-eye" id="eyeIcon"></i>
+                                        </button>
+                                    </div>
 
                                     @error('password')
                                         <span class="invalid-feedback d-block" role="alert">
@@ -177,6 +183,26 @@
             btnLoading.classList.remove('d-none');
             loginBtn.disabled = true;
         });
+
+        // Toggle password visibility
+        const togglePassword = document.getElementById('togglePassword');
+        const passwordInput = document.getElementById('password');
+        const eyeIcon = document.getElementById('eyeIcon');
+        
+        if (togglePassword && passwordInput && eyeIcon) {
+            togglePassword.addEventListener('click', function() {
+                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordInput.setAttribute('type', type);
+                
+                if (type === 'password') {
+                    eyeIcon.classList.remove('fa-eye-slash');
+                    eyeIcon.classList.add('fa-eye');
+                } else {
+                    eyeIcon.classList.remove('fa-eye');
+                    eyeIcon.classList.add('fa-eye-slash');
+                }
+            });
+        }
 
         // Theme transition handling
         document.body.classList.add('theme-loaded');
