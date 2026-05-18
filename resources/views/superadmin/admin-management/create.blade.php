@@ -83,11 +83,17 @@
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label for="password" class="form-label">Password <span class="text-danger">*</span></label>
-                                <input type="password"
-                                       class="form-control @error('password') is-invalid @enderror"
-                                       id="password"
-                                       name="password"
-                                       required>
+                                <div class="position-relative">
+                                    <input type="password"
+                                           class="form-control @error('password') is-invalid @enderror"
+                                           id="password"
+                                           name="password"
+                                           required
+                                           style="padding-right: 45px;">
+                                    <button type="button" class="toggle-password position-absolute end-0 top-50 translate-middle-y border-0 bg-transparent pe-3 text-muted" data-target="password" style="cursor: pointer; z-index: 10;">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
                                 @error('password')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -95,11 +101,17 @@
 
                             <div class="col-md-6">
                                 <label for="password_confirmation" class="form-label">Confirm Password <span class="text-danger">*</span></label>
-                                <input type="password"
-                                       class="form-control"
-                                       id="password_confirmation"
-                                       name="password_confirmation"
-                                       required>
+                                <div class="position-relative">
+                                    <input type="password"
+                                           class="form-control"
+                                           id="password_confirmation"
+                                           name="password_confirmation"
+                                           required
+                                           style="padding-right: 45px;">
+                                    <button type="button" class="toggle-password position-absolute end-0 top-50 translate-middle-y border-0 bg-transparent pe-3 text-muted" data-target="password_confirmation" style="cursor: pointer; z-index: 10;">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
@@ -222,6 +234,30 @@
 </div>
 
 <script>
+document.addEventListener('DOMContentLoaded', function() {
+    const toggleButtons = document.querySelectorAll('.toggle-password');
+    toggleButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const targetId = this.getAttribute('data-target');
+            const targetInput = document.getElementById(targetId);
+            const icon = this.querySelector('i');
+            
+            if (targetInput && icon) {
+                const type = targetInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                targetInput.setAttribute('type', type);
+                
+                if (type === 'password') {
+                    icon.classList.remove('fa-eye-slash');
+                    icon.classList.add('fa-eye');
+                } else {
+                    icon.classList.remove('fa-eye');
+                    icon.classList.add('fa-eye-slash');
+                }
+            }
+        });
+    });
+});
+
 function toggleAllPermissions() {
     const selectAll = document.getElementById('select_all_permissions');
     const checkboxes = document.querySelectorAll('.permission-checkbox');

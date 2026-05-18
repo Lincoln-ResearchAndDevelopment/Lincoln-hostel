@@ -28,35 +28,50 @@
 
                         <div class="mb-3">
                             <label for="current_password" class="form-label">Current Password</label>
-                            <input type="password"
-                                   class="form-control @error('current_password') is-invalid @enderror"
-                                   id="current_password"
-                                   name="current_password"
-                                   required>
-                            @error('current_password')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                            <div class="input-group">
+                                <input type="password"
+                                       class="form-control @error('current_password') is-invalid @enderror"
+                                       id="current_password"
+                                       name="current_password"
+                                       required>
+                                <button class="btn btn-outline-secondary toggle-password" type="button" data-target="current_password">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                @error('current_password')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
                         </div>
 
                         <div class="mb-3">
                             <label for="password" class="form-label">New Password</label>
-                            <input type="password"
-                                   class="form-control @error('password') is-invalid @enderror"
-                                   id="password"
-                                   name="password"
-                                   required>
-                            @error('password')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                            <div class="input-group">
+                                <input type="password"
+                                       class="form-control @error('password') is-invalid @enderror"
+                                       id="password"
+                                       name="password"
+                                       required>
+                                <button class="btn btn-outline-secondary toggle-password" type="button" data-target="password">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                @error('password')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
                         </div>
 
                         <div class="mb-3">
                             <label for="password_confirmation" class="form-label">Confirm New Password</label>
-                            <input type="password"
-                                   class="form-control"
-                                   id="password_confirmation"
-                                   name="password_confirmation"
-                                   required>
+                            <div class="input-group">
+                                <input type="password"
+                                       class="form-control"
+                                       id="password_confirmation"
+                                       name="password_confirmation"
+                                       required>
+                                <button class="btn btn-outline-secondary toggle-password" type="button" data-target="password_confirmation">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
                         </div>
 
                         <div class="d-flex justify-content-between">
@@ -73,4 +88,30 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const toggleButtons = document.querySelectorAll('.toggle-password');
+    toggleButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const targetId = this.getAttribute('data-target');
+            const targetInput = document.getElementById(targetId);
+            const icon = this.querySelector('i');
+            
+            if (targetInput && icon) {
+                const type = targetInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                targetInput.setAttribute('type', type);
+                
+                if (type === 'password') {
+                    icon.classList.remove('fa-eye-slash');
+                    icon.classList.add('fa-eye');
+                } else {
+                    icon.classList.remove('fa-eye');
+                    icon.classList.add('fa-eye-slash');
+                }
+            }
+        });
+    });
+});
+</script>
 @endsection

@@ -51,16 +51,20 @@
                             @enderror
                         </div>
 
-                        <div class="form-floating mb-3">
+                        <div class="form-floating mb-3 position-relative">
                             <input type="password"
                                    class="form-control @error('password') is-invalid @enderror"
                                    id="password"
                                    name="password"
                                    placeholder="Password"
-                                   required>
+                                   required
+                                   style="padding-right: 50px;">
                             <label for="password">
                                 <i class="fas fa-lock me-2"></i>Password
                             </label>
+                            <button type="button" id="togglePassword" class="position-absolute end-0 top-50 translate-middle-y border-0 bg-transparent pe-3 text-muted" style="cursor: pointer; z-index: 10;">
+                                <i class="fas fa-eye" id="eyeIcon"></i>
+                            </button>
                             @error('password')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -136,6 +140,26 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     });
+
+    // Toggle password visibility
+    const togglePassword = document.getElementById('togglePassword');
+    const passwordInput = document.getElementById('password');
+    const eyeIcon = document.getElementById('eyeIcon');
+    
+    if (togglePassword && passwordInput && eyeIcon) {
+        togglePassword.addEventListener('click', function() {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            
+            if (type === 'password') {
+                eyeIcon.classList.remove('fa-eye-slash');
+                eyeIcon.classList.add('fa-eye');
+            } else {
+                eyeIcon.classList.remove('fa-eye');
+                eyeIcon.classList.add('fa-eye-slash');
+            }
+        });
+    }
 });
 </script>
 @endsection
