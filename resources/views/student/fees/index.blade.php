@@ -253,7 +253,7 @@
                     </li>
                     <li class="mb-2">
                         <i class="fas fa-envelope me-2" style="color: #cc0000;"></i>
-                        finance@linchostel.com
+                        lincolnuninigeria@gmail.com
                     </li>
                     <li>
                         <i class="fas fa-clock me-2" style="color: #cc0000;"></i>

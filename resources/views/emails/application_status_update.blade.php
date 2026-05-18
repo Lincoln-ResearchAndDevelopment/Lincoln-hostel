@@ -203,7 +203,7 @@
             <h3>📞 Need Help?</h3>
             <p><strong>Contact our support team:</strong></p>
             <p>
-                📧 Email: <a href="mailto:info@linchostel.com">info@linchostel.com</a><br>
+                📧 Email: <a href="mailto:lincolnuninigeria@gmail.com">lincolnuninigeria@gmail.com</a><br>
                 📱 Phone: +234 (0) 123 456 7890<br>
                 🏢 Office: Student Affairs Department, Lincoln University<br>
                 🕒 Office Hours: Monday - Friday, 8:00 AM - 5:00 PM

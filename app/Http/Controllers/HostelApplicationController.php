@@ -449,6 +449,7 @@ class HostelApplicationController extends Controller
             // Send notification email to student
             try {
                 Mail::to($application->email)->send(new \App\Mail\ApplicationApprovedMail($application));
+                Mail::to($application->email)->send(new \App\Mail\RoomAssignedMail($student, $room));
             } catch (\Exception $e) {
                 \Log::error('Status Update Email Failed: ' . $e->getMessage());
                 // Non-blocking error, we still redirect with success but mention the email failure if needed

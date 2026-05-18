@@ -9,6 +9,8 @@ use App\Models\HostelApplication;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 use App\Models\Department;
 use App\Models\Intake;
 use Carbon\Carbon;
@@ -200,10 +202,10 @@ class StudentController extends Controller
             'disability_details' => 'nullable|string',
         ]);
 
-        DB::transaction(function () use ($validated, $student, $request) {
-            $oldRoomId = $student->room_id;
-            $newRoomId = $validated['room_id'] ?? null;
+        $oldRoomId = $student->room_id;
+        $newRoomId = $validated['room_id'] ?? null;
 
+        DB::transaction(function () use ($validated, $student, $request, $oldRoomId, $newRoomId) {
             if ($oldRoomId != $newRoomId) {
                 // Atomic Decrement Old Room
                 if ($oldRoomId) {
@@ -231,6 +233,18 @@ class StudentController extends Controller
                 ]);
             }
         });
+
+        // Trigger email if room changed and new room is assigned
+        if ($oldRoomId != $newRoomId && $newRoomId) {
+            try {
+                $roomObj = Room::find($newRoomId);
+                if ($roomObj) {
+                    Mail::to($student->email)->send(new \App\Mail\RoomAssignedMail($student, $roomObj));
+                }
+            } catch (\Exception $e) {
+                \Log::error('Manual Room Assignment Email Failed: ' . $e->getMessage());
+            }
+        }
 
         return redirect()->route('students.index')->with('success', 'Student details updated successfully.');
     }

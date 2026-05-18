@@ -54,7 +54,7 @@
   <div class="container d-flex justify-content-center justify-content-md-between">
     <div class="contact-info d-flex align-items-center">
       <i class="bi bi-envelope d-flex align-items-center">
-        <a href="mailto:info@lincoln.edu.ng">info@lincoln.edu.ng</a>
+        <a href="mailto:lincolnuninigeria@gmail.com">lincolnuninigeria@gmail.com</a>
       </i>
       <i class="bi bi-phone d-flex align-items-center ms-4">
         <span>+234 803 834 1496</span>
@@ -556,7 +556,7 @@
           <div class="info-box mb-4">
             <i class="bx bx-envelope"></i>
             <h3>Email Us</h3>
-            <p>info@lincoln.edu.ng</p>
+            <p>lincolnuninigeria@gmail.com</p>
           </div>
         </div>
 
@@ -798,7 +798,7 @@
             Kurudu,<br>
             Federal Capital Territory.<br><br> -->
             <strong style="color: red;">Phone:</strong> +234 803 834 1496<br>
-            <strong style="color: red;">Email:</strong> info@lincoln.edu.ng<br>
+            <strong style="color: red;">Email:</strong> lincolnuninigeria@gmail.com<br>
           </p>
         </div>
 

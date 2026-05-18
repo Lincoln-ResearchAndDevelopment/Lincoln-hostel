@@ -108,8 +108,8 @@ return [
     */
 
     'from' => [
-    'address' => env('MAIL_FROM_ADDRESS', 'info@lincoln.edu.ng'),
-    'name' => env('MAIL_FROM_NAME', 'LincHostel'),
+        'address' => env('MAIL_FROM_ADDRESS', 'lincolnuninigeria@gmail.com'),
+        'name' => env('MAIL_FROM_NAME', 'LincHostel'),
     ],
 
     /*

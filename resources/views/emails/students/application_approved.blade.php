@@ -3,27 +3,38 @@
 
 Dear {{ $application->full_name }},
 
-We are pleased to inform you that your hostel application (**{{ $application->application_number }}**) has been **Approved**! 
+We are pleased to inform you that your hostel application (**{{ $application->application_number }}**) has been **Approved**!
 
-You are now officially part of the LincHostel community. We have created a student account for you so you can manage your accommodation and payments.
+You are now officially part of the LincHostel community. A student account has been created for you.
 
-**Your Login Credentials:**
-- **URL:** [{{ route('login') }}]({{ route('login') }})
-- **Username:** {{ $application->student_id }}
-- **Default Password:** `welcome123`
+**How to Log In:**
 
-*Please change your password immediately after your first login.*
+Your Student Dashboard is accessible at:
 
-**Next Steps:**
-1. Log in to the Student Dashboard.
-2. Browse available hostels.
-3. Book your preferred room and upload your payment receipt.
-
-<x-mail::button :url="route('login')">
-Login to Dashboard
+<x-mail::button :url="route('student.login')">
+Login to Student Dashboard
 </x-mail::button>
 
-We look forward to welcoming you to the hostel!
+**Your Login Credentials:**
+- **Admission Number:** `{{ $application->student_id }}`
+@php
+$phone = $application->phone_number ?? '';
+if (strlen($phone) > 7) {
+    $maskedPhone = substr($phone, 0, 4) . str_repeat('*', strlen($phone) - 7) . substr($phone, -3);
+} else {
+    $maskedPhone = $phone;
+}
+@endphp
+- **Contact Number:** `{{ $maskedPhone }}`
+
+Use the **Admission Number** and the **Contact Number you registered with** to log in. For security, the full number is not displayed here.
+
+**Next Steps:**
+1. Log in to the Student Dashboard using your credentials above.
+2. Browse available hostels and rooms.
+3. Book your preferred room and upload your payment receipt.
+
+> **Need Help?** Contact us at [lincolnuninigeria@gmail.com](mailto:lincolnuninigeria@gmail.com)
 
 Thanks,<br>
 {{ config('app.name') }} Admissions Team

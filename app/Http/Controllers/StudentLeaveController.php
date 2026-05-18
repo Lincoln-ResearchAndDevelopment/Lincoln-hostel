@@ -92,7 +92,7 @@ class StudentLeaveController extends Controller
 
             // If no specific admins found, send to a default admin email
             if ($admins->isEmpty()) {
-                $defaultAdminEmail = config('mail.admin_email', 'admin@linchostel.com');
+                $defaultAdminEmail = config('mail.admin_email', 'lincolnuninigeria@gmail.com');
                 Mail::to($defaultAdminEmail)->send(new LeaveRequestSubmittedMail($leaveRequest, 'admin'));
             }
         } catch (\Exception $e) {

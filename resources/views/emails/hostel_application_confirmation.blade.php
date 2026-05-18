@@ -192,7 +192,7 @@
             <h3>📞 Contact Information</h3>
             <p><strong>Need help or have questions?</strong></p>
             <p>
-                📧 Email: <a href="mailto:info@linchostel.com">info@linchostel.com</a><br>
+                📧 Email: <a href="mailto:lincolnuninigeria@gmail.com">lincolnuninigeria@gmail.com</a><br>
                 📱 Phone: +234 (0) 123 456 7890<br>
                 🏢 Office: Student Affairs Department, Lincoln University
             </p>

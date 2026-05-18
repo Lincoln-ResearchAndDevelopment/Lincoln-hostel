@@ -1,13 +1,13 @@
-# Gmail Setup for LincHostel (lincolnuning@gmail.com)
+# Gmail Setup for LincHostel (lincolnuninigeria@gmail.com)
 
-Use this guide to send LincHostel emails (leave notifications, application alerts, etc.) from **lincolnuning@gmail.com** via Gmail SMTP.
+Use this guide to send LincHostel emails (leave notifications, application alerts, etc.) from **lincolnuninigeria@gmail.com** via Gmail SMTP.
 
 ---
 
 ## Step 1: Turn on 2-Step Verification (required for App Passwords)
 
 1. Go to [https://myaccount.google.com/security](https://myaccount.google.com/security)
-2. Sign in with **lincolnuning@gmail.com**
+2. Sign in with **lincolnuninigeria@gmail.com**
 3. Under **"How you sign in to Google"**, click **2-Step Verification**
 4. If it’s off, click **Get started** and follow the steps (phone number, code, etc.) until 2-Step Verification is **On**
 
@@ -37,10 +37,10 @@ Use this guide to send LincHostel emails (leave notifications, application alert
 MAIL_MAILER=smtp
 MAIL_HOST=smtp.gmail.com
 MAIL_PORT=587
-MAIL_USERNAME=lincolnuning@gmail.com
+MAIL_USERNAME=lincolnuninigeria@gmail.com
 MAIL_PASSWORD=abcdefghijklmnop
 MAIL_ENCRYPTION=tls
-MAIL_FROM_ADDRESS=lincolnuning@gmail.com
+MAIL_FROM_ADDRESS=lincolnuninigeria@gmail.com
 MAIL_FROM_NAME="LincHostel"
 ```
 
@@ -80,9 +80,9 @@ Go back to Step 1 and 2 and use the App Password in `MAIL_PASSWORD`.
 
 | Step | What to do |
 |------|------------|
-| 1 | Turn on **2-Step Verification** for lincolnuning@gmail.com |
+| 1 | Turn on **2-Step Verification** for lincolnuninigeria@gmail.com |
 | 2 | Create an **App Password** for "LincHostel" and copy the 16-character code |
-| 3 | In **`.env`**, set `MAIL_USERNAME`, `MAIL_PASSWORD` (App Password), `MAIL_FROM_ADDRESS` to **lincolnuning@gmail.com** and the rest as in the block above |
+| 3 | In **`.env`**, set `MAIL_USERNAME`, `MAIL_PASSWORD` (App Password), `MAIL_FROM_ADDRESS` to **lincolnuninigeria@gmail.com** and the rest as in the block above |
 | 4 | Run **`php artisan config:clear`** |
 | 5 | Test by submitting an application or approving a leave |
 

@@ -383,7 +383,7 @@
             <p>If you have any questions about your application or need assistance, please contact our support team.</p>
             <div class="row text-start">
                 <div class="col-md-6">
-                    <p><i class="fas fa-envelope me-2"></i><strong>Email:</strong><br>info@linchostel.com</p>
+                    <p><i class="fas fa-envelope me-2"></i><strong>Email:</strong><br>lincolnuninigeria@gmail.com</p>
                     <p><i class="fas fa-phone me-2"></i><strong>Phone:</strong><br>+234 (0) 123 456 7890</p>
                 </div>
                 <div class="col-md-6">
