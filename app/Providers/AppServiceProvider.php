@@ -26,6 +26,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        \Illuminate\Pagination\Paginator::useBootstrapFive();
+
         View::composer('layouts.app', function ($view) {
             $unreadComplaints = Complaint::where('is_read', false)->count();
             $unreadPayments = Payment::where('is_read', false)->count();

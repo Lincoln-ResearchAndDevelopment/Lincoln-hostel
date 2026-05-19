@@ -215,8 +215,6 @@ Route::prefix('student')->name('student.')->middleware('student.auth')->group(fu
     Route::get('/profile', [\App\Http\Controllers\StudentProfileController::class, 'index'])->name('profile.index');
     Route::get('/profile/edit', [\App\Http\Controllers\StudentProfileController::class, 'edit'])->name('profile.edit');
     Route::post('/profile/update', [\App\Http\Controllers\StudentProfileController::class, 'update'])->name('profile.update');
-    Route::get('/profile/change-password', [\App\Http\Controllers\StudentProfileController::class, 'changePasswordForm'])->name('password.change');
-    Route::post('/profile/change-password', [\App\Http\Controllers\StudentProfileController::class, 'changePassword'])->name('password.update');
 
     // Room & Hostel Details
     Route::get('/hostels', [StudentsDashboardController::class, 'hostels'])->name('hostels.index');

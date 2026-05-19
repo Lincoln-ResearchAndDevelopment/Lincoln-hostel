@@ -94,12 +94,12 @@
 
                                 <div class="mb-3">
                                     <label for="admission_number" class="form-label">
-                                        <i class="fas fa-id-card me-2"></i>{{ __('Admission Number') }}
+                                        <i class="fas fa-id-card me-2"></i>{{ __('Admission Number / Student ID') }}
                                     </label>
                                     <input id="admission_number" type="text" 
                                            class="form-control @error('admission_number') is-invalid @enderror" 
                                            name="admission_number" value="{{ old('admission_number') }}" required autofocus
-                                           placeholder="Enter your admission number">
+                                           placeholder="e.g. 01026099999 or LUC-NGA...">
 
                                     @error('admission_number')
                                         <span class="invalid-feedback d-block" role="alert">

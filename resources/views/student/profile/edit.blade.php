@@ -13,10 +13,7 @@
                             <label class="form-label">Full Name</label>
                             <input type="text" name="full_name" value="{{ old('full_name', $student->full_name) }}" class="form-control" required>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">Contact Number</label>
-                            <input type="text" name="contact_number" value="{{ old('contact_number', $student->contact_number) }}" class="form-control">
-                        </div>
+
                         <div class="mb-3">
                             <label class="form-label">Address</label>
                             <input type="text" name="address" value="{{ old('address', $student->address) }}" class="form-control">
