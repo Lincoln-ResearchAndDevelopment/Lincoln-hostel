@@ -15,7 +15,7 @@ class LeaveRequestSubmittedMail extends Mailable implements ShouldQueue
     use Queueable, SerializesModels;
 
     public $leaveRequest;
-    public $recipientType; // 'admin' or 'parent'
+    public $recipientType; // 'admin', 'parent', or 'student'
 
     public function __construct(LeaveRequest $leaveRequest, string $recipientType = 'admin')
     {
@@ -27,7 +27,9 @@ class LeaveRequestSubmittedMail extends Mailable implements ShouldQueue
     {
         $subject = $this->recipientType === 'admin' 
             ? 'New Leave Request - ' . $this->leaveRequest->student->full_name
-            : 'Leave Request Submitted - ' . $this->leaveRequest->student->full_name;
+            : ($this->recipientType === 'student'
+                ? 'Your Leave Request Submitted'
+                : 'Leave Request Submitted - ' . $this->leaveRequest->student->full_name);
 
         return new Envelope(subject: $subject);
     }

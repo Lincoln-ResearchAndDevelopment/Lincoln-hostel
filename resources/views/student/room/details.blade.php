@@ -109,7 +109,7 @@
                     <div class="col-md-6">
                         <div class="p-3 bg-light rounded">
                             <small class="text-muted d-block">Your Bed Number</small>
-                            <span class="fw-bold">{{ str_starts_with($student->bed_number, 'Bed') ? '' : 'Bed #' }}{{ $student->bed_number ?? 'N/A' }}</span>
+                            <span class="fw-bold">{{ $student->bed_number ? (str_starts_with($student->bed_number, 'Bed') ? '' : 'Bed #') . $student->bed_number : 'N/A' }}</span>
                         </div>
                     </div>
                     <div class="col-md-6">
@@ -181,7 +181,7 @@
                                         </div>
                                     </td>
                                     <td>{{ $roommate->department }}</td>
-                                    <td>{{ str_starts_with($roommate->bed_number, 'Bed') ? '' : 'Bed #' }}{{ $roommate->bed_number ?? 'N/A' }}</td>
+                                    <td>{{ $roommate->bed_id ? 'Bed #' . $roommate->bed_id : 'N/A' }}</td>
                                     <td>{{ $roommate->formatted_check_in_date }}</td>
                                     <td>{!! $roommate->status_badge !!}</td>
                                 </tr>

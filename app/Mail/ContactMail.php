@@ -3,10 +3,11 @@
 namespace App\Mail;
 
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 
-class ContactMail extends Mailable
+class ContactMail extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
@@ -19,7 +20,7 @@ class ContactMail extends Mailable
 
     public function build()
     {
-        return $this->subject($this->details['subject'])
-                    ->view('emails.contact');
+        return $this->subject('New Contact Inquiry: ' . ($this->details['subject'] ?? 'LincHostel Inquiry'))
+                    ->markdown('emails.contact');
     }
 }

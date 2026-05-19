@@ -9,7 +9,7 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class ApplicationRejectedMail extends Mailable
+class ApplicationRejectedMail extends Mailable implements ShouldQueue
 {
     public $application;
 

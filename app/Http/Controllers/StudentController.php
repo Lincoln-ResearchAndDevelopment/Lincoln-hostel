@@ -111,7 +111,7 @@ class StudentController extends Controller
             ->where('status', 'approved')
             ->first();
 
-        DB::transaction(function () use ($validated, $application, $request) {
+        $student = DB::transaction(function () use ($validated, $application, $request) {
             $user = User::create([
                 'name' => $validated['full_name'],
                 'email' => $validated['email'],
@@ -119,7 +119,7 @@ class StudentController extends Controller
                 'role' => 'student',
             ]);
 
-            Student::create(array_merge($validated, [
+            return Student::create(array_merge($validated, [
                 'user_id' => $user->id,
                 'application_id' => $application ? $application->id : null,
                 'room_id' => null, // Students must book rooms through the booking portal
@@ -134,7 +134,14 @@ class StudentController extends Controller
             // Students book rooms through the student portal
         });
 
-        return redirect()->route('students.index')->with('success', 'Student registered successfully');
+        // Send Onboarding Email to the student (non-blocking)
+        try {
+            Mail::to($student->email)->send(new \App\Mail\StudentOnboardingMail($student));
+        } catch (\Exception $e) {
+            Log::error('Student Onboarding Email Failed: ' . $e->getMessage());
+        }
+
+        return redirect()->route('students.index')->with('success', 'Student registered successfully and onboarding email sent.');
     }
 
     public function show(Student $student)

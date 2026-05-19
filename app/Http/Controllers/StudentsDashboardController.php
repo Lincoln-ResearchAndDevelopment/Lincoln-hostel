@@ -103,7 +103,7 @@ class StudentsDashboardController extends Controller
     public function roomDetails()
     {
         $student = auth()->guard('student')->user();
-        $student->load(['room.hostel', 'room.students']);
+        $student->load(['room.hostel', 'room.students', 'bed']);
         
         if (!$student->room) {
             return redirect()->route('student.dashboard')
@@ -116,7 +116,7 @@ class StudentsDashboardController extends Controller
             'students.id', 
             'students.full_name', 
             'students.department', 
-            'students.bed_number', 
+            'students.bed_id', 
             'students.check_in_date', 
             'students.status', 
             'students.gender'

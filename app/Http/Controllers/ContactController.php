@@ -24,7 +24,8 @@ class ContactController extends Controller
         'message' => $validated['message'],
     ];
 
-    Mail::to('lotannaemmanuelotikpo@gmail.com')->send(new ContactMail($details));
+    $recipient = config('mail.from.address') ?: 'lincolnuninigeria@gmail.com';
+    Mail::to($recipient)->send(new ContactMail($details));
 
     return response('success', 200);
 }

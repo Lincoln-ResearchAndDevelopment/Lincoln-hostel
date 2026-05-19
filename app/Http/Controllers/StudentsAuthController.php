@@ -37,10 +37,35 @@ class StudentsAuthController extends Controller
             ])->withInput();
         }
 
-        // Attempt to find the student with provided credentials
+        // Normalize the input contact number: strip spaces, dashes, and handle +234/234 prefix
+        $inputContact = preg_replace('/[\s\-\(\)]+/', '', $credentials['contact_number']);
+        
+        // Convert +234/234 prefix to local 0 prefix for consistent matching
+        if (preg_match('/^\+?234/', $inputContact)) {
+            $inputContact = '0' . preg_replace('/^\+?234/', '', $inputContact);
+        }
+        
+        // Strip to pure digits for comparison
+        $inputDigits = preg_replace('/\D/', '', $inputContact);
+
+        // Attempt to find the student - first try exact match, then normalized match
         $student = Student::where('admission_number', $credentials['admission_number'])
                           ->where('contact_number', $credentials['contact_number'])
                           ->first();
+
+        // If exact match failed, try normalized digit comparison
+        if (!$student) {
+            $student = Student::where('admission_number', $credentials['admission_number'])
+                ->get()
+                ->first(function ($s) use ($inputDigits) {
+                    $dbDigits = preg_replace('/\D/', '', $s->contact_number);
+                    // Also handle +234 vs 0 prefix in DB value
+                    if (preg_match('/^234/', $dbDigits) && strlen($dbDigits) > 10) {
+                        $dbDigits = '0' . substr($dbDigits, 3);
+                    }
+                    return $dbDigits === $inputDigits;
+                });
+        }
 
         if ($student) {
             RateLimiter::clear($throttleKey);

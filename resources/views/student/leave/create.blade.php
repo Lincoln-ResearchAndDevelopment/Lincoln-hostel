@@ -122,9 +122,21 @@ document.addEventListener('DOMContentLoaded', function() {
     const submitBtn = document.getElementById('submitBtn');
     
     if(form && submitBtn) {
-        form.addEventListener('submit', function() {
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Submitting...';
+        let isSubmitting = false;
+        form.addEventListener('submit', function(e) {
+            if (isSubmitting) {
+                e.preventDefault();
+                return false;
+            }
+            isSubmitting = true;
+            
+            // Show loading spinner instantly for a highly responsive feel
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Submitting Application...';
+            
+            // Yield execution to let browser start form propagation before disabling
+            setTimeout(function() {
+                submitBtn.disabled = true;
+            }, 10);
         });
     }
 });

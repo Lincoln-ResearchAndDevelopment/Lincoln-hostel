@@ -98,9 +98,9 @@
             <div class="card-body">
                 <div class="row g-3">
                     <div class="col-md-6">
-                        <form action="{{ route('admin.leave.approve', $leaveRequest) }}" method="POST">
+                        <form action="{{ route('admin.leave.approve', $leaveRequest) }}" method="POST" id="approveForm">
                             @csrf
-                            <button type="submit" class="btn btn-success w-100 py-2">
+                            <button type="submit" id="approveBtn" class="btn btn-success w-100 py-2">
                                 <i class="fas fa-check me-2"></i>Approve Request
                             </button>
                         </form>
@@ -118,7 +118,7 @@
         <div class="modal fade" id="rejectModal" tabindex="-1">
             <div class="modal-dialog">
                 <div class="modal-content">
-                    <form action="{{ route('admin.leave.reject', $leaveRequest) }}" method="POST">
+                    <form action="{{ route('admin.leave.reject', $leaveRequest) }}" method="POST" id="rejectForm">
                         @csrf
                         <div class="modal-header">
                             <h5 class="modal-title">Reject Leave Request</h5>
@@ -132,7 +132,7 @@
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                            <button type="submit" class="btn btn-danger">Reject Request</button>
+                            <button type="submit" id="rejectBtn" class="btn btn-danger">Reject Request</button>
                         </div>
                     </form>
                 </div>
@@ -186,4 +186,51 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const approveForm = document.getElementById('approveForm');
+    const approveBtn = document.getElementById('approveBtn');
+    const rejectForm = document.getElementById('rejectForm');
+    const rejectBtn = document.getElementById('rejectBtn');
+
+    if (approveForm && approveBtn) {
+        let isApproveSubmitting = false;
+        approveForm.addEventListener('submit', function(e) {
+            if (isApproveSubmitting) {
+                e.preventDefault();
+                return false;
+            }
+            isApproveSubmitting = true;
+            
+            // Render spinner immediately
+            approveBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Approving...';
+            
+            // Defer button disabling to allow event propagation
+            setTimeout(function() {
+                approveBtn.disabled = true;
+            }, 10);
+        });
+    }
+
+    if (rejectForm && rejectBtn) {
+        let isRejectSubmitting = false;
+        rejectForm.addEventListener('submit', function(e) {
+            if (isRejectSubmitting) {
+                e.preventDefault();
+                return false;
+            }
+            isRejectSubmitting = true;
+            
+            // Render spinner immediately
+            rejectBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Rejecting...';
+            
+            // Defer button disabling to allow event propagation
+            setTimeout(function() {
+                rejectBtn.disabled = true;
+            }, 10);
+        });
+    }
+});
+</script>
 @endsection

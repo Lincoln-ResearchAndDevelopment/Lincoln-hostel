@@ -1,7 +1,22 @@
-<h2>New Contact Message</h2>
+<x-mail::message>
+# New Contact Inquiry Received ✉️
 
-<p><strong>Name:</strong> {{ $details['name'] }}</p>
-<p><strong>Email:</strong> {{ $details['email'] }}</p>
-<p><strong>Subject:</strong> {{ $details['subject'] }}</p>
-<p><strong>Message:</strong></p>
-<p>{{ $details['message'] }}</p>
+You have received a new contact inquiry from the LincHostel public website.
+
+<x-mail::panel>
+**Inquiry Details:**
+- **Sender Name:** {{ $details['name'] }}
+- **Sender Email:** [{{ $details['email'] }}](mailto:{{ $details['email'] }})
+- **Subject:** {{ $details['subject'] }}
+</x-mail::panel>
+
+### Message:
+{{ $details['message'] }}
+
+<x-mail::button :url="route('login')">
+Go to Admin Dashboard
+</x-mail::button>
+
+Thanks,<br>
+{{ config('app.name') }} Automated Notification
+</x-mail::message>

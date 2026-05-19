@@ -45,6 +45,25 @@ class StudentLeaveController extends Controller
 
         $student = Auth::guard('student')->user();
 
+        // Prevent double submission within a short window (15 seconds)
+        $duplicate = LeaveRequest::where('student_id', $student->id)
+            ->where('type', $request->type)
+            ->where('start_date', $request->start_date)
+            ->where('end_date', $request->end_date)
+            ->where('status', 'pending')
+            ->where('created_at', '>=', now()->subSeconds(15))
+            ->first();
+
+        if ($duplicate) {
+            Log::warning('Duplicate leave request blocked at controller level', [
+                'student_id' => $student->id,
+                'type' => $request->type,
+                'start_date' => $request->start_date
+            ]);
+            return redirect()->route('student.leave.index')
+                ->with('success', 'Leave request submitted successfully and has been sent to the admin for approval.');
+        }
+
         $leaveRequest = LeaveRequest::create([
             'student_id' => $student->id,
             'type' => $request->type,
@@ -64,6 +83,9 @@ class StudentLeaveController extends Controller
 
         // Send email to parent/guardian
         $this->notifyParent($leaveRequest);
+
+        // Send email to student
+        $this->notifyStudent($leaveRequest);
 
         // In-app notification for all admins
         try {
@@ -145,6 +167,27 @@ class StudentLeaveController extends Controller
 
         } catch (\Exception $e) {
             Log::error('Failed to send leave request notification to parent: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Notify student about their submitted leave request
+     */
+    private function notifyStudent(LeaveRequest $leaveRequest)
+    {
+        try {
+            $student = $leaveRequest->student;
+            $studentEmail = $student->email;
+
+            // Send Email
+            if (!empty($studentEmail)) {
+                Log::info("Sending leave request email to student: {$studentEmail}");
+                Mail::to($studentEmail)->send(new LeaveRequestSubmittedMail($leaveRequest, 'student'));
+            } else {
+                Log::warning("No student email found for student ID {$student->id} during leave request notification.");
+            }
+        } catch (\Exception $e) {
+            Log::error('Failed to send leave request notification to student: ' . $e->getMessage());
         }
     }
 

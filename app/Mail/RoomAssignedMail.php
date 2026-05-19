@@ -9,7 +9,7 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class RoomAssignedMail extends Mailable
+class RoomAssignedMail extends Mailable implements ShouldQueue
 {
     public $student;
     public $room;
