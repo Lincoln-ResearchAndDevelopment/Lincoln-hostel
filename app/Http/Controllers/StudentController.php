@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Student;
 use App\Models\Room;
+use App\Models\Bed;
 use App\Models\User;
 use App\Models\HostelApplication;
+use App\Services\BedAssignmentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
@@ -17,6 +19,13 @@ use Carbon\Carbon;
 
 class StudentController extends Controller
 {
+    protected $bedService;
+
+    public function __construct(BedAssignmentService $bedService)
+    {
+        $this->bedService = $bedService;
+    }
+
     /**
      * Search for approved applications
      */
@@ -152,21 +161,28 @@ class StudentController extends Controller
 
     public function edit(Student $student)
     {
-        $availableRooms = Room::with('hostel')
-            ->where(function ($query) use ($student) {
-                $query->where('status', 'available')
-                      ->whereRaw('occupied < capacity')
-                      ->orWhere('id', $student->room_id);
-            })
-            ->get()
-            ->sortBy(function($room) {
-                return $room->hostel->name . ' ' . $room->room_number;
-            });
+        // Get available rooms filtered by student's gender with bed availability
+        $availableRooms = $this->bedService->getAvailableRoomsWithBeds(
+            $student->gender, 
+            $student->room_id
+        );
+
+        // Get available beds for current room (if assigned)
+        $availableBeds = collect();
+        if ($student->room_id) {
+            $availableBeds = Bed::where('room_id', $student->room_id)
+                ->where(function ($query) use ($student) {
+                    $query->where('is_occupied', false)
+                          ->orWhere('student_id', $student->id);
+                })
+                ->orderBy('bed_number')
+                ->get();
+        }
 
         $departments = Department::where('is_active', true)->orderBy('sort_order')->get();
         $intakes = Intake::where('is_active', true)->orderBy('sort_order')->get();
 
-        return view('students.edit', compact('student', 'availableRooms', 'departments', 'intakes'));
+        return view('students.edit', compact('student', 'availableRooms', 'availableBeds', 'departments', 'intakes'));
     }
 
     public function update(Request $request, Student $student)
@@ -179,6 +195,7 @@ class StudentController extends Controller
             'semester' => 'required|integer|min:1|max:20',
             'intake' => 'required|string|max:100',
             'room_id' => 'nullable|exists:rooms,id',
+            'bed_id' => 'nullable|exists:beds,id',
             'contact_number' => 'required|string|max:20',
             'emergency_contact' => 'required|string|max:20',
             'address' => 'required|string|max:255',
@@ -209,59 +226,83 @@ class StudentController extends Controller
             'disability_details' => 'nullable|string',
         ]);
 
-        $oldRoomId = $student->room_id;
-        $newRoomId = $validated['room_id'] ?? null;
-
-        DB::transaction(function () use ($validated, $student, $request, $oldRoomId, $newRoomId) {
-            if ($oldRoomId != $newRoomId) {
-                // Atomic Decrement Old Room
-                if ($oldRoomId) {
-                    Room::where('id', $oldRoomId)->where('occupied', '>', 0)->update([
-                        'occupied' => DB::raw('occupied - 1'),
-                        'status' => DB::raw('CASE WHEN occupied - 1 < capacity THEN "available" ELSE status END'),
-                    ]);
-                }
-
-                // Atomic Increment New Room
-                if ($newRoomId) {
-                    Room::where('id', $newRoomId)->update([
-                        'occupied' => DB::raw('occupied + 1'),
-                        'status' => DB::raw('CASE WHEN occupied + 1 >= capacity THEN "full" ELSE status END'),
-                    ]);
-                }
-            }
-
-            $validated['has_disability'] = $request->has('has_disability');
-            $student->update($validated);
-
-            if ($student->user) {
-                $student->user->update([
-                    'name' => $validated['full_name'],
-                ]);
-            }
-        });
-
-        // Trigger email if room changed and new room is assigned
-        if ($oldRoomId != $newRoomId && $newRoomId) {
-            try {
-                $roomObj = Room::find($newRoomId);
-                if ($roomObj) {
-                    Mail::to($student->email)->send(new \App\Mail\RoomAssignedMail($student, $roomObj));
-                }
-            } catch (\Exception $e) {
-                \Log::error('Manual Room Assignment Email Failed: ' . $e->getMessage());
+        // Validate bed belongs to selected room
+        if ($validated['bed_id'] && $validated['room_id']) {
+            $bed = Bed::find($validated['bed_id']);
+            if (!$bed || $bed->room_id != $validated['room_id']) {
+                return back()->withErrors(['bed_id' => 'Selected bed does not belong to the selected room.'])->withInput();
             }
         }
 
-        return redirect()->route('students.index')->with('success', 'Student details updated successfully.');
+        // If room is assigned but no bed selected, return error
+        if ($validated['room_id'] && !$validated['bed_id']) {
+            return back()->withErrors(['bed_id' => 'Please select a bed for the assigned room.'])->withInput();
+        }
+
+        $oldRoomId = $student->room_id;
+        $newRoomId = $validated['room_id'] ?? null;
+        $newBedId = $validated['bed_id'] ?? null;
+
+        try {
+            DB::transaction(function () use ($validated, $student, $request, $oldRoomId, $newRoomId, $newBedId) {
+                // Handle bed assignment using the service
+                $result = $this->bedService->assignBed($student, $newBedId);
+                
+                if (!$result['success']) {
+                    throw new \Exception($result['message']);
+                }
+
+                // Update other student fields
+                $validated['has_disability'] = $request->has('has_disability');
+                
+                // Remove bed_id and room_id from validated array (already handled by service)
+                unset($validated['bed_id'], $validated['room_id']);
+                
+                $student->update($validated);
+
+                if ($student->user) {
+                    $student->user->update([
+                        'name' => $validated['full_name'],
+                    ]);
+                }
+            });
+
+            // Trigger email if room changed and new room is assigned
+            if ($oldRoomId != $newRoomId && $newRoomId) {
+                try {
+                    $roomObj = Room::find($newRoomId);
+                    if ($roomObj) {
+                        Mail::to($student->email)->send(new \App\Mail\RoomAssignedMail($student, $roomObj));
+                    }
+                } catch (\Exception $e) {
+                    Log::error('Manual Room Assignment Email Failed: ' . $e->getMessage());
+                }
+            }
+
+            return redirect()->route('students.index')->with('success', 'Student details updated successfully.');
+            
+        } catch (\Exception $e) {
+            Log::error('Student update failed: ' . $e->getMessage());
+            return back()->withErrors(['error' => $e->getMessage()])->withInput();
+        }
     }
 
     public function destroy(Student $student)
     {
         DB::transaction(function () use ($student) {
+            $bedId = $student->bed_id;
             $roomId = $student->room_id;
             $userId = $student->user_id;
 
+            // Release bed if assigned
+            if ($bedId) {
+                Bed::where('id', $bedId)->update([
+                    'is_occupied' => false,
+                    'student_id' => null,
+                ]);
+            }
+
+            // Decrement room occupancy if assigned
             if ($student->status === 'active' && $roomId) {
                 Room::where('id', $roomId)->where('occupied', '>', 0)->update([
                     'occupied' => DB::raw('occupied - 1'),
@@ -274,6 +315,33 @@ class StudentController extends Controller
         });
 
         return redirect()->route('students.index')->with('success', 'Student deleted successfully');
+    }
+
+    /**
+     * AJAX: Get available beds for a selected room
+     */
+    public function getAvailableBeds(Request $request)
+    {
+        $roomId = $request->get('room_id');
+        $studentId = $request->get('student_id');
+
+        if (!$roomId) {
+            return response()->json([]);
+        }
+
+        $beds = Bed::where('room_id', $roomId)
+            ->where(function ($query) use ($studentId) {
+                $query->where('is_occupied', false);
+                
+                // Include current student's bed even if marked occupied
+                if ($studentId) {
+                    $query->orWhere('student_id', $studentId);
+                }
+            })
+            ->orderBy('bed_number')
+            ->get(['id', 'bed_number', 'is_occupied', 'student_id']);
+
+        return response()->json($beds);
     }
 }
 

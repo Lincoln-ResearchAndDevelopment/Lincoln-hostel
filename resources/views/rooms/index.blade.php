@@ -135,6 +135,9 @@
                                                 <a href="{{ route('rooms.show', $room) }}" class="btn btn-sm btn-outline-info" title="View details">
                                                     <i class="fas fa-eye"></i>
                                                 </a>
+                                                <a href="{{ route('beds.index', $room) }}" class="btn btn-sm btn-outline-primary" title="Manage beds">
+                                                    <i class="fas fa-bed"></i>
+                                                </a>
                                                 <a href="{{ route('rooms.edit', $room) }}" class="btn btn-sm btn-outline-warning" title="Edit room">
                                                     <i class="fas fa-edit"></i>
                                                 </a>

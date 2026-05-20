@@ -82,6 +82,17 @@ Route::middleware(['admin'])->group(function () {
         'visitors'   => VisitorController::class,
     ]);
 
+    // Bed Management Routes
+    Route::prefix('rooms/{room}/beds')->name('beds.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\BedController::class, 'index'])->name('index');
+        Route::post('/', [\App\Http\Controllers\BedController::class, 'store'])->name('store');
+        Route::put('/{bed}', [\App\Http\Controllers\BedController::class, 'update'])->name('update');
+        Route::delete('/{bed}', [\App\Http\Controllers\BedController::class, 'destroy'])->name('destroy');
+    });
+
+    // AJAX Routes for dynamic bed loading
+    Route::get('/students/beds/available', [StudentController::class, 'getAvailableBeds'])->name('students.beds.available');
+
     Route::post('/payments/{payment}/approve', [PaymentController::class, 'approve'])->name('payments.approve');
     Route::post('/payments/{payment}/reject', [PaymentController::class, 'reject'])->name('payments.reject');
 

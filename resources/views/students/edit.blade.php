@@ -126,8 +126,10 @@
                                 <select id="room_id" class="form-select @error('room_id') is-invalid @enderror" name="room_id">
                                     <option value="" {{ old('room_id', $student->room_id) == null ? 'selected' : '' }}>No Room Assigned (Unassigned)</option>
                                     @foreach($availableRooms as $room)
-                                        <option value="{{ $room->id }}" {{ old('room_id', $student->room_id) == $room->id ? 'selected' : '' }}>
-                                            {{ ucfirst($room->room_type) }} Room - {{ $room->room_number }} ({{ $room->hostel->name }})
+                                        <option value="{{ $room->id }}" 
+                                                data-available-beds="{{ $room->available_beds_count ?? 0 }}"
+                                                {{ old('room_id', $student->room_id) == $room->id ? 'selected' : '' }}>
+                                            {{ $room->display_name ?? ucfirst($room->room_type) . ' Room - ' . $room->room_number . ' (' . $room->hostel->name . ')' }}
                                         </option>
                                     @endforeach
                                 </select>
@@ -136,6 +138,29 @@
                                         <strong>{{ $message }}</strong>
                                     </span>
                                 @enderror
+                                <small class="form-text text-muted">Rooms are filtered by student's gender and show available bed count.</small>
+                            </div>
+                        </div>
+
+                        <div class="form-group row mb-3" id="bed-selection-group" style="{{ old('room_id', $student->room_id) ? '' : 'display:none;' }}">
+                            <label for="bed_id" class="col-md-4 col-form-label text-md-right">{{ __('Bed Number') }} <span class="text-danger">*</span></label>
+                            <div class="col-md-6">
+                                <select id="bed_id" class="form-select @error('bed_id') is-invalid @enderror" name="bed_id" {{ old('room_id', $student->room_id) ? 'required' : '' }}>
+                                    <option value="">Select a bed...</option>
+                                    @if($student->room_id && $availableBeds->count() > 0)
+                                        @foreach($availableBeds as $bed)
+                                            <option value="{{ $bed->id }}" {{ old('bed_id', $student->bed_id) == $bed->id ? 'selected' : '' }}>
+                                                {{ $bed->bed_number }}{{ $bed->is_occupied && $bed->student_id == $student->id ? ' (Current)' : '' }}
+                                            </option>
+                                        @endforeach
+                                    @endif
+                                </select>
+                                @error('bed_id')
+                                    <span class="invalid-feedback" role="alert">
+                                        <strong>{{ $message }}</strong>
+                                    </span>
+                                @enderror
+                                <small class="form-text text-muted">Only available beds are shown. Occupied beds are excluded.</small>
                             </div>
                         </div>
 
@@ -338,7 +363,12 @@
         const intakeSelect = document.getElementById('intake');
         const checkInDate = document.getElementById('check_in_date');
         const checkOutDate = document.getElementById('expected_check_out_date');
+        const roomSelect = document.getElementById('room_id');
+        const bedSelect = document.getElementById('bed_id');
+        const bedSelectionGroup = document.getElementById('bed-selection-group');
+        const studentId = {{ $student->id }};
 
+        // Intake date auto-fill
         if (intakeSelect) {
             intakeSelect.addEventListener('change', function() {
                 const selectedOption = this.options[this.selectedIndex];
@@ -360,6 +390,68 @@
             checkInDate.addEventListener('change', function() {
                 if (this.value && checkOutDate) {
                     checkOutDate.min = this.value;
+                }
+            });
+        }
+
+        // Dynamic bed loading when room changes
+        if (roomSelect) {
+            roomSelect.addEventListener('change', function() {
+                const roomId = this.value;
+                
+                if (!roomId) {
+                    // No room selected - hide bed selection
+                    bedSelectionGroup.style.display = 'none';
+                    bedSelect.innerHTML = '<option value="">Select a bed...</option>';
+                    bedSelect.removeAttribute('required');
+                    return;
+                }
+
+                // Show bed selection group
+                bedSelectionGroup.style.display = '';
+                bedSelect.setAttribute('required', 'required');
+
+                // Load available beds via AJAX
+                bedSelect.innerHTML = '<option value="">Loading beds...</option>';
+                bedSelect.disabled = true;
+
+                fetch(`{{ route('students.beds.available') }}?room_id=${roomId}&student_id=${studentId}`)
+                    .then(response => response.json())
+                    .then(beds => {
+                        bedSelect.innerHTML = '<option value="">Select a bed...</option>';
+                        
+                        if (beds.length === 0) {
+                            bedSelect.innerHTML += '<option value="" disabled>No beds available in this room</option>';
+                        } else {
+                            beds.forEach(bed => {
+                                const isCurrent = bed.student_id == studentId;
+                                const label = bed.bed_number + (isCurrent ? ' (Current)' : '');
+                                bedSelect.innerHTML += `<option value="${bed.id}">${label}</option>`;
+                            });
+                        }
+                        
+                        bedSelect.disabled = false;
+                    })
+                    .catch(error => {
+                        console.error('Error loading beds:', error);
+                        bedSelect.innerHTML = '<option value="">Error loading beds</option>';
+                        bedSelect.disabled = false;
+                    });
+            });
+        }
+
+        // Form validation
+        const form = document.querySelector('form');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                const roomId = roomSelect.value;
+                const bedId = bedSelect.value;
+
+                if (roomId && !bedId) {
+                    e.preventDefault();
+                    alert('Please select a bed for the assigned room.');
+                    bedSelect.focus();
+                    return false;
                 }
             });
         }
