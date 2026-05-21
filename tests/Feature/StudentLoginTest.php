@@ -18,6 +18,8 @@ class StudentLoginTest extends TestCase
         echo "Testing with admission_number: " . $student->admission_number . "\n";
         
         // 2. Make a request to the login endpoint
+        $this->withoutMiddleware(\App\Http\Middleware\VerifyCsrfToken::class);
+        
         $response = $this->post('/student/login', [
             'admission_number' => $student->admission_number,
             'contact_number' => $student->contact_number,

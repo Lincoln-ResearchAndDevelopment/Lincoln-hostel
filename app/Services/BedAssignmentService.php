@@ -88,6 +88,11 @@ class BedAssignmentService
             }
 
             $newRoomId = $newBed->room_id;
+            $newRoom = Room::find($newRoomId);
+            
+            if (!$newRoom) {
+                throw new \Exception('Room not found.');
+            }
 
             // Update room occupancy if room changed
             if ($oldRoomId != $newRoomId) {
