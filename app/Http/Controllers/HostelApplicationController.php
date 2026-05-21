@@ -18,12 +18,14 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use App\Traits\TracksEmails;
 
 use App\Models\Department;
 use App\Models\Intake;
 
 class HostelApplicationController extends Controller
 {
+    use TracksEmails;
     public function create()
     {
         $departments = Department::where('is_active', true)->orderBy('sort_order')->orderBy('name')->get();
@@ -138,15 +140,44 @@ class HostelApplicationController extends Controller
             $application = HostelApplication::create($validated);
             DB::commit();
 
-            // Send emails (non-breaking if they fail)
+            // Send emails with comprehensive tracking
             try {
-                // Send email to student
-                Mail::to($validated['email'])->send(new \App\Mail\ApplicationReceivedMail($application));
+                // Send confirmation email to student
+                $studentEmailResult = $this->sendTrackedEmail(
+                    'application_received',
+                    $validated['email'],
+                    new \App\Mail\ApplicationReceivedMail($application),
+                    [
+                        'application_id' => $application->id,
+                        'student_name' => $application->full_name,
+                        'operation' => 'student_application_confirmation'
+                    ]
+                );
+                
+                $this->logEmailResult($studentEmailResult, 'Student Application Confirmation');
 
                 // Send notification to all admin users
                 $adminUsers = User::where('is_admin', true)->where('is_active', true)->get();
-                foreach ($adminUsers as $admin) {
-                    Mail::to($admin->email)->send(new AdminApplicationNotificationMail($application));
+                $adminEmails = $adminUsers->pluck('email')->toArray();
+                
+                if (!empty($adminEmails)) {
+                    $adminEmailResults = $this->sendBatchEmails(
+                        'admin_notification',
+                        $adminEmails,
+                        new AdminApplicationNotificationMail($application),
+                        [
+                            'application_id' => $application->id,
+                            'student_name' => $application->full_name,
+                            'operation' => 'admin_application_notification'
+                        ]
+                    );
+                    
+                    Log::info("📧 ADMIN NOTIFICATION BATCH", [
+                        'batch_id' => $adminEmailResults['batch_id'],
+                        'total_admins' => $adminEmailResults['total'],
+                        'successful_notifications' => $adminEmailResults['success'],
+                        'failed_notifications' => $adminEmailResults['failures']
+                    ]);
                 }
 
                 // Dashboard Notification to Admins
@@ -279,19 +310,57 @@ class HostelApplicationController extends Controller
             'reviewed_at' => now(),
         ]);
 
-        // Send status update email to student
+        // Send status update email to student with comprehensive tracking
         try {
             if ($application->status === 'approved') {
-                Mail::to($application->email)->send(new \App\Mail\ApplicationApprovedMail($application));
+                $emailResult = $this->sendTrackedEmail(
+                    'application_approved',
+                    $application->email,
+                    new \App\Mail\ApplicationApprovedMail($application),
+                    [
+                        'application_id' => $application->id,
+                        'student_name' => $application->full_name,
+                        'operation' => 'application_approval_notification'
+                    ]
+                );
+                $this->logEmailResult($emailResult, 'Application Approval Notification');
+                
             } elseif ($application->status === 'rejected') {
-                Mail::to($application->email)->send(new \App\Mail\ApplicationRejectedMail($application));
+                $emailResult = $this->sendTrackedEmail(
+                    'application_rejected',
+                    $application->email,
+                    new \App\Mail\ApplicationRejectedMail($application),
+                    [
+                        'application_id' => $application->id,
+                        'student_name' => $application->full_name,
+                        'operation' => 'application_rejection_notification'
+                    ]
+                );
+                $this->logEmailResult($emailResult, 'Application Rejection Notification');
+                
             } else {
                 // For 'under_review' or others, use a generic status update if needed
-                Mail::to($application->email)->send(new \App\Mail\ApplicationStatusUpdateMail($application));
+                $emailResult = $this->sendTrackedEmail(
+                    'application_received', // Using closest match for generic updates
+                    $application->email,
+                    new \App\Mail\ApplicationStatusUpdateMail($application),
+                    [
+                        'application_id' => $application->id,
+                        'student_name' => $application->full_name,
+                        'new_status' => $application->status,
+                        'operation' => 'application_status_update'
+                    ]
+                );
+                $this->logEmailResult($emailResult, 'Application Status Update');
             }
         } catch (Exception $e) {
             // Log the error but don't fail the status update
-            \Log::error('Failed to send status update email: ' . $e->getMessage());
+            Log::error('❌ APPLICATION STATUS EMAIL FAILED', [
+                'application_id' => $application->id,
+                'status' => $application->status,
+                'email' => $application->email,
+                'error' => $e->getMessage()
+            ]);
         }
 
         // Dashboard Notification if user_id exists (meaning they are a registered student, though applications might come from guests)

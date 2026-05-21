@@ -11,9 +11,11 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use App\Services\SmsService;
+use App\Traits\TracksEmails;
 
 class StudentLeaveController extends Controller
 {
+    use TracksEmails;
     public function index()
     {
         $student = Auth::guard('student')->user();
@@ -107,18 +109,49 @@ class StudentLeaveController extends Controller
         try {
             // Get all admin users
             $admins = User::where('role', 'admin')->orWhere('is_admin', true)->get();
+            $adminEmails = $admins->pluck('email')->filter()->toArray();
             
-            foreach ($admins as $admin) {
-                Mail::to($admin->email)->send(new LeaveRequestSubmittedMail($leaveRequest, 'admin'));
+            if (!empty($adminEmails)) {
+                $adminEmailResults = $this->sendBatchEmails(
+                    'leave_submitted',
+                    $adminEmails,
+                    new LeaveRequestSubmittedMail($leaveRequest, 'admin'),
+                    [
+                        'leave_request_id' => $leaveRequest->id,
+                        'student_name' => $leaveRequest->student->full_name ?? 'Unknown',
+                        'operation' => 'admin_leave_notification'
+                    ]
+                );
+                
+                Log::info("📧 ADMIN LEAVE NOTIFICATION BATCH", [
+                    'batch_id' => $adminEmailResults['batch_id'],
+                    'leave_request_id' => $leaveRequest->id,
+                    'total_admins' => $adminEmailResults['total'],
+                    'successful_notifications' => $adminEmailResults['success'],
+                    'failed_notifications' => $adminEmailResults['failures']
+                ]);
             }
 
             // If no specific admins found, send to a default admin email
-            if ($admins->isEmpty()) {
+            if (empty($adminEmails)) {
                 $defaultAdminEmail = config('mail.admin_email', 'lincolnuninigeria@gmail.com');
-                Mail::to($defaultAdminEmail)->send(new LeaveRequestSubmittedMail($leaveRequest, 'admin'));
+                $defaultEmailResult = $this->sendTrackedEmail(
+                    'leave_submitted',
+                    $defaultAdminEmail,
+                    new LeaveRequestSubmittedMail($leaveRequest, 'admin'),
+                    [
+                        'leave_request_id' => $leaveRequest->id,
+                        'student_name' => $leaveRequest->student->full_name ?? 'Unknown',
+                        'operation' => 'default_admin_leave_notification'
+                    ]
+                );
+                $this->logEmailResult($defaultEmailResult, 'Default Admin Leave Notification');
             }
         } catch (\Exception $e) {
-            Log::error('Failed to send leave request notification to admin: ' . $e->getMessage());
+            Log::error('❌ ADMIN LEAVE NOTIFICATION FAILED', [
+                'leave_request_id' => $leaveRequest->id,
+                'error' => $e->getMessage()
+            ]);
         }
     }
 
@@ -147,12 +180,26 @@ class StudentLeaveController extends Controller
                 }
             }
             
-            // Send Email
+            // Send Email with tracking
             if (!empty($parentEmail)) {
-                Log::info("Sending leave request email to parent: {$parentEmail}");
-                Mail::to($parentEmail)->send(new LeaveRequestSubmittedMail($leaveRequest, 'parent'));
+                $parentEmailResult = $this->sendTrackedEmail(
+                    'leave_submitted',
+                    $parentEmail,
+                    new LeaveRequestSubmittedMail($leaveRequest, 'parent'),
+                    [
+                        'leave_request_id' => $leaveRequest->id,
+                        'student_name' => $student->full_name,
+                        'parent_name' => $student->parent_name,
+                        'operation' => 'parent_leave_notification'
+                    ]
+                );
+                $this->logEmailResult($parentEmailResult, 'Parent Leave Notification');
             } else {
-                Log::warning("No parent email found for student ID {$student->id} during leave request notification.");
+                Log::warning("❌ NO PARENT EMAIL", [
+                    'student_id' => $student->id,
+                    'leave_request_id' => $leaveRequest->id,
+                    'message' => 'No parent email found for leave request notification'
+                ]);
             }
 
             // Send SMS
@@ -179,15 +226,31 @@ class StudentLeaveController extends Controller
             $student = $leaveRequest->student;
             $studentEmail = $student->email;
 
-            // Send Email
+            // Send Email with tracking
             if (!empty($studentEmail)) {
-                Log::info("Sending leave request email to student: {$studentEmail}");
-                Mail::to($studentEmail)->send(new LeaveRequestSubmittedMail($leaveRequest, 'student'));
+                $studentEmailResult = $this->sendTrackedEmail(
+                    'leave_submitted',
+                    $studentEmail,
+                    new LeaveRequestSubmittedMail($leaveRequest, 'student'),
+                    [
+                        'leave_request_id' => $leaveRequest->id,
+                        'student_name' => $student->full_name,
+                        'operation' => 'student_leave_confirmation'
+                    ]
+                );
+                $this->logEmailResult($studentEmailResult, 'Student Leave Confirmation');
             } else {
-                Log::warning("No student email found for student ID {$student->id} during leave request notification.");
+                Log::warning("❌ NO STUDENT EMAIL", [
+                    'student_id' => $student->id,
+                    'leave_request_id' => $leaveRequest->id,
+                    'message' => 'No student email found for leave request notification'
+                ]);
             }
         } catch (\Exception $e) {
-            Log::error('Failed to send leave request notification to student: ' . $e->getMessage());
+            Log::error('❌ STUDENT LEAVE NOTIFICATION FAILED', [
+                'leave_request_id' => $leaveRequest->id,
+                'error' => $e->getMessage()
+            ]);
         }
     }
 

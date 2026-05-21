@@ -18,7 +18,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Register SessionManagementService as singleton for better performance
+        $this->app->singleton(\App\Services\SessionManagementService::class);
+        
+        // Register EmailTrackingService as singleton for consistent email tracking
+        $this->app->singleton(\App\Services\EmailTrackingService::class);
     }
 
     /**

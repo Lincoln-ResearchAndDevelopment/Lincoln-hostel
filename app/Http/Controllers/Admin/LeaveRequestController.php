@@ -12,9 +12,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use App\Traits\TracksEmails;
 
 class LeaveRequestController extends Controller
 {
+    use TracksEmails;
     public function __construct()
     {
         $this->middleware('admin');
@@ -138,19 +140,41 @@ class LeaveRequestController extends Controller
     }
 
     /**
-     * Send email notifications to student and parent
+     * Send email notifications to student and parent with comprehensive tracking
      */
     private function sendStatusUpdateEmails(LeaveRequest $leaveRequest)
     {
         $student = $leaveRequest->student;
+        $emailType = $leaveRequest->status === 'approved' ? 'leave_approved' : 'leave_rejected';
 
-        // Send to student
+        // Send to student with tracking
         try {
             if (!empty($student->email)) {
-                Mail::to($student->email)->send(new LeaveStatusUpdateMail($leaveRequest, 'student'));
+                $studentEmailResult = $this->sendTrackedEmail(
+                    $emailType,
+                    $student->email,
+                    new LeaveStatusUpdateMail($leaveRequest, 'student'),
+                    [
+                        'leave_request_id' => $leaveRequest->id,
+                        'student_name' => $student->full_name,
+                        'status' => $leaveRequest->status,
+                        'operation' => 'student_leave_status_update'
+                    ]
+                );
+                $this->logEmailResult($studentEmailResult, 'Student Leave Status Update');
+            } else {
+                Log::warning("❌ NO STUDENT EMAIL", [
+                    'student_id' => $student->id,
+                    'leave_request_id' => $leaveRequest->id,
+                    'status' => $leaveRequest->status
+                ]);
             }
         } catch (\Exception $e) {
-            Log::error('Failed to send leave status email to student: ' . $e->getMessage());
+            Log::error('❌ STUDENT LEAVE STATUS EMAIL FAILED', [
+                'leave_request_id' => $leaveRequest->id,
+                'status' => $leaveRequest->status,
+                'error' => $e->getMessage()
+            ]);
         }
 
         // Send to parent/guardian for both approval and rejection
@@ -158,12 +182,36 @@ class LeaveRequestController extends Controller
         if ($this->isMissing($parentEmail) && $student->hostelApplication) {
             $parentEmail = $student->hostelApplication->parent_email ?? null;
         }
+        
         try {
             if (!empty($parentEmail)) {
-                Mail::to($parentEmail)->send(new LeaveStatusUpdateMail($leaveRequest, 'parent'));
+                $parentEmailResult = $this->sendTrackedEmail(
+                    $emailType,
+                    $parentEmail,
+                    new LeaveStatusUpdateMail($leaveRequest, 'parent'),
+                    [
+                        'leave_request_id' => $leaveRequest->id,
+                        'student_name' => $student->full_name,
+                        'parent_name' => $student->parent_name,
+                        'status' => $leaveRequest->status,
+                        'operation' => 'parent_leave_status_update'
+                    ]
+                );
+                $this->logEmailResult($parentEmailResult, 'Parent Leave Status Update');
+            } else {
+                Log::warning("❌ NO PARENT EMAIL", [
+                    'student_id' => $student->id,
+                    'leave_request_id' => $leaveRequest->id,
+                    'status' => $leaveRequest->status,
+                    'message' => 'No parent email found for leave status notification'
+                ]);
             }
         } catch (\Exception $e) {
-            Log::error('Failed to send leave status email to parent: ' . $e->getMessage());
+            Log::error('❌ PARENT LEAVE STATUS EMAIL FAILED', [
+                'leave_request_id' => $leaveRequest->id,
+                'status' => $leaveRequest->status,
+                'error' => $e->getMessage()
+            ]);
         }
     }
 

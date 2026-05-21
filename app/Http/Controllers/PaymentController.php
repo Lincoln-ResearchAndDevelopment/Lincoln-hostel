@@ -9,9 +9,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use App\Traits\TracksEmails;
 
 class PaymentController extends Controller
 {
+    use TracksEmails;
     public function index(Request $request)
     {
         if (Auth::user()->role !== 'student') {
@@ -228,12 +230,28 @@ class PaymentController extends Controller
                 ['payment_id' => $payment->id, 'room_id' => $room->id]
             );
             
-            // SEND EMAIL NOTIFICATION (New)
+            // SEND EMAIL NOTIFICATION WITH TRACKING
             try {
-                \Illuminate\Support\Facades\Mail::to($student->email)
-                    ->send(new \App\Mail\RoomAssignedMail($student, $room));
+                $emailResult = $this->sendTrackedEmail(
+                    'room_assigned',
+                    $student->email,
+                    new \App\Mail\RoomAssignedMail($student, $room),
+                    [
+                        'payment_id' => $payment->id,
+                        'room_id' => $room->id,
+                        'student_name' => $student->full_name,
+                        'room_number' => $room->room_number,
+                        'operation' => 'room_assignment_notification'
+                    ]
+                );
+                $this->logEmailResult($emailResult, 'Room Assignment Notification');
             } catch (\Exception $e) {
-                \Log::error('Room Assigned Email Failed: ' . $e->getMessage());
+                \Log::error('❌ ROOM ASSIGNED EMAIL FAILED', [
+                    'payment_id' => $payment->id,
+                    'student_id' => $student->id,
+                    'room_id' => $room->id,
+                    'error' => $e->getMessage()
+                ]);
             }
 
             // Notify Parent (Rule 2.5)
@@ -271,12 +289,27 @@ class PaymentController extends Controller
                 ['payment_id' => $payment->id]
             );
 
-            // SEND EMAIL NOTIFICATION (New)
+            // SEND EMAIL NOTIFICATION WITH TRACKING
             try {
-                \Illuminate\Support\Facades\Mail::to($student->email)
-                    ->send(new \App\Mail\GeneralPaymentApprovedMail($payment));
+                $emailResult = $this->sendTrackedEmail(
+                    'payment_approved',
+                    $student->email,
+                    new \App\Mail\GeneralPaymentApprovedMail($payment),
+                    [
+                        'payment_id' => $payment->id,
+                        'student_name' => $student->full_name,
+                        'amount' => $payment->amount,
+                        'operation' => 'general_payment_approval_notification'
+                    ]
+                );
+                $this->logEmailResult($emailResult, 'General Payment Approval Notification');
             } catch (\Exception $e) {
-                \Log::error('General Payment Approved Email Failed: ' . $e->getMessage());
+                \Log::error('❌ GENERAL PAYMENT APPROVED EMAIL FAILED', [
+                    'payment_id' => $payment->id,
+                    'student_id' => $student->id,
+                    'amount' => $payment->amount,
+                    'error' => $e->getMessage()
+                ]);
             }
 
             // Notify Parent (Rule 2.5)

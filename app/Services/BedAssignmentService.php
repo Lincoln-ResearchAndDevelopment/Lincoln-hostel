@@ -53,10 +53,25 @@ class BedAssignmentService
                 $this->releaseBed($oldBedId, $student->id);
             }
 
-            // If new bed is null, just unassign (student has no bed)
+            // If new bed is null, just unassign (student has no bed and no room)
             if (!$newBedId) {
-                $student->update(['bed_id' => null]);
-                return ['success' => true, 'message' => 'Bed unassigned successfully.'];
+                if ($oldRoomId) {
+                    Room::where('id', $oldRoomId)
+                        ->where('occupied', '>', 0)
+                        ->update([
+                            'occupied' => DB::raw('occupied - 1'),
+                            'status' => DB::raw('CASE WHEN occupied - 1 < capacity THEN "available" ELSE status END'),
+                        ]);
+                }
+
+                $student->update([
+                    'bed_id' => null,
+                    'room_id' => null,
+                ]);
+
+                Log::info("Bed and Room unassigned: Student {$student->admission_number} unassigned from Bed (ID: {$oldBedId}) and Room (ID: {$oldRoomId})");
+
+                return ['success' => true, 'message' => 'Bed and room unassigned successfully.'];
             }
 
             // Validate and assign new bed

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Hash;
 use App\Models\SuperAdmin;
@@ -16,6 +17,7 @@ use App\Models\Complaint;
 use App\Models\Visitor;
 use App\Models\Announcement;
 use App\Models\SystemAlert;
+use App\Services\SessionManagementService;
 
 class SuperAdminController extends Controller
 {
@@ -28,7 +30,7 @@ class SuperAdminController extends Controller
     }
 
     /**
-     * Handle super admin login
+     * Handle super admin login with enterprise session management
      */
     public function login(Request $request)
     {
@@ -66,8 +68,33 @@ class SuperAdminController extends Controller
 
         if (Auth::guard('superadmin')->attempt(['email' => $credentials['email'], 'password' => $credentials['password']], $request->remember)) {
             RateLimiter::clear($throttleKey);
-            $superAdmin->resetLoginAttempts();
-            return redirect()->route('superadmin.dashboard');
+            
+            // Use enterprise session management for secure login
+            $sessionService = app(SessionManagementService::class);
+            $loginSuccess = $sessionService->secureLogin('superadmin', $superAdmin, $request, $request->boolean('remember'));
+            
+            if ($loginSuccess) {
+                $superAdmin->resetLoginAttempts();
+                
+                Log::info('SuperAdmin login successful', [
+                    'superadmin_id' => $superAdmin->id,
+                    'email' => $superAdmin->email,
+                    'ip' => $request->ip(),
+                ]);
+                
+                return redirect()->route('superadmin.dashboard');
+            } else {
+                // If secure login failed, logout from Laravel auth
+                Auth::guard('superadmin')->logout();
+                
+                Log::error('SuperAdmin secure login failed', [
+                    'superadmin_id' => $superAdmin->id,
+                    'email' => $superAdmin->email,
+                    'ip' => $request->ip(),
+                ]);
+                
+                return back()->withErrors(['email' => 'Login failed due to a system error. Please try again.'])->withInput();
+            }
         }
 
         // Increment failed attempts
@@ -78,15 +105,26 @@ class SuperAdminController extends Controller
     }
 
     /**
-     * Handle super admin logout
+     * Enterprise-grade logout that only affects the superadmin session
      */
     public function logout(Request $request)
     {
-        Auth::guard('superadmin')->logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+        // Only logout the superadmin guard - DO NOT affect other guards
+        $sessionService = app(SessionManagementService::class);
+        $logoutSuccess = $sessionService->secureLogout('superadmin', $request, true);
+        
+        if ($logoutSuccess) {
+            Log::info('SuperAdmin logout successful', [
+                'ip' => $request->ip(),
+                'session_id' => $request->session()->getId(),
+            ]);
+        } else {
+            Log::warning('SuperAdmin logout had issues', [
+                'ip' => $request->ip(),
+            ]);
+        }
 
-        return redirect()->route('superadmin.login');
+        return redirect()->route('superadmin.login')->with('status', 'You have been logged out successfully.');
     }
 
     /**

@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use App\Models\Student;
+use App\Services\SessionManagementService;
 
 class StudentsAuthController extends Controller
 {
@@ -15,11 +17,11 @@ class StudentsAuthController extends Controller
      */
     public function showLoginForm()
     {
-        return view('student.auth.login'); // Make sure this blade exists
+        return view('student.auth.login');
     }
 
     /**
-     * Handle student login
+     * Handle student login with enterprise-grade session management
      */
     public function login(Request $request)
     {
@@ -69,14 +71,33 @@ class StudentsAuthController extends Controller
 
         if ($student) {
             RateLimiter::clear($throttleKey);
-            // Login the student using the student guard
-            Auth::guard('student')->login($student);
-
-            // Regenerate session to prevent session fixation
-            $request->session()->regenerate();
-
-            // Redirect to student dashboard
-            return redirect()->intended(route('student.dashboard'));
+            
+            // Resolve SessionManagementService from container
+            $sessionService = app(SessionManagementService::class);
+            
+            // Use enterprise session management for secure login
+            $loginSuccess = $sessionService->secureLogin('student', $student, $request);
+            
+            if ($loginSuccess) {
+                Log::info('Student login successful', [
+                    'student_id' => $student->id,
+                    'admission_number' => $student->admission_number,
+                    'ip' => $request->ip(),
+                ]);
+                
+                // Redirect to student dashboard
+                return redirect()->intended(route('student.dashboard'));
+            } else {
+                Log::error('Student secure login failed', [
+                    'student_id' => $student->id,
+                    'admission_number' => $student->admission_number,
+                    'ip' => $request->ip(),
+                ]);
+                
+                return back()->withErrors([
+                    'admission_number' => 'Login failed due to a system error. Please try again.',
+                ])->withInput();
+            }
         }
 
         RateLimiter::hit($throttleKey, 60);
@@ -88,16 +109,27 @@ class StudentsAuthController extends Controller
     }
 
     /**
-     * Logout the student
+     * Enterprise-grade logout that only affects the student session
      */
     public function logout(Request $request)
     {
-        Auth::guard('student')->logout();
+        // Resolve SessionManagementService from container
+        $sessionService = app(SessionManagementService::class);
+        
+        // Only logout the student guard - DO NOT affect other guards
+        $logoutSuccess = $sessionService->secureLogout('student', $request, true);
+        
+        if ($logoutSuccess) {
+            Log::info('Student logout successful', [
+                'ip' => $request->ip(),
+                'session_id' => $request->session()->getId(),
+            ]);
+        } else {
+            Log::warning('Student logout had issues', [
+                'ip' => $request->ip(),
+            ]);
+        }
 
-        // Invalidate the session and regenerate CSRF token
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
-
-        return redirect()->route('student.login');
+        return redirect()->route('student.login')->with('status', 'You have been logged out successfully.');
     }
 }

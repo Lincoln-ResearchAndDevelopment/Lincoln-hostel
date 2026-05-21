@@ -152,6 +152,23 @@ Route::middleware(['auth'])->group(function () {
         return response()->json(['status' => 'ok']);
     });
 
+    // Session debugging route (development only)
+    if (config('app.debug')) {
+        Route::get('/debug/session', function (Request $request) {
+            $sessionService = app(\App\Services\SessionManagementService::class);
+            
+            return response()->json([
+                'session_info' => $sessionService->getSessionInfo($request),
+                'auth_guards' => [
+                    'web' => Auth::guard('web')->check() ? Auth::guard('web')->id() : null,
+                    'student' => Auth::guard('student')->check() ? Auth::guard('student')->id() : null,
+                    'superadmin' => Auth::guard('superadmin')->check() ? Auth::guard('superadmin')->id() : null,
+                ],
+                'session_data' => $request->session()->all(),
+            ]);
+        })->name('debug.session');
+    }
+
     // Admin Management Routes
     Route::prefix('admin')->name('admin.')->group(function () {
         // Leave Requests Management
