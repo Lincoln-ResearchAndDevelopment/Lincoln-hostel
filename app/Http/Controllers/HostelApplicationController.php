@@ -517,8 +517,8 @@ class HostelApplicationController extends Controller
 
             // Send notification email to student
             try {
-                Mail::to($application->email)->send(new \App\Mail\ApplicationApprovedMail($application));
-                Mail::to($application->email)->send(new \App\Mail\RoomAssignedMail($student, $room));
+                $this->sendTrackedEmail('application_approved', $application->email, new \App\Mail\ApplicationApprovedMail($application), ['application_id' => $application->id]);
+                $this->sendTrackedEmail('room_assigned', $application->email, new \App\Mail\RoomAssignedMail($student, $room), ['student_id' => $student->id, 'room_id' => $room->id]);
             } catch (\Exception $e) {
                 \Log::error('Status Update Email Failed: ' . $e->getMessage());
                 // Non-blocking error, we still redirect with success but mention the email failure if needed
@@ -551,7 +551,7 @@ class HostelApplicationController extends Controller
 
         // Send notification email
         try {
-            \Illuminate\Support\Facades\Mail::to($application->email)->send(new \App\Mail\ApplicationRejectedMail($application));
+            $this->sendTrackedEmail('application_rejected', $application->email, new \App\Mail\ApplicationRejectedMail($application), ['application_id' => $application->id]);
         } catch (\Exception $e) {
             \Log::error('Rejection Email Failed: ' . $e->getMessage());
         }

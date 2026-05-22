@@ -462,6 +462,35 @@
                     <h1 class="page-title">@yield('page-title', 'Admin Dashboard')</h1>
                 </div>
                 <div class="header-actions">
+                    <!-- Email Quota Meter -->
+                    <div class="email-quota-meter me-3 d-none d-md-flex align-items-center" title="Daily Email Quota">
+                        @inject('emailService', 'App\Services\EmailTrackingService')
+                        @php
+                            $quotaRemaining = $emailService->getRemainingQuota();
+                            $quotaTotal = \App\Services\EmailTrackingService::DAILY_LIMIT;
+                            $quotaPercentage = ($quotaRemaining / $quotaTotal) * 100;
+                            
+                            $barColor = 'bg-success';
+                            $textColor = 'text-success';
+                            if ($quotaPercentage <= 20) {
+                                $barColor = 'bg-danger';
+                                $textColor = 'text-danger';
+                            } elseif ($quotaPercentage <= 55) {
+                                $barColor = 'bg-warning';
+                                $textColor = 'text-warning';
+                            }
+                        @endphp
+                        <div class="d-flex flex-column align-items-end me-2" style="line-height: 1.2;">
+                            <span class="small text-muted" style="font-size: 0.7rem;">Email Quota</span>
+                            <span class="fw-bold small {{ $textColor }}" style="font-size: 0.75rem;">
+                                {{ $quotaRemaining }} / {{ $quotaTotal }} left
+                            </span>
+                        </div>
+                        <div class="progress" style="width: 50px; height: 5px; border-radius: 3px; background-color: var(--border-color); margin: 0;">
+                            <div class="progress-bar {{ $barColor }}" role="progressbar" style="width: {{ $quotaPercentage }}%; border-radius: 3px;" aria-valuenow="{{ $quotaRemaining }}" aria-valuemin="0" aria-valuemax="{{ $quotaTotal }}"></div>
+                        </div>
+                    </div>
+
                     <!-- Notifications -->
                     <div class="dropdown">
                         <button class="header-btn" data-bs-toggle="dropdown">

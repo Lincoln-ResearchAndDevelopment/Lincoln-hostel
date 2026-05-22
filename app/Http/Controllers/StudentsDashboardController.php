@@ -8,8 +8,11 @@ use App\Models\HostelRule;
 use App\Models\AttendanceRecord;
 use App\Models\Notification;
 
+use App\Traits\TracksEmails;
+
 class StudentsDashboardController extends Controller
 {
+    use TracksEmails;
     public function __construct()
     {
         $this->middleware('auth:student');
@@ -480,8 +483,7 @@ class StudentsDashboardController extends Controller
 
         // SEND EMAIL NOTIFICATION (New)
         try {
-            \Illuminate\Support\Facades\Mail::to($student->email)
-                ->send(new \App\Mail\BookingPaymentReceivedMail($payment));
+            $this->sendTrackedEmail('booking_received', $student->email, new \App\Mail\BookingPaymentReceivedMail($payment), ['student_id' => $student->id, 'payment_id' => $payment->id]);
         } catch (\Exception $e) {
             \Log::error('Booking Received Email Failed: ' . $e->getMessage());
         }

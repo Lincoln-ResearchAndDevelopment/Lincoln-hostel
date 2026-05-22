@@ -328,6 +328,57 @@
     </div>
   </div>
       
+  <div class="row mb-4">
+      <div class="col-12">
+          <div class="card shadow-sm border-0" style="border-radius: 12px; background: #f8f9fa;">
+              <div class="card-body p-3">
+                  @inject('emailService', 'App\Services\EmailTrackingService')
+                  @php
+                      $quotaRemaining = $emailService->getRemainingQuota();
+                      $quotaTotal = \App\Services\EmailTrackingService::DAILY_LIMIT;
+                      $quotaPercentage = ($quotaRemaining / $quotaTotal) * 100;
+                      
+                      $barColor = 'bg-success';
+                      $textColor = 'text-success';
+                      if ($quotaPercentage <= 20) {
+                          $barColor = 'bg-danger';
+                          $textColor = 'text-danger';
+                      } elseif ($quotaPercentage <= 55) {
+                          $barColor = 'bg-warning';
+                          $textColor = 'text-warning';
+                      }
+                  @endphp
+                  <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                      <div class="d-flex align-items-center gap-2">
+                          <div class="p-2 bg-light rounded-circle text-primary">
+                              <i class="fas fa-envelope"></i>
+                          </div>
+                          <div>
+                              <h6 class="mb-0 fw-bold" style="color: #333;">Application System Status</h6>
+                              <small class="text-muted">Daily communication quota status</small>
+                          </div>
+                      </div>
+                      <div class="d-flex align-items-center gap-3">
+                          <div class="text-end" style="line-height: 1.2;">
+                              <span class="small text-muted d-block">Emails Remaining Today</span>
+                              <span class="fw-bold {{ $textColor }}">{{ $quotaRemaining }} of {{ $quotaTotal }} left</span>
+                          </div>
+                          <div class="progress" style="width: 100px; height: 8px; border-radius: 4px; background-color: #dee2e6; margin: 0;">
+                              <div class="progress-bar {{ $barColor }}" role="progressbar" style="width: {{ $quotaPercentage }}%; border-radius: 4px;" aria-valuenow="{{ $quotaRemaining }}" aria-valuemin="0" aria-valuemax="{{ $quotaTotal }}"></div>
+                          </div>
+                      </div>
+                  </div>
+                  @if($quotaRemaining == 0)
+                      <div class="alert alert-danger mt-2 mb-0 py-2 px-3 small border-0 d-flex align-items-center gap-2" style="border-radius: 8px;">
+                          <i class="fas fa-exclamation-triangle"></i>
+                          <span>The daily email limit of 500 has been reached. Any new applications submitted now will still be processed, but confirmation emails will be queued in the dashboard.</span>
+                      </div>
+                  @endif
+              </div>
+          </div>
+      </div>
+  </div>
+
   <h2>Comprehensive Hostel Application Form</h2>
 
   <!-- Progress Indicator -->

@@ -24,6 +24,8 @@ use Exception;
  */
 class EmailTrackingService
 {
+    const DAILY_LIMIT = 500;
+
     const EMAIL_TYPES = [
         'application_received' => 'Application Received Confirmation',
         'application_approved' => 'Application Approved Notification',
@@ -40,6 +42,26 @@ class EmailTrackingService
         'contact_form' => 'Contact Form Submission',
         'admin_notification' => 'Admin Notification'
     ];
+
+    /**
+     * Get the remaining email quota for the current day
+     * 
+     * @return int
+     */
+    public function getRemainingQuota(): int
+    {
+        try {
+            $sentToday = DB::table('email_logs')
+                ->where('status', 'sent')
+                ->whereDate('created_at', now()->toDateString())
+                ->count();
+                
+            return max(0, self::DAILY_LIMIT - $sentToday);
+        } catch (Exception $e) {
+            Log::warning("Failed to count sent emails: " . $e->getMessage());
+            return self::DAILY_LIMIT;
+        }
+    }
 
     /**
      * Send email with comprehensive tracking and logging
@@ -68,6 +90,16 @@ class EmailTrackingService
             if (!filter_var($recipient, FILTER_VALIDATE_EMAIL)) {
                 throw new Exception("Invalid email address: {$recipient}");
             }
+
+            // Check daily quota
+            $sentToday = DB::table('email_logs')
+                ->where('status', 'sent')
+                ->whereDate('created_at', now()->toDateString())
+                ->count();
+                
+            if ($sentToday >= self::DAILY_LIMIT) {
+                throw new Exception("SMTP daily quota limit of " . self::DAILY_LIMIT . " reached. Bypassing send.");
+            }
             
             // Send email
             Mail::to($recipient)->send($mailable);
@@ -90,11 +122,49 @@ class EmailTrackingService
             // Log failure with detailed error info
             $this->logEmailFailure($emailId, $emailType, $recipient, $e, $duration, $context);
             
+            $errorCategory = $this->categorizeError($e);
+            
+            if ($errorCategory === 'quota_exceeded') {
+                try {
+                    // Try to resolve student ID
+                    $studentId = $context['student_id'] ?? null;
+                    if (!$studentId) {
+                        $student = \App\Models\Student::where('email', $recipient)->first();
+                        if ($student) {
+                            $studentId = $student->id;
+                        }
+                    }
+                    
+                    if ($studentId) {
+                        \App\Models\Notification::notifyStudent(
+                            $studentId,
+                            'complaint',
+                            'Email Delivery Bypassed (Daily Limit Reached)',
+                            "An automated email notification (" . (self::EMAIL_TYPES[$emailType] ?? $emailType) . ") could not be sent to your email address ({$recipient}) because the system has reached its daily limit. You can view your notification details here in your portal dashboard."
+                        );
+                    }
+                } catch (Exception $notifEx) {
+                    Log::warning("Failed to notify student of quota exceed: " . $notifEx->getMessage());
+                }
+                
+                try {
+                    // Notify all admins
+                    \App\Models\Notification::notifyAllAdmins(
+                        'complaint',
+                        'SMTP Daily Quota Exceeded',
+                        "The system has reached its daily email limit of " . self::DAILY_LIMIT . " emails. Email to {$recipient} (" . (self::EMAIL_TYPES[$emailType] ?? $emailType) . ") was bypassed and logged as failed."
+                    );
+                } catch (Exception $notifEx) {
+                    Log::warning("Failed to notify admins of quota exceed: " . $notifEx->getMessage());
+                }
+            }
+            
             return [
                 'success' => false,
                 'message' => "Email failed: " . $e->getMessage(),
                 'email_id' => $emailId,
                 'error' => $e->getMessage(),
+                'error_category' => $errorCategory,
                 'duration_ms' => $duration
             ];
         }

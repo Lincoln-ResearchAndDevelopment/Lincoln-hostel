@@ -26,7 +26,13 @@ trait TracksEmails
     protected function sendTrackedEmail(string $emailType, string $recipient, $mailable, array $context = []): array
     {
         $emailService = app(EmailTrackingService::class);
-        return $emailService->sendTrackedEmail($emailType, $recipient, $mailable, $context);
+        $result = $emailService->sendTrackedEmail($emailType, $recipient, $mailable, $context);
+        
+        if (isset($result['error_category']) && $result['error_category'] === 'quota_exceeded') {
+            session()->flash('error', 'The daily email limit of 500 has been reached. This message has been queued inside your portal dashboard. Please check back or try again in 24 hours.');
+        }
+        
+        return $result;
     }
     
     /**
@@ -35,7 +41,23 @@ trait TracksEmails
     protected function sendBatchEmails(string $emailType, array $recipients, $mailable, array $context = []): array
     {
         $emailService = app(EmailTrackingService::class);
-        return $emailService->sendBatchEmails($emailType, $recipients, $mailable, $context);
+        $result = $emailService->sendBatchEmails($emailType, $recipients, $mailable, $context);
+        
+        $quotaExceeded = false;
+        if (isset($result['results'])) {
+            foreach ($result['results'] as $r) {
+                if (isset($r['error_category']) && $r['error_category'] === 'quota_exceeded') {
+                    $quotaExceeded = true;
+                    break;
+                }
+            }
+        }
+        
+        if ($quotaExceeded) {
+            session()->flash('error', 'The daily email limit of 500 has been reached. This message has been queued inside your portal dashboard. Please check back or try again in 24 hours.');
+        }
+        
+        return $result;
     }
     
     /**

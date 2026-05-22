@@ -12,8 +12,12 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 
+use App\Traits\TracksEmails;
+
 class AnnouncementController extends Controller
 {
+    use TracksEmails;
+
     public function __construct()
     {
         $this->middleware('admin');
@@ -79,7 +83,7 @@ class AnnouncementController extends Controller
 
                 // Email Notification
                 if ($student->email) {
-                    Mail::to($student->email)->send(new AnnouncementNotificationMail($announcement));
+                    $this->sendTrackedEmail('announcement', $student->email, new AnnouncementNotificationMail($announcement), ['student_id' => $student->id, 'announcement_id' => $announcement->id]);
                 }
             }
         } catch (\Exception $e) {

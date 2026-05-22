@@ -7,8 +7,12 @@ use App\Models\Student;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
+use App\Traits\TracksEmails;
+
 class StudentPaymentController extends Controller
 {
+    use TracksEmails;
+
     public function store(Request $request)
     {
         \Log::info('Payment form submitted');
@@ -55,8 +59,7 @@ class StudentPaymentController extends Controller
 
             // SEND EMAIL NOTIFICATION (New)
             try {
-                \Illuminate\Support\Facades\Mail::to($student->email)
-                    ->send(new \App\Mail\PaymentReceivedMail($payment));
+                $this->sendTrackedEmail('payment_received', $student->email, new \App\Mail\PaymentReceivedMail($payment), ['student_id' => $student->id, 'payment_id' => $payment->id]);
             } catch (\Exception $e) {
                 \Log::error('General Payment Received Email Failed: ' . $e->getMessage());
             }

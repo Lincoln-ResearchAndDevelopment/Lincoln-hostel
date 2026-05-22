@@ -16,9 +16,12 @@ use Illuminate\Support\Facades\Log;
 use App\Models\Department;
 use App\Models\Intake;
 use Carbon\Carbon;
+use App\Traits\TracksEmails;
 
 class StudentController extends Controller
 {
+    use TracksEmails;
+
     protected $bedService;
 
     public function __construct(BedAssignmentService $bedService)
@@ -145,7 +148,7 @@ class StudentController extends Controller
 
         // Send Onboarding Email to the student (non-blocking)
         try {
-            Mail::to($student->email)->send(new \App\Mail\StudentOnboardingMail($student));
+            $this->sendTrackedEmail('student_onboarding', $student->email, new \App\Mail\StudentOnboardingMail($student), ['student_id' => $student->id]);
         } catch (\Exception $e) {
             Log::error('Student Onboarding Email Failed: ' . $e->getMessage());
         }
@@ -272,7 +275,7 @@ class StudentController extends Controller
                 try {
                     $roomObj = Room::find($newRoomId);
                     if ($roomObj) {
-                        Mail::to($student->email)->send(new \App\Mail\RoomAssignedMail($student, $roomObj));
+                        $this->sendTrackedEmail('room_assigned', $student->email, new \App\Mail\RoomAssignedMail($student, $roomObj), ['student_id' => $student->id, 'room_id' => $roomObj->id]);
                     }
                 } catch (\Exception $e) {
                     Log::error('Manual Room Assignment Email Failed: ' . $e->getMessage());
