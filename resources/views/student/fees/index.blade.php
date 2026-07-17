@@ -25,7 +25,7 @@
                         <i class="fas fa-money-bill-wave" style="color: #cc0000;"></i>
                     </div>
                 </div>
-                <h3 class="mb-0 fw-bold">₦{{ number_format($feeInfo['total_fee'], 2) }}</h3>
+                <h3 class="mb-0 fw-bold">Assigned</h3>
                 <small class="text-muted">Hostel accommodation fee</small>
             </div>
         </div>
@@ -39,7 +39,7 @@
                         <i class="fas fa-check-circle"></i>
                     </div>
                 </div>
-                <h3 class="mb-0 fw-bold text-success">₦{{ number_format($feeInfo['paid'], 2) }}</h3>
+                <h3 class="mb-0 fw-bold text-success">{{ $feeInfo['paid'] > 0 ? 'Recorded' : 'Not recorded' }}</h3>
                 <small class="text-muted">Total payments made</small>
             </div>
         </div>
@@ -53,7 +53,7 @@
                         <i class="fas fa-{{ $feeInfo['outstanding'] > 0 ? 'exclamation-triangle' : 'check' }}"></i>
                     </div>
                 </div>
-                <h3 class="mb-0 fw-bold text-{{ $feeInfo['outstanding'] > 0 ? 'danger' : 'success' }}">₦{{ number_format($feeInfo['outstanding'], 2) }}</h3>
+                <h3 class="mb-0 fw-bold text-{{ $feeInfo['outstanding'] > 0 ? 'danger' : 'success' }}">{{ $feeInfo['outstanding'] > 0 ? 'Outstanding' : 'Settled' }}</h3>
                 <small class="text-muted">Balance remaining</small>
             </div>
         </div>
@@ -101,8 +101,8 @@
                     </div>
                 </div>
                 <div class="d-flex justify-content-between mt-2">
-                    <small class="text-muted">₦0</small>
-                    <small class="text-muted">₦{{ number_format($feeInfo['total_fee'], 2) }}</small>
+                    <small class="text-muted">No payment</small>
+                    <small class="text-muted">Payment complete</small>
                 </div>
             </div>
         </div>
@@ -156,7 +156,7 @@
                                 <tr>
                                     <td><strong>{{ $payment->receipt_number }}</strong></td>
                                     <td>{{ $payment->payment_date->format('M d, Y') }}</td>
-                                    <td class="fw-bold">₦{{ number_format($payment->amount, 2) }}</td>
+                                    <td class="fw-bold">Payment recorded</td>
                                     <td>
                                         <span class="badge bg-secondary">
                                             {{ ucfirst(str_replace('_', ' ', $payment->payment_method)) }}
@@ -276,11 +276,7 @@
             <form action="{{ route('student.payments.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="amount" class="form-label">Amount (₦)</label>
-                        <input type="number" class="form-control" id="amount" name="amount" 
-                               value="{{ $feeInfo['outstanding'] }}" min="1" required>
-                    </div>
+                    <input type="hidden" id="amount" name="amount" value="{{ $feeInfo['outstanding'] }}">
                     <div class="mb-3">
                         <label for="payment_method" class="form-label">Payment Method</label>
                         <select class="form-select" id="payment_method" name="payment_method" required>

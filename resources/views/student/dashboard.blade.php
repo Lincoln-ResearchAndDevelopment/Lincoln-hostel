@@ -77,12 +77,12 @@
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center mb-2">
-                    <h6 class="text-muted mb-0">Total Paid</h6>
+                    <h6 class="text-muted mb-0">Payment Records</h6>
                     <div class="rounded px-2 py-1" style="background-color: rgba(40, 167, 69, 0.1);">
                         <i class="fas fa-wallet text-success"></i>
                     </div>
                 </div>
-                <h3 class="mb-0 fw-bold">₦{{ number_format($total_paid, 2) }}</h3>
+                <h3 class="mb-0 fw-bold">{{ $total_payments }}</h3>
                 <small class="text-muted">{{ $total_payments }} transactions</small>
             </div>
         </div>

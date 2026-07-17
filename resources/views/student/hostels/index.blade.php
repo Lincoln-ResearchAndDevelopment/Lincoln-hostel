@@ -62,7 +62,7 @@
                         <div class="d-flex justify-content-between align-items-center mt-auto border-top pt-3">
                             <div>
                                 <span class="d-block fw-bold text-primary">{{ $hostel->rooms_count }} Rooms</span>
-                                <small class="text-muted">Starting from ₦{{ number_format($hostel->min_price, 2) }}</small>
+                                <small class="text-muted">Payment plans available</small>
                             </div>
                             <a href="{{ route('student.hostels.show', $hostel) }}" class="btn btn-primary px-4">
                                 View Details

@@ -287,7 +287,7 @@
   <div class="info-button-container" tabindex="0" aria-label="Hostel application info">
     <div class="info-button">i</div>
     <div class="info-tooltip" role="tooltip">
-      STUDENTS register for hostel at the student affairs department and fill hostel application form for 2000 naira only.
+      STUDENTS register for hostel at the student affairs department and fill the hostel application form.
             <br/><br/>
       <b>PAYMENT:</b> Students make payment online for a semester/year (may generate receipt online).
             <br/><br/>
@@ -474,11 +474,11 @@
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label for="amount_paid">Amount Paid (₦) <span class="required-field">*</span></label>
+                                <label for="amount_paid">Payment Plan <span class="required-field">*</span></label>
                                 <select name="amount_paid" id="amount_paid" required style="width: 100%; padding: 10px; border: 1px solid #ced4da; border-radius: 4px;">
-                                    <option value="">Select Amount Paid</option>
-                                    <option value="85,000" {{ old('amount_paid') == '85,000' ? 'selected' : '' }}>₦85,000 (Semester)</option>
-                                    <option value="250,000" {{ old('amount_paid') == '250,000' ? 'selected' : '' }}>₦250,000 (Full Year)</option>
+                                    <option value="">Select Payment Plan</option>
+                                    <option value="85,000" {{ old('amount_paid') == '85,000' ? 'selected' : '' }}>Semester</option>
+                                    <option value="250,000" {{ old('amount_paid') == '250,000' ? 'selected' : '' }}>Full Year</option>
                                 </select>
                             </div>
                         </div>
@@ -825,7 +825,7 @@
                         @error('applicationform_receipt')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
-                        <small class="text-muted">Receipt for ₦2,000 application form fee (max 10MB)</small>
+                        <small class="text-muted">Application form receipt (max 10MB)</small>
                     </div>
 
                     <div class="form-group file-input-group">
@@ -834,7 +834,7 @@
                         @error('hostelfee_receipt')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
-                        <small class="text-muted">Receipt for ₦85,000 (semester) or ₦250,000 (year) (max 10MB)</small>
+                        <small class="text-muted">Upload your hostel fee receipt (max 10MB)</small>
                     </div>
 
                     <button type="button" class="account-details-btn" data-bs-toggle="modal" data-bs-target="#paymentDetailsModal">
@@ -1033,7 +1033,7 @@
           <div class="col-md-6">
             <div class="alert alert-warning">
               <h6><i class="fas fa-money-bill-wave me-2"></i>Application Form Fee</h6>
-              <p class="mb-0"><strong>Amount: ₦2,000</strong><br>
+              <p class="mb-0"><strong>Application form fee</strong><br>
               <small>One-time application processing fee</small></p>
             </div>
           </div>
@@ -1041,8 +1041,8 @@
             <div class="alert alert-success">
               <h6><i class="fas fa-home me-2"></i>Hostel form fee</h6>
               <p class="mb-0">
-                <strong>Semester: ₦85,000</strong><br>
-                <strong>Full Year: ₦250,000</strong><br>
+                <strong>Semester</strong><br>
+                <strong>Full Year</strong><br>
                 <small>Choose based on your preference</small>
               </p>
             </div>

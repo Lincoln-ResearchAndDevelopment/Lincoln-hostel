@@ -149,15 +149,13 @@
                                     <input type="radio" class="btn-check" name="payment_plan" id="plan_semester_{{ $room->id }}" value="semester" checked>
                                     <label class="btn btn-outline-primary" for="plan_semester_{{ $room->id }}">
                                         <i class="fas fa-calendar-alt d-block mb-1"></i>
-                                        Semester<br>
-                                        <span class="fw-bold">₦{{ $room->formatted_price_per_semester }}</span>
+                                        Semester
                                     </label>
 
                                     <input type="radio" class="btn-check" name="payment_plan" id="plan_year_{{ $room->id }}" value="year">
                                     <label class="btn btn-outline-primary" for="plan_year_{{ $room->id }}">
                                         <i class="fas fa-history d-block mb-1"></i>
-                                        Full Year<br>
-                                        <span class="fw-bold">₦{{ $room->formatted_price_per_year }}</span>
+                                        Full Year
                                     </label>
                                 </div>
                             </div>

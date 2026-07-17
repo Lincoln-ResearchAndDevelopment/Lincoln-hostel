@@ -17,7 +17,6 @@
                                 <li class="mb-2"><i class="fas fa-door-open text-muted me-2 w-20"></i><strong>Room:</strong> {{ $room->room_number }}</li>
                                 <li class="mb-2"><i class="fas fa-layer-group text-muted me-2 w-20"></i><strong>Floor:</strong> Floor {{ $room->floor_number }}</li>
                                 <li class="mb-2"><i class="fas fa-calendar-alt text-muted me-2 w-20"></i><strong>Plan:</strong> {{ ucfirst($plan) }}</li>
-                                <li class="mb-2"><i class="fas fa-money-bill-wave text-muted me-2 w-20"></i><strong>Total Fee:</strong> ₦{{ number_format($amount, 2) }}</li>
                             </ul>
                         </div>
                         <div class="col-md-6 ps-md-4">
