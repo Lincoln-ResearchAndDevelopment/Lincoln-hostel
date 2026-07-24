@@ -78,6 +78,7 @@ class Student extends Authenticatable
     ];
 
     protected $casts = [
+        'password' => 'hashed',
         'check_in_date' => 'datetime',
         'expected_check_out_date' => 'datetime',
         'date_of_birth' => 'date',

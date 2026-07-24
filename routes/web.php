@@ -53,10 +53,12 @@ Route::get('/check-application', function() {
 | Authentication Routes (Admin)
 |--------------------------------------------------------------------------
 */
-Auth::routes([
-    'register' => true,
-    'verify'   => false,
-]);
+Route::middleware('throttle:auth')->group(function () {
+    Auth::routes([
+        'register' => !app()->environment('production'),
+        'verify'   => true,
+    ]);
+});
 
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
@@ -115,9 +117,7 @@ Route::middleware(['auth'])->group(function () {
 });
 
 
-    Route::post('/announcements', [AnnouncementController::class, 'store'])->name('announcements.store');
-    Route::put('/announcements/{announcement}', [AnnouncementController::class, 'update'])->name('announcements.update');
-    Route::delete('/announcements/{announcement}', [AnnouncementController::class, 'destroy'])->name('announcements.destroy');
+    // Announcement download (uses public controller)
     Route::get('/announcements/{announcement}/download', [AnnouncementController::class, 'downloadAttachment'])->name('announcements.download');
 
     // Hostel Applications Management
