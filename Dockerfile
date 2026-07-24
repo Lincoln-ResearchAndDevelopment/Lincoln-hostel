@@ -85,22 +85,21 @@ COPY --from=vendor /app/vendor ./vendor
 # Copy built frontend from node stage
 COPY --from=frontend /app/public/build ./public/build
 
-# Copy nginx & supervisor config
+# Copy nginx, supervisor & entrypoint config
 COPY docker/nginx.conf /etc/nginx/http.d/default.conf
 COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
 
 # Set permissions
 RUN chown -R www-data:www-data storage bootstrap/cache && \
-    chmod -R 775 storage bootstrap/cache && \
-    rm -rf /var/www/html/docker
+    chmod -R 775 storage bootstrap/cache
 
-# Create storage symlink (if not already done)
+# Create storage symlink
 RUN php artisan storage:link --force || true
 
-# Optimize Laravel
-RUN php artisan config:cache && \
-    php artisan route:cache && \
-    php artisan view:cache
+# IMPORTANT: Do NOT cache at build time — cache at RUNTIME via entrypoint.sh
+# This ensures fresh views/config/routes on every container start
 
 # Expose port
 EXPOSE 80
@@ -109,5 +108,5 @@ EXPOSE 80
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
     CMD curl -f http://localhost/api/health || exit 1
 
-# Start supervisor (runs nginx + php-fpm)
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
+# Start via entrypoint (clears all caches, re-warms them, runs migrations, then starts services)
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
