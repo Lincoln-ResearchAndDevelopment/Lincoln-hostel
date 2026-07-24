@@ -9,6 +9,7 @@ use App\Models\HostelApplication;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Carbon\Carbon;
 
 class StudentController extends Controller
@@ -87,7 +88,7 @@ class StudentController extends Controller
             $user = User::create([
                 'name' => $validated['full_name'],
                 'email' => $validated['email'],
-                'password' => Hash::make('welcome123'),
+                'password' => Hash::make(Str::random(16)),
                 'role' => 'student',
             ]);
 

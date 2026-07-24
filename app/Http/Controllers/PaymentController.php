@@ -158,33 +158,41 @@ class PaymentController extends Controller
                 return redirect()->back()->with('error', 'Student already has a room assigned. Cannot approve this booking.');
             }
 
-            // CRITICAL: Refresh room data and validate capacity
-            $room->refresh();
-            if ($room->occupied >= $room->capacity) {
-                // Update payment status to failed
-                $payment->update(['status' => 'failed']);
-                
-                // Notify student about the issue
-                \App\Models\Notification::notifyStudent(
-                    $payment->student_id,
-                    'payment',
-                    'Room Booking Failed',
-                    'Unfortunately, Room ' . $room->room_number . ' in ' . $room->hostel->name . ' is now full. Your payment has been marked as failed. Please contact admin for a refund or to select another room.',
-                    ['payment_id' => $payment->id]
-                );
-                
-                return redirect()->back()->with('error', 'Room is now full. Payment marked as failed and student notified.');
-            }
+            // All validations passed - proceed with assignment inside transaction
+            // Use pessimistic lock to prevent TOCTOU race condition
+            try {
+                \DB::transaction(function () use ($payment, $student, $room) {
+                    // Lock room row for update to prevent concurrent overbooking
+                    $lockedRoom = \App\Models\Room::where('id', $room->id)
+                        ->lockForUpdate()
+                        ->first();
 
-            // All validations passed - proceed with assignment
-            \DB::transaction(function () use ($payment, $student, $room) {
+                    if (!$lockedRoom) {
+                        throw new \RuntimeException('Room not found. Cannot approve payment.');
+                    }
+
+                    // Validate capacity inside the transaction with the lock held
+                    if ($lockedRoom->occupied >= $lockedRoom->capacity) {
+                        $payment->update(['status' => 'failed']);
+
+                        \App\Models\Notification::notifyStudent(
+                            $payment->student_id,
+                            'payment',
+                            'Room Booking Failed',
+                            'Unfortunately, Room ' . $lockedRoom->room_number . ' in ' . $lockedRoom->hostel->name . ' is now full. Your payment has been marked as failed. Please contact admin for a refund or to select another room.',
+                            ['payment_id' => $payment->id]
+                        );
+
+                        throw new \RuntimeException('Room is now full. Payment marked as failed and student notified.');
+                    }
+
                 // Update payment status
                 $payment->update(['status' => 'completed']);
 
                 // Assign Room
-                $student->room_id = $room->id;
+                $student->room_id = $lockedRoom->id;
                 $student->check_in_date = now();
-                
+
                 // Set fee and mark as paid since this is the booking payment
                 $student->hostel_fee_amount = $payment->amount;
                 $student->hostel_fee_paid = ($student->hostel_fee_paid ?? 0) + $payment->amount;
@@ -192,12 +200,12 @@ class PaymentController extends Controller
                 $student->save();
 
                 // Update Room Occupancy
-                $room->increment('occupied');
-                
+                $lockedRoom->increment('occupied');
+
                 // Check if room is now full and update status
-                if ($room->occupied >= $room->capacity) {
-                    $room->status = 'full';
-                    $room->save();
+                if ($lockedRoom->occupied >= $lockedRoom->capacity) {
+                    $lockedRoom->status = 'full';
+                    $lockedRoom->save();
                 }
 
                 // Create attendance record for check-in
@@ -206,30 +214,38 @@ class PaymentController extends Controller
                     'type' => 'check_in',
                     'recorded_at' => now(),
                     'recorded_by' => 'Admin (Auto)',
-                    'notes' => 'Room ' . $room->room_number . ' in ' . $room->hostel->name . ' assigned after booking payment approval',
+                    'notes' => 'Room ' . $lockedRoom->room_number . ' in ' . $lockedRoom->hostel->name . ' assigned after booking payment approval',
                     'location' => 'Admin Dashboard',
                 ]);
 
                 \Log::info("Room booking approved and assigned", [
                     'student_id' => $student->id,
-                    'room_id' => $room->id,
-                    'hostel' => $room->hostel->name,
-                    'room_number' => $room->room_number,
-                    'new_occupancy' => $room->occupied . '/' . $room->capacity
+                    'room_id' => $lockedRoom->id,
+                    'hostel' => $lockedRoom->hostel->name,
+                    'room_number' => $lockedRoom->room_number,
+                    'new_occupancy' => $lockedRoom->occupied . '/' . $lockedRoom->capacity
                 ]);
             });
 
-            // Notify Student of successful assignment
-            \App\Models\Notification::notifyStudent(
-                $payment->student_id,
-                'payment',
-                'Room Successfully Assigned! 🎉',
-                'Congratulations! Your payment of ₦' . number_format($payment->amount, 2) . ' has been approved. You have been assigned to Room ' . $room->room_number . ' in ' . $room->hostel->name . '. Welcome to your new home!',
-                ['payment_id' => $payment->id, 'room_id' => $room->id]
-            );
+                // Refresh room data after transaction for accurate notification text
+                $room->refresh();
 
-            return redirect()->back()->with('success', 'Payment approved! Room ' . $room->room_number . ' has been assigned to ' . $student->full_name . '.');
-            
+                // Notify Student of successful assignment
+                \App\Models\Notification::notifyStudent(
+                    $payment->student_id,
+                    'payment',
+                    'Room Successfully Assigned! 🎉',
+                    'Congratulations! Your payment of ₦' . number_format($payment->amount, 2) . ' has been approved. You have been assigned to Room ' . $room->room_number . ' in ' . $room->hostel->name . '. Welcome to your new home!',
+                    ['payment_id' => $payment->id, 'room_id' => $room->id]
+                );
+
+                return redirect()->back()->with('success', 'Payment approved! Room ' . $room->room_number . ' has been assigned to ' . $student->full_name . '.');
+            });
+            } catch (\RuntimeException $e) {
+                // Transaction rolled back automatically; return error message to admin
+                return redirect()->back()->with('error', $e->getMessage());
+            }
+
         } else {
             // Regular payment (not a booking)
             $payment->update(['status' => 'completed']);

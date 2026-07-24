@@ -10,6 +10,7 @@ use App\Models\Announcement;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\ServiceProvider;
+use App\View\Composers\AdminSidebarComposer;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -26,6 +27,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        // Admin sidebar counts — runs once per admin page load (replaces 5+ inline COUNT queries)
+        View::composer('layouts.admin', AdminSidebarComposer::class);
+
         View::composer('layouts.app', function ($view) {
             $unreadComplaints = Complaint::where('is_read', false)->count();
             $unreadPayments = Payment::where('is_read', false)->count();

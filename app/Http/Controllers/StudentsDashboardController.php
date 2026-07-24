@@ -22,12 +22,13 @@ class StudentsDashboardController extends Controller
     {
         $student = auth()->guard('student')->user();
 
-        // Load relationships
+        // Eager load relationships with scoped queries to avoid N+1
         $student->load(['room.hostel', 'payments', 'complaints', 'leaveRequests', 'attendanceRecords']);
 
+        // Use preloaded collections instead of re-querying
         $complaints = $student->complaints;
-        $payments = $student->payments()->latest()->get();
-        $leaveRequests = $student->leaveRequests()->latest()->take(5)->get();
+        $payments = $student->payments->sortByDesc('created_at');
+        $leaveRequests = $student->leaveRequests->sortByDesc('created_at')->take(5);
 
         // Announcements
         $gender = $student->gender; // Male or Female

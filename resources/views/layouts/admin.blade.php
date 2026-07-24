@@ -362,7 +362,6 @@
                 </a>
                 <a class="nav-link {{ request('type') == 'booking' ? 'active' : '' }}" href="{{ route('payments.index', ['type' => 'booking', 'status' => 'pending']) }}">
                     <i class="fas fa-home"></i><span>Room Bookings</span>
-                    @php $pendingBookingsCount = \App\Models\Payment::where('status', 'pending')->whereNotNull('room_id')->count(); @endphp
                     @if($pendingBookingsCount > 0)
                         <span class="badge bg-warning text-dark">{{ $pendingBookingsCount }}</span>
                     @endif
@@ -375,7 +374,6 @@
                 </a>
                 <a class="nav-link {{ request()->routeIs('applications.*') ? 'active' : '' }}" href="{{ route('applications.index') }}">
                     <i class="fas fa-file-alt"></i><span>Applications</span>
-                    @php $pendingApps = \App\Models\HostelApplication::where('status', 'pending')->count(); @endphp
                     @if($pendingApps > 0)
                         <span class="badge bg-warning text-dark">{{ $pendingApps }}</span>
                     @endif
@@ -397,14 +395,12 @@
                 <div class="nav-section-title">Requests & Issues</div>
                 <a class="nav-link {{ request()->routeIs('admin.leave.*') ? 'active' : '' }}" href="{{ route('admin.leave.index') }}">
                     <i class="fas fa-calendar-alt"></i><span>Leave Requests</span>
-                    @php $pendingLeave = \App\Models\LeaveRequest::where('status', 'pending')->count(); @endphp
                     @if($pendingLeave > 0)
                         <span class="badge bg-warning text-dark">{{ $pendingLeave }}</span>
                     @endif
                 </a>
                 <a class="nav-link {{ request()->routeIs('complaints.*') ? 'active' : '' }}" href="{{ route('complaints.index') }}">
                     <i class="fas fa-exclamation-triangle"></i><span>Complaints</span>
-                    @php $pendingComplaints = \App\Models\Complaint::whereIn('status', ['submitted', 'in progress'])->count(); @endphp
                     @if($pendingComplaints > 0)
                         <span class="badge bg-danger">{{ $pendingComplaints }}</span>
                     @endif
@@ -462,13 +458,6 @@
                     <div class="dropdown">
                         <button class="header-btn" data-bs-toggle="dropdown">
                             <i class="fas fa-bell"></i>
-                            @php
-                                $pendingBookings = \App\Models\Payment::where('status', 'pending')->whereNotNull('room_id')->count();
-                                $notifCount = \App\Models\HostelApplication::where('status', 'pending')->count() 
-                                            + \App\Models\LeaveRequest::where('status', 'pending')->count()
-                                            + \App\Models\Complaint::whereIn('status', ['submitted'])->count()
-                                            + $pendingBookings;
-                            @endphp
                             @if($notifCount > 0)
                                 <span class="notification-badge">{{ $notifCount > 9 ? '9+' : $notifCount }}</span>
                             @endif
@@ -476,19 +465,18 @@
                         <ul class="dropdown-menu dropdown-menu-end" style="min-width: 280px;">
                             <li class="dropdown-header fw-bold">Notifications</li>
                             
-                            @if($pendingBookings > 0)
+                            @if($pendingBookingsCount > 0)
                             <li><a class="dropdown-item d-flex align-items-center" href="{{ route('payments.index', ['status' => 'pending', 'type' => 'booking']) }}">
                                 <div class="bg-primary-subtle p-2 rounded-circle me-3">
                                     <i class="fas fa-home text-primary"></i>
                                 </div>
                                 <div>
-                                    <div class="fw-bold">{{ $pendingBookings }} New Room Bookings</div>
+                                    <div class="fw-bold">{{ $pendingBookingsCount }} New Room Bookings</div>
                                     <small class="text-muted">Requires verification</small>
                                 </div>
                             </a></li>
                             @endif
 
-                            @php $pendingApps = \App\Models\HostelApplication::where('status', 'pending')->count(); @endphp
                             @if($pendingApps > 0)
                             <li><a class="dropdown-item d-flex align-items-center" href="{{ route('applications.index', ['status' => 'pending']) }}">
                                 <div class="bg-warning-subtle p-2 rounded-circle me-3">
@@ -501,7 +489,6 @@
                             </a></li>
                             @endif
                             
-                            @php $pendingLeave = \App\Models\LeaveRequest::where('status', 'pending')->count(); @endphp
                             @if($pendingLeave > 0)
                             <li><a class="dropdown-item d-flex align-items-center" href="{{ route('admin.leave.index') }}">
                                 <div class="bg-info-subtle p-2 rounded-circle me-3">
@@ -514,7 +501,6 @@
                             </a></li>
                             @endif
 
-                            @php $newComplaints = \App\Models\Complaint::where('status', 'submitted')->count(); @endphp
                             @if($newComplaints > 0)
                             <li><a class="dropdown-item d-flex align-items-center" href="{{ route('complaints.index') }}">
                                 <div class="bg-danger-subtle p-2 rounded-circle me-3">
