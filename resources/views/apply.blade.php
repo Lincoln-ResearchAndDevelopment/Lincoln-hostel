@@ -528,8 +528,8 @@
                                 <label for="amount_paid">Amount Paid (₦) <span class="required-field">*</span></label>
                                 <select name="amount_paid" id="amount_paid" required style="width: 100%; padding: 10px; border: 1px solid #ced4da; border-radius: 4px;">
                                     <option value="">Select Amount Paid</option>
-                                    <option value="85,000" {{ old('amount_paid') == '85,000' ? 'selected' : '' }}>₦85,000 (Semester)</option>
-                                    <option value="250,000" {{ old('amount_paid') == '250,000' ? 'selected' : '' }}>₦250,000 (Full Year)</option>
+                                    <option value="semester" {{ old('amount_paid') == 'semester' ? 'selected' : '' }}>Per Semester</option>
+                                    <option value="full_year" {{ old('amount_paid') == 'full_year' ? 'selected' : '' }}>Full Year</option>
                                 </select>
                             </div>
                         </div>
@@ -903,7 +903,7 @@
                         @error('hostelfee_receipt')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
-                        <small class="text-muted">Receipt for ₦85,000 (semester) or ₦250,000 (year) (max 10MB)</small>
+                        <small class="text-muted">Receipt for hostel fee payment (max 10MB)</small>
                     </div>
 
                     <button type="button" class="account-details-btn" data-bs-toggle="modal" data-bs-target="#paymentDetailsModal">
@@ -1110,8 +1110,8 @@
             <div class="alert alert-success">
               <h6><i class="fas fa-home me-2"></i>Hostel form fee</h6>
               <p class="mb-0">
-                <strong>Semester: ₦85,000</strong><br>
-                <strong>Full Year: ₦250,000</strong><br>
+                <strong>Per Semester</strong><br>
+                <strong>Full Year</strong><br>
                 <small>Choose based on your preference</small>
               </p>
             </div>

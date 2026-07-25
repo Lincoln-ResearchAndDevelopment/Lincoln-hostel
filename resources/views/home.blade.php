@@ -451,7 +451,7 @@
               </div>
               <div id="faq1" class="collapse" data-bs-parent=".faq-list">
                 <p>
-                  Hostel fees are ₦85,000 per semester and ₦250,000 per year, depending on the hostel you pick. Contact the hostel office for the latest rates.
+                  Hostel fees vary depending on the hostel and room type you choose. Please visit the Hostel Booking page for current pricing or contact the hostel office for the latest rates.
                 </p>
               </div>
             </li>
