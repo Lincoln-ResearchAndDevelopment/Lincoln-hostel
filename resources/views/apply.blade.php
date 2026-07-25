@@ -477,8 +477,8 @@
                                 <label for="amount_paid">Payment Plan <span class="required-field">*</span></label>
                                 <select name="amount_paid" id="amount_paid" required style="width: 100%; padding: 10px; border: 1px solid #ced4da; border-radius: 4px;">
                                     <option value="">Select Payment Plan</option>
-                                    <option value="85,000" {{ old('amount_paid') == '85,000' ? 'selected' : '' }}>Semester</option>
-                                    <option value="250,000" {{ old('amount_paid') == '250,000' ? 'selected' : '' }}>Full Year</option>
+                                    <option value="semester" {{ old('amount_paid') == 'semester' ? 'selected' : '' }}>Per Semester</option>
+                                    <option value="full_year" {{ old('amount_paid') == 'full_year' ? 'selected' : '' }}>Full Year</option>
                                 </select>
                             </div>
                         </div>

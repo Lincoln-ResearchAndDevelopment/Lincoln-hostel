@@ -11,7 +11,7 @@
     <img src="{{ $message->embed(public_path(parse_url($applicationData['applicationform_receipt'], PHP_URL_PATH))) }}" alt="Application Form Receipt" width="150" />
 </p>
 
-<p><strong>Hostel Fees Payment Receipt (#85,000 or #250,000):</strong> {{ $applicationData['hostelfee_receipt'] }}</p>
+<p><strong>Hostel Fees Payment Receipt:</strong> {{ $applicationData['hostelfee_receipt'] }}</p>
 <p>
     <img src="{{ $message->embed(public_path(parse_url($applicationData['hostelfee_receipt'], PHP_URL_PATH))) }}" alt="Hostel Fee Receipt" width="150" />
 </p>
