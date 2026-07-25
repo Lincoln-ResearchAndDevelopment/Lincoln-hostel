@@ -150,7 +150,7 @@
     <h1>Welcome to <span>LincHostel.</span></h1>
     <h2>Where Comfort Meets Community, Affordable, Inclusive.</h2>
     <div class="d-flex">
-      <a href="{{ route('hostel.apply') }}" class="btn-get-started scrollto">Book Now</a>
+      <a href="{{ route('hostel.apply') }}" class="btn-get-started scrollto">Apply Now</a>
     </div>
   </div>
 </section>
