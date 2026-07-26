@@ -1,0 +1,121 @@
+version: "3.9"
+
+services:
+  # ============================================
+  # Laravel Application (PHP-FPM + Nginx)
+  # ============================================
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: linchostel-app
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-80}:80"
+    environment:
+      APP_NAME: "${APP_NAME:-LincHostel}"
+      APP_ENV: "${APP_ENV:-production}"
+      APP_DEBUG: "${APP_DEBUG:-false}"
+      APP_KEY: "${APP_KEY}"
+      APP_URL: "${APP_URL:-http://localhost}"
+      APP_TIMEZONE: "${APP_TIMEZONE:-Africa/Lagos}"
+
+      DB_CONNECTION: mysql
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_DATABASE: "${DB_DATABASE:-linchostel}"
+      DB_USERNAME: "${DB_USERNAME:-linchostel}"
+      DB_PASSWORD: "${DB_PASSWORD:-secret}"
+
+      MAIL_MAILER: "${MAIL_MAILER:-smtp}"
+      MAIL_HOST: "${MAIL_HOST:-smtp.gmail.com}"
+      MAIL_PORT: "${MAIL_PORT:-587}"
+      MAIL_USERNAME: "${MAIL_USERNAME}"
+      MAIL_PASSWORD: "${MAIL_PASSWORD}"
+      MAIL_ENCRYPTION: "${MAIL_ENCRYPTION:-tls}"
+      MAIL_FROM_ADDRESS: "${MAIL_FROM_ADDRESS:-noreply@lincoln.edu.ng}"
+      MAIL_FROM_NAME: "${MAIL_FROM_NAME:-LincHostel}"
+
+      SESSION_DRIVER: "${SESSION_DRIVER:-file}"
+      SESSION_SECURE_COOKIE: "${SESSION_SECURE_COOKIE:-true}"
+      SESSION_LIFETIME: "${SESSION_LIFETIME:-120}"
+
+      CACHE_DRIVER: "${CACHE_DRIVER:-file}"
+      QUEUE_CONNECTION: "${QUEUE_CONNECTION:-sync}"
+
+      LOG_CHANNEL: "${LOG_CHANNEL:-daily}"
+      LOG_LEVEL: "${LOG_LEVEL:-warning}"
+
+      FILESYSTEM_DISK: "${FILESYSTEM_DISK:-local}"
+
+      SANCTUM_STATEFUL_DOMAINS: "${SANCTUM_STATEFUL_DOMAINS:-localhost}"
+      SESSION_DOMAIN: "${SESSION_DOMAIN:-localhost}"
+
+      # Redis (optional - uncomment when ready)
+      # REDIS_HOST: redis
+      # REDIS_PORT: 6379
+      # CACHE_DRIVER: redis
+      # QUEUE_CONNECTION: redis
+      # SESSION_DRIVER: redis
+
+    volumes:
+      - app-storage:/var/www/html/storage
+      - app-uploads:/var/www/html/public/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - linchostel-network
+
+  # ============================================
+  # MySQL Database
+  # ============================================
+  db:
+    image: mysql:8.0
+    container_name: linchostel-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: "${DB_ROOT_PASSWORD:-root-secret}"
+      MYSQL_DATABASE: "${DB_DATABASE:-linchostel}"
+      MYSQL_USER: "${DB_USERNAME:-linchostel}"
+      MYSQL_PASSWORD: "${DB_PASSWORD:-secret}"
+    ports:
+      - "${DB_PORT:-3307}:3306"
+    volumes:
+      - db-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD:-root-secret}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - linchostel-network
+
+  # ============================================
+  # Redis (optional - uncomment when ready)
+  # ============================================
+  # redis:
+  #   image: redis:7-alpine
+  #   container_name: linchostel-redis
+  #   restart: unless-stopped
+  #   ports:
+  #     - "${REDIS_PORT:-6379}:6379"
+  #   volumes:
+  #     - redis-data:/data
+  #   healthcheck:
+  #     test: ["CMD", "redis-cli", "ping"]
+  #     interval: 10s
+  #     timeout: 3s
+  #     retries: 5
+  #   networks:
+  #     - linchostel-network
+
+volumes:
+  db-data:
+  app-storage:
+  app-uploads:
+  # redis-data:
+
+networks:
+  linchostel-network:
+    driver: bridge
