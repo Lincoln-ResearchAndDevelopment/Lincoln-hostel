@@ -67,6 +67,7 @@
                 <div class="row g-3">
                     <div class="col-6"><label class="text-muted small">Full Name</label><p class="mb-0 fw-semibold">{{ $application->full_name }}</p></div>
                     <div class="col-6"><label class="text-muted small">Admission/Reg ID</label><p class="mb-0 fw-semibold">{{ $application->student_id }}</p></div>
+                    <div class="col-6"><label class="text-muted small">Campus</label><p class="mb-0 fw-semibold">{{ optional($application->campus)->name }}</p></div>
                     <div class="col-6"><label class="text-muted small">Gender</label><p class="mb-0"><span class="badge bg-light text-dark border">{{ ucfirst($application->gender) }}</span></p></div>
                     <div class="col-6"><label class="text-muted small">Date of Birth</label><p class="mb-0">{{ $application->date_of_birth->format('M d, Y') }}</p></div>
                     <div class="col-6"><label class="text-muted small">Phone</label><p class="mb-0">{{ $application->phone_number }}</p></div>
@@ -99,7 +100,7 @@
                     </div>
                     <div class="col-6">
                         <label class="text-muted small">Payment Proof</label>
-                        <p class="mb-0 fw-bold text-success">Verified: ₦{{ number_format($application->amount_paid) }}</p>
+                        <p class="mb-0 fw-bold text-success">Verified: {{ $application->amount_paid_display }}</p>
                     </div>
                 </div>
             </div>
@@ -374,7 +375,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 roomSelect.disabled = false;
                 roomSelect.innerHTML = '<option value="">-- Choose Room --</option>';
                 rooms.forEach(room => {
-                    roomSelect.innerHTML += `<option value="${room.id}">${room.room_number} (${room.room_type} - ${room.occupied}/${room.capacity})</option>`;
+                    roomSelect.innerHTML += `<option value="${room.id}">${room.room_number} (${room.room_type}, sleeps ${room.capacity} - ${room.occupied}/${room.capacity} taken - ₦${Number(room.price_per_semester).toLocaleString()}/sem, ₦${Number(room.price_per_year).toLocaleString()}/yr)</option>`;
                 });
             });
     });

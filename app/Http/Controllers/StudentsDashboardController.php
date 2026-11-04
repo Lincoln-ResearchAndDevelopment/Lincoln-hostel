@@ -467,7 +467,8 @@ class StudentsDashboardController extends Controller
             "Amount: ₦" . number_format($payment->amount, 2) . "\n" .
             "Current Occupancy: {$room->occupied}/{$room->capacity}\n" .
             "Action Required: Review and approve this booking payment.",
-            ['payment_id' => $payment->id, 'student_id' => $student->id, 'room_id' => $room->id]
+            ['payment_id' => $payment->id, 'student_id' => $student->id, 'room_id' => $room->id],
+            $student->campus_id
         );
 
         // Notify Student that request is pending

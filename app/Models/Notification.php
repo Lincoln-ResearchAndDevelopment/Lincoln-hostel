@@ -117,9 +117,13 @@ class Notification extends Model
     /**
      * Notify all administrators
      */
-    public static function notifyAllAdmins($type, $title, $message, $data = [])
+    public static function notifyAllAdmins($type, $title, $message, $data = [], $campusId = null)
     {
-        $admins = User::where('role', 'admin')->orWhere('is_admin', true)->get();
+        $admins = User::where(function ($q) {
+                $q->where('role', 'admin')->orWhere('is_admin', true);
+            })
+            ->when($campusId, fn ($q) => $q->where('campus_id', $campusId))
+            ->get();
         foreach ($admins as $admin) {
             self::notifyAdmin($admin->id, $type, $title, $message, $data);
         }

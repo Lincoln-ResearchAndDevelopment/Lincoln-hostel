@@ -6,6 +6,8 @@ use App\Models\Hostel;
 use App\Models\Room;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
+use App\Support\CampusContext;
 
 class HostelController extends Controller
 {
@@ -56,9 +58,17 @@ class HostelController extends Controller
      */
     public function store(Request $request)
     {
+        // A hostel always belongs to one campus. A campus admin uses their own; a
+        // master super admin must first pick the campus they are working in.
+        $campusId = CampusContext::currentCampusId();
+        if (!$campusId) {
+            return back()->withInput()->with('error', 'Choose the campus you are working in first (Super Admin > Campuses > Switch), then add the hostel.');
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'code' => 'required|string|max:10|unique:hostels,code',
+            // Codes only need to be unique within a campus.
+            'code' => ['required', 'string', 'max:10', Rule::unique('hostels', 'code')->where('campus_id', $campusId)],
             'type' => 'required|in:male,female,mixed',
             'address' => 'nullable|string',
             'description' => 'nullable|string',
@@ -71,6 +81,8 @@ class HostelController extends Controller
             $imagePath = $request->file('image')->store('hostels', 'public');
             $validated['image_path'] = $imagePath;
         }
+
+        $validated['campus_id'] = $campusId;
 
         Hostel::create($validated);
 
@@ -112,7 +124,7 @@ class HostelController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'code' => 'required|string|max:10|unique:hostels,code,' . $hostel->id,
+            'code' => ['required', 'string', 'max:10', Rule::unique('hostels', 'code')->where('campus_id', $hostel->campus_id)->ignore($hostel->id)],
             'type' => 'required|in:male,female,mixed',
             'address' => 'nullable|string',
             'description' => 'nullable|string',

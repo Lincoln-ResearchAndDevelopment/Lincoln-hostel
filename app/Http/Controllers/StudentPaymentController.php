@@ -69,7 +69,8 @@ class StudentPaymentController extends Controller
                 'payment',
                 'New Payment Submitted',
                 $student->full_name . ' has submitted a payment of ₦' . number_format($payment->amount, 2) . '.',
-                ['payment_id' => $payment->id]
+                ['payment_id' => $payment->id],
+                $student->campus_id
             );
         } else {
             return back()->with('error', 'Receipt file is required');

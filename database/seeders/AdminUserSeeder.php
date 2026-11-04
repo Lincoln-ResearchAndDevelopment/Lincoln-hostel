@@ -15,7 +15,8 @@ class AdminUserSeeder extends Seeder
             [
                 'name' => 'LincHostel Admin',
                 'password' => bcrypt('admin12345'),
-                'role' => 'admin'
+                'role' => 'admin',
+                'campus_id' => \App\Models\Campus::orderBy('id')->value('id'),
             ]
         );
     }

@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Bed extends Model
 {
-    use HasFactory;
+    use HasFactory, \App\Models\Concerns\BelongsToCampus;
     protected $fillable = [
         'room_id',
         'bed_number',

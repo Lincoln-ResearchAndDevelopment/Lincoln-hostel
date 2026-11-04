@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\CampusContext;
 use App\Models\Student;
 use App\Models\Room;
 use App\Models\Bed;
@@ -197,8 +198,8 @@ class StudentController extends Controller
             'department' => 'required|string|max:255',
             'semester' => 'required|integer|min:1|max:20',
             'intake' => 'required|string|max:100',
-            'room_id' => 'nullable|exists:rooms,id',
-            'bed_id' => 'nullable|exists:beds,id',
+            'room_id' => ['nullable', CampusContext::exists('rooms')],
+            'bed_id' => ['nullable', CampusContext::exists('beds')],
             'contact_number' => 'required|string|max:20',
             'emergency_contact' => 'required|string|max:20',
             'address' => 'required|string|max:255',

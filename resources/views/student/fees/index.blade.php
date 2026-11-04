@@ -214,15 +214,15 @@
                     <table class="table table-borderless">
                         <tr>
                             <td class="text-muted">Bank Name:</td>
-                            <td class="fw-bold">Zenith Bank</td>
+                            <td class="fw-bold">{{ optional($student->campus)->bank_name }}</td>
                         </tr>
                         <tr>
                             <td class="text-muted">Account Number:</td>
-                            <td class="fw-bold"><code class="fs-5">1311150112</code></td>
+                            <td class="fw-bold"><code class="fs-5">{{ optional($student->campus)->account_number }}</code></td>
                         </tr>
                         <tr>
                             <td class="text-muted">Account Name:</td>
-                            <td class="fw-bold">Lincoln ODL LTD (GOperation)</td>
+                            <td class="fw-bold">{{ optional($student->campus)->account_name }}</td>
                         </tr>
                     </table>
                 </div>

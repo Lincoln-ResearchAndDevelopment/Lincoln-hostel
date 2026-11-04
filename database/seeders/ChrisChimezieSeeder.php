@@ -50,6 +50,7 @@ class ChrisChimezieSeeder extends Seeder
             ['email' => 'tchimezie475@gmail.com'],
             [
                 'status' => 'pending',
+                'campus_id' => \App\Models\Campus::orderBy('id')->value('id'),
                 'academic_year' => '2026/2027',
                 'amount_paid' => '150000',
                 'full_name' => 'Chris Chimezie',

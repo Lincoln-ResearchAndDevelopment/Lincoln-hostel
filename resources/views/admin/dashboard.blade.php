@@ -159,7 +159,7 @@
                                         <span class="text-muted small">No pref.</span>
                                     @endif
                                 </td>
-                                <td><strong>₦{{ number_format($app->amount_paid, 2) }}</strong></td>
+                                <td><strong>{{ $app->amount_paid_display }}</strong></td>
                                 <td><small>{{ $app->created_at->diffForHumans() }}</small></td>
                                 <td class="text-center">
                                     <a href="{{ route('applications.show', $app) }}" class="btn btn-primary btn-sm">

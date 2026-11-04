@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Support\CampusContext;
 use App\Http\Controllers\Controller;
 use App\Models\AttendanceRecord;
 use App\Models\Student;
@@ -59,7 +60,7 @@ class AttendanceController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'student_id' => 'required|exists:students,id',
+            'student_id' => ['required', CampusContext::exists('students')],
             'type' => 'required|in:check_in,check_out',
             'location' => 'nullable|string|max:255',
             'notes' => 'nullable|string|max:500',

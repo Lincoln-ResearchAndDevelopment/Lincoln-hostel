@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Payment extends Model
 {
-    use HasFactory;
+    use HasFactory, \App\Models\Concerns\BelongsToCampus;
 
     protected $fillable = [
         'student_id',

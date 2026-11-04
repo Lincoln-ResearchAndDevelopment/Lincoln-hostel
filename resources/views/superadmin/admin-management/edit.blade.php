@@ -75,6 +75,20 @@
                             </div>
 
                             <div class="col-md-6">
+                                <label for="campus_id" class="form-label">Campus <span class="text-danger">*</span></label>
+                                <select class="form-select @error('campus_id') is-invalid @enderror" id="campus_id" name="campus_id" required>
+                                    <option value="">Select Campus</option>
+                                    @foreach(\App\Models\Campus::orderBy('name')->get() as $campus)
+                                        <option value="{{ $campus->id }}" {{ old('campus_id', $adminUser->campus_id) == $campus->id ? 'selected' : '' }}>{{ $campus->name }}</option>
+                                    @endforeach
+                                </select>
+                                <small class="text-muted">This admin will only see and manage this campus.</small>
+                                @error('campus_id')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <div class="col-md-6">
                                 <label for="role" class="form-label">Role <span class="text-danger">*</span></label>
                                 <select class="form-select @error('role') is-invalid @enderror"
                                         id="role"

@@ -49,7 +49,7 @@ class HostelSeeder extends Seeder
         ];
 
         foreach ($hostels as $hostel) {
-            Hostel::create($hostel);
+            Hostel::create($hostel + ['campus_id' => \App\Models\Campus::orderBy('id')->value('id')]);
         }
 
         $this->command->info('Hostels created successfully!');

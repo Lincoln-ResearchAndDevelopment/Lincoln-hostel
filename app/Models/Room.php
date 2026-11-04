@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Room extends Model
 {
-    use HasFactory;
+    use HasFactory, \App\Models\Concerns\BelongsToCampus;
 
     protected $fillable = [
         'hostel_id',
@@ -68,6 +68,23 @@ class Room extends Model
         }
 
         return $this->occupied >= $this->capacity ? 'full' : 'available';
+    }
+
+    /**
+     * Fee for this room under the given payment plan ("semester" or "full_year").
+     * Rooms are priced individually (by how many people they sleep), so the fee
+     * always comes from the room that was assigned.
+     */
+    public function feeForPlan(?string $plan): float
+    {
+        $semester = (float) $this->price_per_semester;
+        $year = (float) $this->price_per_year;
+
+        if ($plan && str_contains(strtolower($plan), 'year')) {
+            return $year > 0 ? $year : $semester * 2;
+        }
+
+        return $semester;
     }
 
     /**

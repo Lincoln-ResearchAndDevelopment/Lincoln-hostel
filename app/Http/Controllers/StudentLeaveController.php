@@ -92,7 +92,7 @@ class StudentLeaveController extends Controller
         // In-app notification for all admins
         try {
             $msg = $leaveRequest->student->full_name . ' submitted a leave request (' . $leaveRequest->type . ') from ' . $leaveRequest->start_date->format('M d') . ' to ' . $leaveRequest->end_date->format('M d, Y') . '.';
-            Notification::notifyAllAdmins('leave_submitted', 'New Leave Request', $msg, ['leave_request_id' => $leaveRequest->id]);
+            Notification::notifyAllAdmins('leave_submitted', 'New Leave Request', $msg, ['leave_request_id' => $leaveRequest->id], $leaveRequest->student->campus_id);
         } catch (\Exception $e) {
             Log::error('Failed to create in-app leave notification for admins: ' . $e->getMessage());
         }

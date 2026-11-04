@@ -43,6 +43,7 @@ Route::post('/contact', [ContactController::class, 'send'])->name('contact.send'
 */
 Route::get('/hostel/apply', [HostelApplicationController::class, 'create'])->name('apply');
 Route::post('/hostel/apply', [HostelApplicationController::class, 'store'])->name('hostel.apply');
+Route::get('/campuses/{campus}/room-prices', [HostelApplicationController::class, 'roomPrices'])->name('campus.room-prices');
 Route::get('/application/{applicationNumber}', [HostelApplicationController::class, 'show'])->name('application.show');
 Route::get('/check-application', function() {
     return view('check-application');
@@ -321,6 +322,10 @@ Route::prefix('superadmin')->name('superadmin.')->middleware('web')->group(funct
             Route::get('/change-password', [SuperAdminController::class, 'changePasswordForm'])->name('password.form');
             Route::post('/change-password', [SuperAdminController::class, 'changePassword'])->name('password.update');
         });
+
+        // Campus management (master super admin only; checked in the controller)
+        Route::post('campuses/switch', [\App\Http\Controllers\SuperAdmin\CampusController::class, 'switch'])->name('campuses.switch');
+        Route::resource('campuses', \App\Http\Controllers\SuperAdmin\CampusController::class)->except(['show', 'destroy']);
 
         // Admin Management routes
         Route::prefix('admin-management')->name('admin-management.')->group(function () {

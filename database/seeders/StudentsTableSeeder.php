@@ -18,6 +18,7 @@ class StudentsTableSeeder extends Seeder
             ['admission_number' => 'STU1001'],
             [
                 'full_name' => 'Test Student',
+                'campus_id' => \App\Models\Campus::orderBy('id')->value('id'),
                 'admission_number' => 'STU1001',
                 'gender' => 'Male',
                 'department' => 'Testing',

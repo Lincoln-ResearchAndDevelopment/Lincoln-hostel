@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\CampusContext;
 use Carbon\Carbon;
 use App\Models\Payment;
 use App\Models\Student;
@@ -55,7 +56,7 @@ class PaymentController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'student_id' => 'required|exists:students,id',
+            'student_id' => ['required', CampusContext::exists('students')],
             'amount' => 'required|numeric',
             'payment_date' => 'required|date',
             'payment_method' => 'required|string',
@@ -105,7 +106,7 @@ class PaymentController extends Controller
     public function update(Request $request, Payment $payment)
     {
         $validated = $request->validate([
-            'student_id' => 'required|exists:students,id',
+            'student_id' => ['required', CampusContext::exists('students')],
             'amount' => 'required|numeric|min:0',
             'payment_date' => 'required|date',
             'payment_method' => 'required|string',

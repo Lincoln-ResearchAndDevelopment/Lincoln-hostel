@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Hostel extends Model
 {
-    use HasFactory;
+    use HasFactory, \App\Models\Concerns\BelongsToCampus;
 
     protected $fillable = [
         'name',

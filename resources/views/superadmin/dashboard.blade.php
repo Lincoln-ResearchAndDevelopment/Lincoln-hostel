@@ -286,6 +286,19 @@
                         </div>
 
                         <div class="col-md-4 text-center mb-3">
+                            <a href="{{ route('superadmin.campuses.index') }}" class="text-decoration-none">
+                                <div class="card border-black h-100">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-school fa-3x text-black mb-3"></i>
+                                        <h5 class="card-title text-black">Campuses</h5>
+                                        <p class="card-text text-muted">Add campuses and set each campus's payment account</p>
+                                        <span style="background:red;" class="badge">{{ \App\Models\Campus::count() }} Campuses</span>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+
+                        <div class="col-md-4 text-center mb-3">
                             <a href="{{ route('superadmin.profile.show') }}" class="text-decoration-none">
                                 <div class="card border-black h-100">
                                     <div class="card-body text-center">

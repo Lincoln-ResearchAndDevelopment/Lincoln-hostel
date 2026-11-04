@@ -23,9 +23,9 @@
                         <div class="col-md-6 ps-md-4">
                             <h5 class="fw-bold mb-3 text-success">Bank Details for Payment</h5>
                             <div class="bg-light p-3 rounded border">
-                                <p class="mb-2"><strong>Bank:</strong> Zenith Bank</p>
-                                <p class="mb-2"><strong>Account Name:</strong> Lincoln ODL LTD (GOperation)</p>
-                                <p class="mb-0"><strong>Account Number:</strong> <code>1311150112</code></p>
+                                <p class="mb-2"><strong>Bank:</strong> {{ optional($room->campus)->bank_name }}</p>
+                                <p class="mb-2"><strong>Account Name:</strong> {{ optional($room->campus)->account_name }}</p>
+                                <p class="mb-0"><strong>Account Number:</strong> <code>{{ optional($room->campus)->account_number }}</code></p>
                             </div>
                             <small class="text-muted d-block mt-2">
                                 <i class="fas fa-info-circle me-1"></i> Please make the payment and upload the receipt below.

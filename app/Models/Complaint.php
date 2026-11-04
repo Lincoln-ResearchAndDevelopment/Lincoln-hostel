@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Complaint extends Model
 {
-    use HasFactory;
+    use HasFactory, \App\Models\Concerns\BelongsToCampus;
 
     protected $fillable = [
         'student_id',

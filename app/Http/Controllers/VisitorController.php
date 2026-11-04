@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\CampusContext;
 use App\Models\Visitor;
 use App\Models\Student;
 use Illuminate\Http\Request;
@@ -60,7 +61,7 @@ class VisitorController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'student_id' => 'required|exists:students,id',
+            'student_id' => ['required', CampusContext::exists('students')],
             'visitor_name' => 'required|string|max:255',
             'id_number' => 'required|string|max:255',
             'purpose' => 'required|string',

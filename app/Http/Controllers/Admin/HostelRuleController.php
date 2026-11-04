@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Support\CampusContext;
 use App\Http\Controllers\Controller;
 use App\Models\HostelRule;
 use App\Models\Hostel;
@@ -34,7 +35,7 @@ class HostelRuleController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'required|string',
             'category' => 'required|string',
-            'hostel_id' => 'nullable|exists:hostels,id',
+            'hostel_id' => ['nullable', CampusContext::exists('hostels')],
             'order' => 'nullable|integer|min:0',
         ]);
 
@@ -63,7 +64,7 @@ class HostelRuleController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'required|string',
             'category' => 'required|string',
-            'hostel_id' => 'nullable|exists:hostels,id',
+            'hostel_id' => ['nullable', CampusContext::exists('hostels')],
             'order' => 'nullable|integer|min:0',
             'is_active' => 'boolean',
         ]);

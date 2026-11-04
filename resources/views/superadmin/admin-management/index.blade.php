@@ -133,6 +133,7 @@
                                 <tr>
                                     <th>Name</th>
                                     <th>Email</th>
+                                    <th>Campus</th>
                                     <th>Role</th>
                                     <th>Status</th>
                                     <th>Created</th>
@@ -157,6 +158,7 @@
                                             </div>
                                         </td>
                                         <td>{{ $admin->email }}</td>
+                                        <td>{{ optional($admin->campus)->name ?? '—' }}</td>
                                         <td>
                                             <span class="badge bg-{{ $admin->role === 'admin' ? 'primary' : ($admin->role === 'manager' ? 'info' : 'secondary') }}">
                                                 {{ ucfirst($admin->role) }}

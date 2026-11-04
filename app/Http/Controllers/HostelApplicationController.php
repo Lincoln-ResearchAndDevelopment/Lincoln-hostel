@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\CampusContext;
 use Exception;
 use Illuminate\Http\Request;
 use App\Mail\HostelApplicationMail;
 use App\Mail\AdminApplicationNotificationMail;
+use App\Models\Campus;
 use App\Models\HostelApplication;
 use App\Models\Hostel;
 use App\Models\Room;
@@ -30,7 +32,8 @@ class HostelApplicationController extends Controller
     {
         $departments = Department::where('is_active', true)->orderBy('sort_order')->orderBy('name')->get();
         $intakes = Intake::where('is_active', true)->orderBy('sort_order')->orderBy('name')->get();
-        return view('apply', compact('departments', 'intakes'));
+        $campuses = Campus::active()->orderBy('name')->get();
+        return view('apply', compact('departments', 'intakes', 'campuses'));
     }
 
     public function store(Request $request)
@@ -38,6 +41,9 @@ class HostelApplicationController extends Controller
         \Log::info('Hostel application store request received', ['data' => $request->except(['passport_photo', 'applicationform_receipt', 'hostelfee_receipt', 'medical_report', 'birth_certificate', 'admission_letter'])]);
         
         $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+            // Campus the student is applying to
+            'campus_id' => ['required', \Illuminate\Validation\Rule::exists('campuses', 'id')->where('is_active', true)],
+
             // Academic Information
             'academic_year' => 'required|string|max:255',
             'amount_paid' => 'required|string|max:255',
@@ -157,7 +163,8 @@ class HostelApplicationController extends Controller
                 $this->logEmailResult($studentEmailResult, 'Student Application Confirmation');
 
                 // Send notification to all admin users
-                $adminUsers = User::where('is_admin', true)->where('is_active', true)->get();
+                $adminUsers = User::where('is_admin', true)->where('is_active', true)
+                    ->where('campus_id', $application->campus_id)->get();
                 $adminEmails = $adminUsers->pluck('email')->toArray();
                 
                 if (!empty($adminEmails)) {
@@ -185,7 +192,8 @@ class HostelApplicationController extends Controller
                     'application',
                     'New Hostel Application',
                     'New application received from ' . $application->full_name,
-                    ['application_id' => $application->id]
+                    ['application_id' => $application->id],
+                    $application->campus_id
                 );
 
             } catch (Exception $mailEx) {
@@ -289,7 +297,9 @@ class HostelApplicationController extends Controller
      */
     public function adminShow(HostelApplication $application)
     {
-        $hostels = Hostel::active()->get();
+        // Only hostels of the campus the student applied to (a master super admin is not
+        // restricted by the campus scope, so filter explicitly).
+        $hostels = Hostel::active()->where('campus_id', $application->campus_id)->get();
         return view('admin.applications.show', compact('application', 'hostels'));
     }
 
@@ -384,6 +394,27 @@ class HostelApplicationController extends Controller
     }
 
     /**
+     * Public price list for a campus, grouped by how many people a room sleeps.
+     * Rooms are priced individually, so each group shows the range.
+     */
+    public function roomPrices(Campus $campus)
+    {
+        $rows = Room::withoutGlobalScopes()
+            ->join('hostels', 'hostels.id', '=', 'rooms.hostel_id')
+            ->where('rooms.campus_id', $campus->id)
+            ->where('hostels.status', 'active')
+            ->where('rooms.status', '!=', 'maintenance')
+            ->groupBy('rooms.capacity')
+            ->orderBy('rooms.capacity')
+            ->selectRaw('rooms.capacity as capacity,
+                MIN(rooms.price_per_semester) as semester_min, MAX(rooms.price_per_semester) as semester_max,
+                MIN(rooms.price_per_year) as year_min, MAX(rooms.price_per_year) as year_max')
+            ->get();
+
+        return response()->json($rows);
+    }
+
+    /**
      * Get available rooms for a hostel.
      */
     public function getAvailableRooms(Hostel $hostel)
@@ -391,7 +422,7 @@ class HostelApplicationController extends Controller
         $rooms = Room::where('hostel_id', $hostel->id)
             ->where('status', 'available')
             ->whereRaw('occupied < capacity')
-            ->get(['id', 'room_number', 'occupied', 'capacity', 'room_type']);
+            ->get(['id', 'room_number', 'occupied', 'capacity', 'room_type', 'price_per_semester', 'price_per_year']);
 
         return response()->json($rooms);
     }
@@ -414,28 +445,53 @@ class HostelApplicationController extends Controller
     public function approveAndAssign(Request $request, HostelApplication $application)
     {
         $request->validate([
-            'hostel_id' => 'required|exists:hostels,id',
-            'room_id' => 'required|exists:rooms,id',
-            'bed_id' => 'required|exists:beds,id',
+            'hostel_id' => ['required', CampusContext::exists('hostels')],
+            'room_id' => ['required', CampusContext::exists('rooms')],
+            'bed_id' => ['required', CampusContext::exists('beds')],
             'admin_notes' => 'nullable|string',
         ]);
 
         try {
             DB::beginTransaction();
 
+            $hostel = Hostel::findOrFail($request->hostel_id);
             $room = Room::findOrFail($request->room_id);
             $bed = Bed::findOrFail($request->bed_id);
 
+            // The hostel, room, bed and application must all belong to the same
+            // campus, and the room/bed must actually belong to the chosen hostel/room.
+            // (Checked here as well as by the campus scope, because a master super
+            // admin is not restricted to one campus.)
+            $campusId = $application->campus_id;
+            if (!$campusId
+                || (int) $hostel->campus_id !== (int) $campusId
+                || (int) $room->campus_id !== (int) $campusId
+                || (int) $bed->campus_id !== (int) $campusId
+                || (int) $room->hostel_id !== (int) $hostel->id
+                || (int) $bed->room_id !== (int) $room->id) {
+                DB::rollBack();
+                return back()->with('error', 'The selected hostel, room and bed must belong to the same campus as the application.');
+            }
+
             if ($room->occupied >= $room->capacity) {
+                DB::rollBack();
                 return back()->with('error', 'Room is already full.');
             }
             if ($bed->is_occupied) {
+                DB::rollBack();
                 return back()->with('error', 'Bed is already occupied.');
             }
 
             // 1. Find or Create Student & User
-            $student = Student::where('admission_number', $application->student_id)->first();
-            
+            // Admission numbers are unique across all campuses, so look across campuses
+            // and refuse if the number already belongs to a student of another campus.
+            $student = Student::withoutGlobalScopes()->where('admission_number', $application->student_id)->first();
+
+            if ($student && (int) $student->campus_id !== (int) $campusId) {
+                DB::rollBack();
+                return back()->with('error', 'This admission number is already registered to a student at another campus.');
+            }
+
             if (!$student) {
                 // Check if user exists with this email
                 $user = User::where('email', $application->email)->first();
@@ -443,13 +499,14 @@ class HostelApplicationController extends Controller
                     $user = User::create([
                         'name' => $application->full_name,
                         'email' => $application->email,
-                        'password' => Hash::make('welcome123'),
+                        'password' => Hash::make(Str::random(32)),
                         'role' => 'student',
                     ]);
                 }
 
                 $student = Student::create([
                     'user_id' => $user->id,
+                    'campus_id' => $campusId,
                     'admission_number' => $application->student_id,
                     'full_name' => $application->full_name,
                     'email' => $application->email,
@@ -494,13 +551,17 @@ class HostelApplicationController extends Controller
                 'student_id' => $student->id
             ]);
 
-            // 4. Update Student Record with room/bed and fees
+            // 4. Update Student Record with room/bed and fees.
+            // Rooms are priced individually, so the fee is the assigned room's price for
+            // the plan the student paid for (semester / full year), not the form value.
+            $roomFee = $room->feeForPlan($application->amount_paid);
+            $feePaid = is_numeric($application->amount_paid) ? (float) $application->amount_paid : $roomFee;
             $student->update([
                 'room_id' => $room->id,
                 'bed_id' => $bed->id,
-                'hostel_fee_amount' => $application->amount_paid,
-                'hostel_fee_paid' => $application->amount_paid,
-                'hostel_fee_status' => 'paid',
+                'hostel_fee_amount' => $roomFee,
+                'hostel_fee_paid' => $feePaid,
+                'hostel_fee_status' => $feePaid >= $roomFee ? 'paid' : ($feePaid > 0 ? 'partial' : 'unpaid'),
                 'check_in_date' => now(),
                 'expected_check_out_date' => now()->addMonths(4), // Default 1 semester
             ]);

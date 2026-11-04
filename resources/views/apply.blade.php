@@ -305,78 +305,65 @@
 
   <a href="/"><img src="{{ asset('assets/img/lincoln-logo.png') }}" alt="Lincoln University Logo" style="height: 100px; width: auto; max-width: 100%; margin-right: 20px; margin-bottom: 20px; object-fit: contain;"></a>
 
-  <!-- Account Details Card -->
+  <!-- Campus + Account Details Card -->
+  @php
+    $campusList = $campuses ?? collect();
+    $selectedCampusId = old('campus_id', $campusList->count() === 1 ? $campusList->first()->id : null);
+  @endphp
   <div class="card mb-4 border-0 shadow-sm" style="background: rgba(204, 0, 0, 0.05); border-left: 5px solid var(--primary-color) !important;">
     <div class="card-body py-3">
         <h5 class="card-title text-danger mb-3 fw-bold" style="font-size: 1.1rem;">
-            <i class="fas fa-university me-2"></i>Account Details for Payment
+            <i class="fas fa-school me-2"></i>Select Your Campus
         </h5>
-        <div class="row">
-            <div class="col-md-4 mb-2 mb-md-0 border-end-md">
-                <small class="text-muted d-block text-uppercase fw-bold" style="font-size: 0.75rem; letter-spacing: 0.5px;">Bank Name</small>
-                <div class="fw-bold text-dark">Zenith Bank</div>
+        <select name="campus_id" id="campus_id" form="hostelApplicationForm" required
+                class="form-select mb-1 @error('campus_id') is-invalid @enderror" style="max-width: 420px;">
+            <option value="">-- Choose your campus --</option>
+            @foreach($campusList as $campus)
+                <option value="{{ $campus->id }}"
+                        data-bank="{{ $campus->bank_name }}"
+                        data-account-number="{{ $campus->account_number }}"
+                        data-account-name="{{ $campus->account_name }}"
+                        {{ (string) $selectedCampusId === (string) $campus->id ? 'selected' : '' }}>
+                    {{ $campus->name }}
+                </option>
+            @endforeach
+        </select>
+        @error('campus_id') <div class="text-danger small">{{ $message }}</div> @enderror
+        <small class="text-muted d-block mb-3">You can only apply for a hostel on the campus where you study.</small>
+
+        <div id="campusPayment" style="display:none;">
+            <h5 class="card-title text-danger mb-3 fw-bold" style="font-size: 1.1rem;">
+                <i class="fas fa-university me-2"></i>Account Details for Payment
+            </h5>
+            <div class="row">
+                <div class="col-md-4 mb-2 mb-md-0 border-end-md">
+                    <small class="text-muted d-block text-uppercase fw-bold" style="font-size: 0.75rem; letter-spacing: 0.5px;">Bank Name</small>
+                    <div class="fw-bold text-dark js-bank-name"></div>
+                </div>
+                <div class="col-md-4 mb-2 mb-md-0 border-end-md">
+                    <small class="text-muted d-block text-uppercase fw-bold" style="font-size: 0.75rem; letter-spacing: 0.5px;">Account Number</small>
+                    <div class="fw-bold fs-5 text-danger font-monospace js-account-number"></div>
+                </div>
+                <div class="col-md-4">
+                    <small class="text-muted d-block text-uppercase fw-bold" style="font-size: 0.75rem; letter-spacing: 0.5px;">Account Name</small>
+                    <div class="fw-bold text-dark js-account-name"></div>
+                </div>
             </div>
-            <div class="col-md-4 mb-2 mb-md-0 border-end-md">
-                <small class="text-muted d-block text-uppercase fw-bold" style="font-size: 0.75rem; letter-spacing: 0.5px;">Account Number</small>
-                <div class="fw-bold fs-5 text-danger font-monospace">1311150112</div>
+
+            <h6 class="mt-4 mb-2 fw-bold text-danger"><i class="fas fa-bed me-2"></i>Hostel Fees for This Campus</h6>
+            <div class="table-responsive">
+                <table class="table table-sm table-bordered bg-white mb-1">
+                    <thead class="table-light">
+                        <tr><th>Room type</th><th>Per semester</th><th>Full year</th></tr>
+                    </thead>
+                    <tbody id="roomPriceRows">
+                        <tr><td colspan="3" class="text-muted">Loading…</td></tr>
+                    </tbody>
+                </table>
             </div>
-            <div class="col-md-4">
-                <small class="text-muted d-block text-uppercase fw-bold" style="font-size: 0.75rem; letter-spacing: 0.5px;">Account Name</small>
-                <div class="fw-bold text-dark">Lincoln ODL LTD (GOperation)</div>
-            </div>
+            <small class="text-muted">The fee depends on how many students share the room. Pay the amount for the room type you want; a room is allocated based on availability and your payment.</small>
         </div>
     </div>
-  </div>
-      
-  <div class="row mb-4">
-      <div class="col-12">
-          <div class="card shadow-sm border-0" style="border-radius: 12px; background: #f8f9fa;">
-              <div class="card-body p-3">
-                  @inject('emailService', 'App\Services\EmailTrackingService')
-                  @php
-                      $quotaRemaining = $emailService->getRemainingQuota();
-                      $quotaTotal = \App\Services\EmailTrackingService::DAILY_LIMIT;
-                      $quotaPercentage = ($quotaRemaining / $quotaTotal) * 100;
-                      
-                      $barColor = 'bg-success';
-                      $textColor = 'text-success';
-                      if ($quotaPercentage <= 20) {
-                          $barColor = 'bg-danger';
-                          $textColor = 'text-danger';
-                      } elseif ($quotaPercentage <= 55) {
-                          $barColor = 'bg-warning';
-                          $textColor = 'text-warning';
-                      }
-                  @endphp
-                  <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
-                      <div class="d-flex align-items-center gap-2">
-                          <div class="p-2 bg-light rounded-circle text-primary">
-                              <i class="fas fa-envelope"></i>
-                          </div>
-                          <div>
-                              <h6 class="mb-0 fw-bold" style="color: #333;">Application System Status</h6>
-                              <small class="text-muted">Daily communication quota status</small>
-                          </div>
-                      </div>
-                      <div class="d-flex align-items-center gap-3">
-                          <div class="text-end" style="line-height: 1.2;">
-                              <span class="small text-muted d-block">Emails Remaining Today</span>
-                              <span class="fw-bold {{ $textColor }}">{{ $quotaRemaining }} of {{ $quotaTotal }} left</span>
-                          </div>
-                          <div class="progress" style="width: 100px; height: 8px; border-radius: 4px; background-color: #dee2e6; margin: 0;">
-                              <div class="progress-bar {{ $barColor }}" role="progressbar" style="width: {{ $quotaPercentage }}%; border-radius: 4px;" aria-valuenow="{{ $quotaRemaining }}" aria-valuemin="0" aria-valuemax="{{ $quotaTotal }}"></div>
-                          </div>
-                      </div>
-                  </div>
-                  @if($quotaRemaining == 0)
-                      <div class="alert alert-danger mt-2 mb-0 py-2 px-3 small border-0 d-flex align-items-center gap-2" style="border-radius: 8px;">
-                          <i class="fas fa-exclamation-triangle"></i>
-                          <span>The daily email limit of 500 has been reached. Any new applications submitted now will still be processed, but confirmation emails will be queued in the dashboard.</span>
-                      </div>
-                  @endif
-              </div>
-          </div>
-      </div>
   </div>
 
   <h2>Comprehensive Hostel Application Form</h2>
@@ -525,9 +512,9 @@
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label for="amount_paid">Amount Paid (₦) <span class="required-field">*</span></label>
+                                <label for="amount_paid">Payment Plan Paid For <span class="required-field">*</span></label>
                                 <select name="amount_paid" id="amount_paid" required style="width: 100%; padding: 10px; border: 1px solid #ced4da; border-radius: 4px;">
-                                    <option value="">Select Amount Paid</option>
+                                    <option value="">Select payment plan</option>
                                     <option value="semester" {{ old('amount_paid') == 'semester' ? 'selected' : '' }}>Per Semester</option>
                                     <option value="full_year" {{ old('amount_paid') == 'full_year' ? 'selected' : '' }}>Full Year</option>
                                 </select>
@@ -1090,9 +1077,9 @@
             </thead>
             <tbody>
               <tr>
-                <td><strong>Zenith Bank</strong></td>
-                <td><code class="fs-5">1311150112</code></td>
-                <td><strong>Lincoln ODL LTD (GOperation)</strong></td>
+                <td><strong class="js-bank-name">Select your campus first</strong></td>
+                <td><code class="fs-5 js-account-number"></code></td>
+                <td><strong class="js-account-name"></strong></td>
               </tr>
             </tbody>
           </table>
@@ -1311,5 +1298,45 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
+<script>
+(function () {
+  var select = document.getElementById('campus_id');
+  if (!select) return;
+  var panel = document.getElementById('campusPayment');
+  var rows = document.getElementById('roomPriceRows');
+  var naira = function (n) { return '₦' + Number(n).toLocaleString(); };
+  var range = function (min, max) { return Number(min) === Number(max) ? naira(min) : naira(min) + ' – ' + naira(max); };
+  var set = function (cls, value) {
+    document.querySelectorAll('.' + cls).forEach(function (el) { el.textContent = value; });
+  };
+
+  function update() {
+    var opt = select.options[select.selectedIndex];
+    if (!select.value) {
+      panel.style.display = 'none';
+      set('js-bank-name', 'Select your campus first'); set('js-account-number', ''); set('js-account-name', '');
+      return;
+    }
+    set('js-bank-name', opt.dataset.bank);
+    set('js-account-number', opt.dataset.accountNumber);
+    set('js-account-name', opt.dataset.accountName);
+    panel.style.display = 'block';
+    rows.innerHTML = '<tr><td colspan="3" class="text-muted">Loading…</td></tr>';
+    fetch('/campuses/' + select.value + '/room-prices', { headers: { 'Accept': 'application/json' } })
+      .then(function (r) { return r.json(); })
+      .then(function (list) {
+        if (!list.length) { rows.innerHTML = '<tr><td colspan="3" class="text-muted">Fees for this campus have not been published yet.</td></tr>'; return; }
+        rows.innerHTML = list.map(function (r) {
+          var label = Number(r.capacity) === 1 ? '1 person per room' : r.capacity + ' persons per room';
+          return '<tr><td>' + label + '</td><td>' + range(r.semester_min, r.semester_max) + '</td><td>' + range(r.year_min, r.year_max) + '</td></tr>';
+        }).join('');
+      })
+      .catch(function () { rows.innerHTML = '<tr><td colspan="3" class="text-muted">Could not load fees. Please refresh.</td></tr>'; });
+  }
+
+  select.addEventListener('change', update);
+  update();
+})();
+</script>
 </body>
 </html>

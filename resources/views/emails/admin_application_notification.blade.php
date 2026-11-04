@@ -193,7 +193,7 @@
                 </div>
                 <div class="info-item">
                     <div class="info-label">Amount Paid:</div>
-                    <div class="info-value">₦{{ number_format($application->amount_paid) }}</div>
+                    <div class="info-value">{{ $application->amount_paid_display }}</div>
                 </div>
             </div>
         </div>

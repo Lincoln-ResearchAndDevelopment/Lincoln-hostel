@@ -7,7 +7,10 @@ use Illuminate\Database\Eloquent\Model;
 
 class HostelRule extends Model
 {
-    use HasFactory;
+    use HasFactory, \App\Models\Concerns\BelongsToCampus;
+
+    /** NULL campus_id means the record is shared by every campus. */
+    protected bool $campusNullIsShared = true;
 
     protected $fillable = [
         'title',

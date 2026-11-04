@@ -8,7 +8,7 @@ use Carbon\Carbon;
 
 class AttendanceRecord extends Model
 {
-    use HasFactory;
+    use HasFactory, \App\Models\Concerns\BelongsToCampus;
 
     protected $fillable = [
         'student_id',

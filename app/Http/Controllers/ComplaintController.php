@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\CampusContext;
 use App\Models\Complaint;
 use App\Models\Student;
 use Illuminate\Http\Request;
@@ -59,7 +60,7 @@ class ComplaintController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'student_id'   => 'required|exists:students,id',
+            'student_id'   => ['required', CampusContext::exists('students')],
             'subject'      => 'required|string|max:255',
             'description'  => 'required|string',
         ]);
@@ -103,7 +104,7 @@ class ComplaintController extends Controller
         }
 
         $validated = $request->validate([
-            'student_id'   => 'required|exists:students,id',
+            'student_id'   => ['required', CampusContext::exists('students')],
             'subject'      => 'required|string|max:255',
             'description'  => 'required|string',
             'status'       => 'required|in:submitted,in progress,resolved',

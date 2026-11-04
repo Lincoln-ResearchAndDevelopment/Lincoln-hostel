@@ -8,7 +8,7 @@ use Carbon\Carbon;
 
 class HostelApplication extends Model
 {
-    use HasFactory;
+    use HasFactory, \App\Models\Concerns\BelongsToCampus;
 
     protected $fillable = [
         'application_number',
@@ -101,6 +101,25 @@ class HostelApplication extends Model
         'has_disability' => 'boolean',
         'references' => 'array',
     ];
+
+    /**
+     * "amount_paid" holds the plan the student paid for ("semester" / "full_year"),
+     * or an older numeric amount. Return something safe to print either way.
+     */
+    public function getAmountPaidDisplayAttribute(): string
+    {
+        $value = $this->amount_paid;
+
+        if (is_numeric($value)) {
+            return '₦' . number_format((float) $value, 2);
+        }
+
+        return match (strtolower((string) $value)) {
+            'semester' => 'Per semester',
+            'full_year' => 'Full year',
+            default => (string) $value,
+        };
+    }
 
     protected static function boot()
     {

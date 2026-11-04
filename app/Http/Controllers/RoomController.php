@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\CampusContext;
 use App\Models\Room;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class RoomController extends Controller
 {
@@ -41,8 +43,9 @@ class RoomController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'hostel_id' => 'required|exists:hostels,id',
-            'room_number' => 'required|string|unique:rooms',
+            'hostel_id' => ['required', CampusContext::exists('hostels')],
+            // Room numbers only need to be unique within a hostel (every campus has a Room 101).
+            'room_number' => ['required', 'string', Rule::unique('rooms', 'room_number')->where('hostel_id', $request->input('hostel_id'))],
             'room_type' => 'required|in:single,double,triple,quad,dormitory',
             'capacity' => 'required|integer|min:1',
             'price_per_semester' => 'required|numeric|min:0',
@@ -88,8 +91,8 @@ class RoomController extends Controller
     public function update(Request $request, Room $room)
     {
         $validated = $request->validate([
-            'hostel_id' => 'required|exists:hostels,id',
-            'room_number' => 'required|string|unique:rooms,room_number,' . $room->id,
+            'hostel_id' => ['required', CampusContext::exists('hostels')],
+            'room_number' => ['required', 'string', Rule::unique('rooms', 'room_number')->where('hostel_id', $request->input('hostel_id'))->ignore($room->id)],
             'room_type' => 'required|in:single,double,triple,quad,dormitory',
             'capacity' => 'required|integer|min:1',
             'price_per_semester' => 'required|numeric|min:0',
