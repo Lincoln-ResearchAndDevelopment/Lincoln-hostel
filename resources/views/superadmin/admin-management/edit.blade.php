@@ -96,8 +96,6 @@
                                         required>
                                     <option value="">Select Role</option>
                                     <option value="admin" {{ old('role', $adminUser->role) == 'admin' ? 'selected' : '' }}>Admin</option>
-                                    <option value="manager" {{ old('role', $adminUser->role) == 'manager' ? 'selected' : '' }}>Manager</option>
-                                    <option value="staff" {{ old('role', $adminUser->role) == 'staff' ? 'selected' : '' }}>Staff</option>
                                 </select>
                                 @error('role')
                                     <div class="invalid-feedback">{{ $message }}</div>

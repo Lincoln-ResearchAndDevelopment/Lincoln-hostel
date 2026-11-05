@@ -559,4 +559,22 @@ class MultiCampusTest extends TestCase
             'is_admin' => 1,
         ]);
     }
+
+    public function test_unsupported_admin_roles_are_refused_not_a_500(): void
+    {
+        // The form used to offer Manager/Staff; users.role only allows admin/student, so those 500'd.
+        $master = SuperAdmin::create([
+            'name' => 'Master', 'email' => 'm3@test.com', 'password' => bcrypt('password'),
+            'is_master' => true, 'is_active' => true,
+        ]);
+
+        foreach (['manager', 'staff'] as $role) {
+            $this->asMaster($master)->post(route('superadmin.admin-management.store'), [
+                'name' => 'X', 'email' => "{$role}@test.com", 'password' => 'password123',
+                'password_confirmation' => 'password123', 'role' => $role, 'campus_id' => $this->north->id,
+            ])->assertSessionHasErrors('role');
+        }
+
+        $this->assertDatabaseMissing('users', ['email' => 'manager@test.com']);
+    }
 }

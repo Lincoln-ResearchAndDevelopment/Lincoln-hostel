@@ -70,7 +70,9 @@ class AdminManagementController extends Controller
             'email' => 'required|email|unique:users,email',
             'phone' => 'nullable|string|max:20',
             'password' => 'required|string|min:8|confirmed',
-            'role' => 'required|in:admin,manager,staff',
+            // Only 'admin' is supported: users.role is an enum('admin','student') and the rest of the
+            // app checks role === 'admin'. 'manager'/'staff' used to be offered here and returned a 500.
+            'role' => 'required|in:admin',
             'campus_id' => 'required|exists:campuses,id',
             'is_active' => 'boolean',
             'permissions' => 'array',
@@ -143,7 +145,9 @@ class AdminManagementController extends Controller
             'name' => 'required|string|max:255',
             'email' => ['required', 'email', Rule::unique('users')->ignore($adminUser->id)],
             'phone' => 'nullable|string|max:20',
-            'role' => 'required|in:admin,manager,staff',
+            // Only 'admin' is supported: users.role is an enum('admin','student') and the rest of the
+            // app checks role === 'admin'. 'manager'/'staff' used to be offered here and returned a 500.
+            'role' => 'required|in:admin',
             'campus_id' => 'required|exists:campuses,id',
             'is_active' => 'boolean',
             'permissions' => 'array',
