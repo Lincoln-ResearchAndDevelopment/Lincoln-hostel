@@ -334,7 +334,6 @@
             @endforeach
         </select>
         @error('campus_id') <div class="text-danger small">{{ $message }}</div> @enderror
-        <small class="text-muted d-block mb-3">You can only apply for a hostel on the campus where you study.</small>
 
         <div id="campusPayment" style="display:none;">
             <h5 class="card-title text-danger mb-2 fw-bold" style="font-size: 1.1rem;">
@@ -378,7 +377,6 @@
                 </div>
 
                 <h6 class="fw-bold mt-4 mb-1">Hostels and their fees</h6>
-                <p class="small text-muted mb-2">Hostels are in different locations and each sets its own prices, so a bigger room in one hostel can cost more than a smaller room in another. Check the hostel name and the price before you pay.</p>
                 <div class="row g-3 mt-1">
                     <div class="col-md-7">
                         <label for="preferred_hostel_id" class="form-label fw-bold small">Choose your hostel <span class="required-field">*</span></label>
@@ -400,7 +398,6 @@
                     </div>
                 </div>
                 <div id="hostelFeeList" class="mt-3"><p class="text-muted small mb-0">Loading…</p></div>
-                <small class="text-muted d-block mt-2">Pay the fee for this hostel and room size, using the payment plan you select below. A room is then allocated based on availability and your payment.</small>
             </div>
         </div>
     </div>
@@ -921,7 +918,7 @@
                         @error('applicationform_receipt')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
-                        <small class="text-muted">Receipt for the service charge payment for your chosen plan, per semester or full year (max 10MB)</small>
+                        <small class="text-muted">Max 10MB</small>
                     </div>
 
                     <div class="form-group file-input-group">
@@ -1429,7 +1426,7 @@ document.addEventListener('DOMContentLoaded', function() {
   function showSelectedHostel() {
     var h = hostels.filter(function (x) { return String(x.id) === String(hostelSel.value); })[0];
     if (h) list.innerHTML = hostelCard(h);
-    else if (hostels.filter(suits).length) list.innerHTML = '<p class="text-muted small mb-0">Choose a hostel above to see its address, room sizes and fees.</p>';
+    else if (hostels.filter(suits).length) list.innerHTML = '';
   }
 
   function update() {
