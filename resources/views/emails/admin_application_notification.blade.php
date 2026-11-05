@@ -316,9 +316,15 @@
         </div>
         @endif
 
-        @if($application->preferred_hostel_type || $application->preferred_room_type || $application->special_accommodation_needs)
+        @if($application->preferred_hostel_id || $application->preferred_hostel_type || $application->preferred_room_type || $application->special_accommodation_needs)
         <div class="info-section">
             <h3>🏠 Accommodation Preferences</h3>
+            @if($application->preferredHostel)
+            <div class="info-item">
+                <div class="info-label">Hostel Paid For:</div>
+                <div class="info-value">{{ $application->preferredHostel->name }} ({{ ucfirst($application->preferredHostel->type) }}){{ $application->preferred_room_capacity ? ', ' . $application->preferred_room_capacity . ' per room' : '' }}</div>
+            </div>
+            @endif
             @if($application->preferred_hostel_type)
             <div class="info-item">
                 <div class="info-label">Preferred Hostel Type:</div>

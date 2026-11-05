@@ -44,6 +44,12 @@ class HostelApplicationController extends Controller
             // Campus the student is applying to
             'campus_id' => ['required', \Illuminate\Validation\Rule::exists('campuses', 'id')->where('is_active', true)],
 
+            // Which hostel and room size the applicant paid for (prices differ per hostel).
+            'preferred_hostel_id' => ['required', \Illuminate\Validation\Rule::exists('hostels', 'id')
+                ->where('campus_id', $request->input('campus_id'))
+                ->where('status', 'active')],
+            'preferred_room_capacity' => 'required|integer|min:1|max:50',
+
             // Academic Information
             'academic_year' => 'required|string|max:255',
             'amount_paid' => 'required|string|max:255',
@@ -116,6 +122,26 @@ class HostelApplicationController extends Controller
             'previous_hostel_experience' => 'nullable|string|max:1000',
             'why_choose_hostel' => 'nullable|string|max:1000',
         ]);
+
+        // The chosen hostel must suit the applicant's gender and really have rooms of that size.
+        $validator->after(function ($v) use ($request) {
+            if ($v->errors()->has('preferred_hostel_id') || $v->errors()->has('preferred_room_capacity')) {
+                return;
+            }
+            $hostel = Hostel::withoutGlobalScopes()->find($request->input('preferred_hostel_id'));
+            if ($hostel && $hostel->type !== 'mixed' && $request->filled('gender') && $hostel->type !== $request->input('gender')) {
+                $v->errors()->add('preferred_hostel_id', 'That hostel is for ' . $hostel->type . ' students only.');
+                return;
+            }
+            $hasSize = Room::withoutGlobalScopes()
+                ->where('hostel_id', $request->input('preferred_hostel_id'))
+                ->where('capacity', (int) $request->input('preferred_room_capacity'))
+                ->where('status', '!=', 'maintenance')
+                ->exists();
+            if (!$hasSize) {
+                $v->errors()->add('preferred_room_capacity', 'That hostel has no room for that number of students.');
+            }
+        });
 
         if ($validator->fails()) {
             \Log::error('Hostel application validation failed', ['errors' => $validator->errors()->toArray()]);
@@ -394,24 +420,51 @@ class HostelApplicationController extends Controller
     }
 
     /**
-     * Public price list for a campus, grouped by how many people a room sleeps.
-     * Rooms are priced individually, so each group shows the range.
+     * Public price list for a campus, hostel by hostel.
+     *
+     * Hostels are in different places and price their rooms differently, so prices are NOT pooled
+     * across the campus: each hostel lists its own room sizes (people per room) with that
+     * hostel's semester / year price range and whether any space is left.
      */
     public function roomPrices(Campus $campus)
     {
         $rows = Room::withoutGlobalScopes()
             ->join('hostels', 'hostels.id', '=', 'rooms.hostel_id')
             ->where('rooms.campus_id', $campus->id)
+            ->where('hostels.campus_id', $campus->id)
             ->where('hostels.status', 'active')
             ->where('rooms.status', '!=', 'maintenance')
-            ->groupBy('rooms.capacity')
+            ->groupBy('hostels.id', 'hostels.name', 'hostels.code', 'hostels.type', 'hostels.address', 'rooms.capacity')
+            ->orderBy('hostels.name')
             ->orderBy('rooms.capacity')
-            ->selectRaw('rooms.capacity as capacity,
+            ->selectRaw('hostels.id as hostel_id, hostels.name as hostel_name, hostels.code as hostel_code,
+                hostels.type as hostel_type, hostels.address as hostel_address, rooms.capacity as capacity,
                 MIN(rooms.price_per_semester) as semester_min, MAX(rooms.price_per_semester) as semester_max,
-                MIN(rooms.price_per_year) as year_min, MAX(rooms.price_per_year) as year_max')
+                MIN(rooms.price_per_year) as year_min, MAX(rooms.price_per_year) as year_max,
+                SUM(CASE WHEN rooms.capacity > rooms.occupied THEN rooms.capacity - rooms.occupied ELSE 0 END) as spaces_left')
             ->get();
 
-        return response()->json($rows);
+        $hostels = [];
+        foreach ($rows as $r) {
+            $hostels[$r->hostel_id] ??= [
+                'id' => (int) $r->hostel_id,
+                'name' => $r->hostel_name,
+                'code' => $r->hostel_code,
+                'type' => $r->hostel_type,
+                'address' => $r->hostel_address,
+                'rooms' => [],
+            ];
+            $hostels[$r->hostel_id]['rooms'][] = [
+                'capacity' => (int) $r->capacity,
+                'semester_min' => $r->semester_min,
+                'semester_max' => $r->semester_max,
+                'year_min' => $r->year_min,
+                'year_max' => $r->year_max,
+                'spaces_left' => (int) $r->spaces_left,
+            ];
+        }
+
+        return response()->json(array_values($hostels));
     }
 
     /**
@@ -585,7 +638,15 @@ class HostelApplicationController extends Controller
                 // Non-blocking error, we still redirect with success but mention the email failure if needed
             }
 
-            return redirect()->route('applications.show', $application)->with('success', 'Application approved and room assigned successfully!');
+            $note = '';
+            if ($application->preferred_hostel_id && (int) $application->preferred_hostel_id !== (int) $hostel->id) {
+                $chosen = Hostel::withoutGlobalScopes()->find($application->preferred_hostel_id);
+                $note = ' Note: the applicant paid for ' . ($chosen->name ?? 'another hostel') . ' but was allocated to ' . $hostel->name . ' - check the fee difference.';
+            } elseif ($application->preferred_room_capacity && (int) $application->preferred_room_capacity !== (int) $room->capacity) {
+                $note = ' Note: the applicant paid for a room of ' . $application->preferred_room_capacity . ' but was allocated a room of ' . $room->capacity . ' - check the fee difference.';
+            }
+
+            return redirect()->route('applications.show', $application)->with('success', 'Application approved and room assigned successfully!' . $note);
 
         } catch (\Exception $e) {
             DB::rollBack();

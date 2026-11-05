@@ -90,6 +90,32 @@
                     <div class="col-6"><label class="text-muted small">Department</label><p class="mb-0">{{ $application->department }}</p></div>
                     <div class="col-6"><label class="text-muted small">Intake</label><p class="mb-0 fw-semibold">{{ $application->intake }}</p></div>
                     <div class="col-6"><label class="text-muted small">Academic Year</label><p class="mb-0">{{ $application->academic_year }}</p></div>
+                    <div class="col-12">
+                        @php
+                            $paidHostel = $application->preferredHostel;
+                            $expected = $application->expectedFee();
+                            $fmt = fn ($n) => '₦' . number_format($n, 2);
+                        @endphp
+                        <label class="text-muted small">Hostel &amp; room size the applicant paid for</label>
+                        @if($paidHostel)
+                            <p class="mb-0 fw-semibold">
+                                {{ $paidHostel->name }} <span class="badge bg-info text-dark">{{ ucfirst($paidHostel->type) }}</span>
+                                @if($application->preferred_room_capacity)
+                                    · {{ $application->preferred_room_capacity == 1 ? '1 person per room' : $application->preferred_room_capacity . ' persons per room' }}
+                                @endif
+                            </p>
+                            @if($paidHostel->address)<p class="small text-muted mb-0"><i class="fas fa-map-marker-alt me-1"></i>{{ $paidHostel->address }}</p>@endif
+                            @if($expected)
+                                <p class="small mb-0 text-success">
+                                    Expected hostel fee ({{ $expected['plan'] === 'full_year' ? 'full year' : 'per semester' }}):
+                                    <strong>{{ $expected['min'] == $expected['max'] ? $fmt($expected['min']) : $fmt($expected['min']) . ' – ' . $fmt($expected['max']) }}</strong>
+                                    — compare with the hostel fee receipt.
+                                </p>
+                            @endif
+                        @else
+                            <p class="mb-0 text-muted">Not recorded (application made before the hostel choice was added).</p>
+                        @endif
+                    </div>
                     <div class="col-6">
                         <label class="text-muted small">Room Preference</label>
                         <p class="mb-0">
@@ -290,12 +316,18 @@
                             <select id="hostel_select" name="hostel_id" class="form-select select2" required>
                                 <option value="">-- Choose Hostel --</option>
                                 @foreach($hostels as $hostel)
-                                    @if(strtolower($hostel->type) == strtolower($application->gender))
-                                        <option value="{{ $hostel->id }}">{{ $hostel->name }} ({{ ucfirst($hostel->type) }})</option>
+                                    @if(in_array(strtolower($hostel->type), [strtolower($application->gender), 'mixed'], true))
+                                        <option value="{{ $hostel->id }}" {{ (int) $application->preferred_hostel_id === (int) $hostel->id ? 'selected' : '' }}>{{ $hostel->name }} ({{ ucfirst($hostel->type) }}){{ $hostel->address ? ' – ' . $hostel->address : '' }}</option>
                                     @endif
                                 @endforeach
                             </select>
-                            <small class="text-muted">Only {{ $application->gender }} hostels are shown.</small>
+                            <small class="text-muted">Hostels for {{ $application->gender }} students, and mixed hostels, are shown.
+                                @if($application->preferredHostel) The applicant paid for <strong>{{ $application->preferredHostel->name }}</strong>@if($application->preferred_room_capacity), {{ $application->preferred_room_capacity }} per room @endif.@endif</small>
+                            @if($application->preferredHostel)
+                                <div id="hostel_mismatch" class="alert alert-warning small mt-2 mb-0 d-none">
+                                    The applicant paid for <strong>{{ $application->preferredHostel->name }}</strong>. A different hostel can have a different fee, so check the price before allocating.
+                                </div>
+                            @endif
                         </div>
 
                         <div class="col-md-6">
@@ -394,6 +426,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             });
     });
+
+    // Preselected hostel (the one the applicant paid for): load its rooms straight away,
+    // and warn if the admin picks a different hostel.
+    const preferredHostelId = @json($application->preferred_hostel_id ? (string) $application->preferred_hostel_id : null);
+    const mismatch = document.getElementById('hostel_mismatch');
+    hostelSelect.addEventListener('change', function () {
+        if (mismatch) mismatch.classList.toggle('d-none', !preferredHostelId || !this.value || this.value === preferredHostelId);
+    });
+    if (hostelSelect.value) hostelSelect.dispatchEvent(new Event('change'));
 
     // Load Beds when Room changes
     roomSelect.addEventListener('change', function() {

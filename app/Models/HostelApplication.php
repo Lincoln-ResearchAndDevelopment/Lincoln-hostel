@@ -68,6 +68,8 @@ class HostelApplication extends Model
         'physical_restrictions',
         
         // Accommodation Preferences
+        'preferred_hostel_id',
+        'preferred_room_capacity',
         'preferred_hostel_type',
         'preferred_room_type',
         'special_accommodation_needs',
@@ -281,5 +283,46 @@ class HostelApplication extends Model
     public function getAgeAttribute()
     {
         return $this->date_of_birth ? Carbon::parse($this->date_of_birth)->age : null;
+    }
+
+    /**
+     * The hostel the applicant said they paid for.
+     */
+    public function preferredHostel()
+    {
+        return $this->belongsTo(Hostel::class, 'preferred_hostel_id');
+    }
+
+    /**
+     * What the applicant should have paid for the hostel + room size they chose, for the
+     * payment plan they picked (semester or full year). Rooms are priced one by one, so this is
+     * a range; min === max when every matching room costs the same. Null when nothing is recorded
+     * (older applications) or no matching room exists any more.
+     *
+     * @return array{min: float, max: float, plan: string}|null
+     */
+    public function expectedFee(): ?array
+    {
+        if (!$this->preferred_hostel_id || !$this->preferred_room_capacity) {
+            return null;
+        }
+
+        $plan = $this->amount_paid === 'full_year' ? 'full_year' : 'semester';
+        $column = $plan === 'full_year' ? 'price_per_year' : 'price_per_semester';
+
+        $rooms = Room::withoutGlobalScopes()
+            ->where('hostel_id', $this->preferred_hostel_id)
+            ->where('capacity', $this->preferred_room_capacity)
+            ->where('status', '!=', 'maintenance');
+
+        if (!$rooms->exists()) {
+            return null;
+        }
+
+        return [
+            'min' => (float) $rooms->min($column),
+            'max' => (float) $rooms->max($column),
+            'plan' => $plan,
+        ];
     }
 }

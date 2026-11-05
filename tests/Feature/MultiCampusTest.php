@@ -154,11 +154,22 @@ class MultiCampusTest extends TestCase
 
     // ---------------------------------------------------------------- public form
 
+    /** @var array<int, Hostel> a female hostel with 2-person rooms per campus, for valid submissions */
+    private array $payloadHostels = [];
+
     private function applicationPayload(array $overrides = []): array
     {
         Storage::fake('public');
 
-        return array_merge([
+        // A valid "hostel + room size" choice whenever the submission names an existing campus.
+        $choice = [];
+        $campus = isset($overrides['campus_id']) ? Campus::find($overrides['campus_id']) : null;
+        if ($campus) {
+            $this->payloadHostels[$campus->id] ??= $this->makeHostel($campus, 'PAY', 'female', 2)[0];
+            $choice = ['preferred_hostel_id' => $this->payloadHostels[$campus->id]->id, 'preferred_room_capacity' => 2];
+        }
+
+        return array_merge($choice + [
             'academic_year' => '2026/2027',
             'amount_paid' => 'semester',
             'full_name' => 'Ada Obi',
@@ -230,19 +241,44 @@ class MultiCampusTest extends TestCase
         $this->assertDatabaseMissing('notifications', ['notifiable_type' => User::class, 'notifiable_id' => $this->adminMain->id]);
     }
 
-    public function test_room_price_list_is_per_campus_and_grouped_by_capacity(): void
+    public function test_room_price_list_is_per_hostel_so_a_bigger_room_can_cost_more_in_one_hostel_than_another(): void
     {
-        $this->makeHostel($this->main, 'M1', 'male', 2, 80000, 150000);
-        $this->makeHostel($this->main, 'M2', 'female', 4, 50000, 90000);
+        // Two hostels on the same campus, in different places. The 4-person rooms of the pricey
+        // hostel cost MORE than the 2-person rooms of the cheap one - a capacity-only price list
+        // (the old behaviour) would hide that.
+        [$cheap] = $this->makeHostel($this->main, 'M1', 'male', 2, 50000, 90000);
+        [$pricey, $priceyRoom] = $this->makeHostel($this->main, 'M2', 'female', 4, 120000, 230000);
+        $cheap->update(['address' => 'Behind the campus gate']);
+        $pricey->update(['address' => 'City centre']);
         $this->makeHostel($this->north, 'N1', 'male', 3, 60000, 110000);
 
         $main = $this->getJson(route('campus.room-prices', $this->main))->assertOk()->json();
-        $this->assertSame([2, 4], array_map('intval', array_column($main, 'capacity')));
-        $this->assertEquals(80000, $main[0]['semester_min']);
+        $this->assertCount(2, $main);
 
+        $byName = collect($main)->keyBy('name');
+        $this->assertSame('Behind the campus gate', $byName['MAIN M1']['address']);
+        $this->assertSame('male', $byName['MAIN M1']['type']);
+        $this->assertSame(2, $byName['MAIN M1']['rooms'][0]['capacity']);
+        $this->assertEquals(50000, $byName['MAIN M1']['rooms'][0]['semester_min']);
+
+        $this->assertSame('City centre', $byName['MAIN M2']['address']);
+        $this->assertSame(4, $byName['MAIN M2']['rooms'][0]['capacity']);
+        $this->assertEquals(120000, $byName['MAIN M2']['rooms'][0]['semester_min']);
+        $this->assertGreaterThan(
+            $byName['MAIN M1']['rooms'][0]['semester_max'],
+            $byName['MAIN M2']['rooms'][0]['semester_min']
+        );
+
+        // Space left reflects occupancy; a full room group says 0.
+        $this->assertSame(4, $byName['MAIN M2']['rooms'][0]['spaces_left']);
+        $priceyRoom->update(['occupied' => 4]);
+        $again = collect($this->getJson(route('campus.room-prices', $this->main))->json())->keyBy('name');
+        $this->assertSame(0, $again['MAIN M2']['rooms'][0]['spaces_left']);
+
+        // Another campus's hostel never leaks in.
         $north = $this->getJson(route('campus.room-prices', $this->north))->assertOk()->json();
         $this->assertCount(1, $north);
-        $this->assertEquals(3, $north[0]['capacity']);
+        $this->assertSame('NORTH N1', $north[0]['name']);
     }
 
     // ---------------------------------------------------------------- admin isolation
@@ -681,5 +717,142 @@ class MultiCampusTest extends TestCase
 
         // A campus with only a yearly amount still shows on the application form without breaking it.
         $this->get(route('apply'))->assertOk()->assertSee('data-sc-amount-year="2500.00"', false);
+    }
+
+    // ---------------------------------------------------------------- hostel choice (hostels price differently)
+
+    public function test_application_must_name_a_hostel_and_room_size(): void
+    {
+        $payload = $this->applicationPayload(['campus_id' => $this->north->id]);
+        unset($payload['preferred_hostel_id'], $payload['preferred_room_capacity']);
+
+        $this->post(route('hostel.apply'), $payload)->assertSessionHasErrors(['preferred_hostel_id', 'preferred_room_capacity']);
+        $this->assertSame(0, HostelApplication::withoutGlobalScopes()->count());
+    }
+
+    public function test_the_chosen_hostel_and_room_size_are_saved_with_the_application(): void
+    {
+        [$hostel] = $this->makeHostel($this->north, 'NF', 'female', 3, 90000, 170000);
+
+        $this->post(route('hostel.apply'), $this->applicationPayload([
+            'campus_id' => $this->north->id,
+            'preferred_hostel_id' => $hostel->id,
+            'preferred_room_capacity' => 3,
+        ]))->assertSessionHasNoErrors();
+
+        $application = HostelApplication::withoutGlobalScopes()->firstOrFail();
+        $this->assertSame($hostel->id, $application->preferred_hostel_id);
+        $this->assertSame(3, $application->preferred_room_capacity);
+    }
+
+    public function test_a_hostel_from_another_campus_is_refused(): void
+    {
+        [$mainHostel] = $this->makeHostel($this->main, 'MF', 'female', 2);
+
+        $this->post(route('hostel.apply'), $this->applicationPayload([
+            'campus_id' => $this->north->id,
+            'preferred_hostel_id' => $mainHostel->id,
+        ]))->assertSessionHasErrors('preferred_hostel_id');
+
+        $this->assertSame(0, HostelApplication::withoutGlobalScopes()->count());
+    }
+
+    public function test_a_hostel_for_the_other_gender_is_refused_but_a_mixed_hostel_is_fine(): void
+    {
+        [$maleHostel] = $this->makeHostel($this->north, 'NM', 'male', 2);
+        [$mixedHostel] = $this->makeHostel($this->north, 'NX', 'mixed', 2);
+
+        // applicant is female (payload default)
+        $this->post(route('hostel.apply'), $this->applicationPayload([
+            'campus_id' => $this->north->id, 'preferred_hostel_id' => $maleHostel->id,
+        ]))->assertSessionHasErrors('preferred_hostel_id');
+
+        $this->post(route('hostel.apply'), $this->applicationPayload([
+            'campus_id' => $this->north->id, 'preferred_hostel_id' => $mixedHostel->id,
+        ]))->assertSessionHasNoErrors();
+    }
+
+    public function test_a_room_size_the_hostel_does_not_have_is_refused(): void
+    {
+        [$hostel] = $this->makeHostel($this->north, 'NF', 'female', 2);   // only 2-person rooms
+
+        $this->post(route('hostel.apply'), $this->applicationPayload([
+            'campus_id' => $this->north->id,
+            'preferred_hostel_id' => $hostel->id,
+            'preferred_room_capacity' => 6,
+        ]))->assertSessionHasErrors('preferred_room_capacity');
+    }
+
+    public function test_expected_fee_follows_the_hostel_room_size_and_payment_plan(): void
+    {
+        [$a] = $this->makeHostel($this->north, 'NA', 'female', 2, 50000, 90000);
+        [$b] = $this->makeHostel($this->north, 'NB', 'female', 4, 120000, 230000);
+
+        $make = fn (Hostel $h, int $cap, string $plan) => HostelApplication::factory()->create([
+            'campus_id' => $this->north->id, 'preferred_hostel_id' => $h->id,
+            'preferred_room_capacity' => $cap, 'amount_paid' => $plan,
+        ]);
+
+        $this->assertEquals(['min' => 50000.0, 'max' => 50000.0, 'plan' => 'semester'], $make($a, 2, 'semester')->expectedFee());
+        $this->assertEquals(['min' => 230000.0, 'max' => 230000.0, 'plan' => 'full_year'], $make($b, 4, 'full_year')->expectedFee());
+        $this->assertNull($make($a, 9, 'semester')->expectedFee());   // no such room size there
+        $this->assertNull(HostelApplication::factory()->create(['campus_id' => $this->north->id])->expectedFee()); // older application
+    }
+
+    public function test_admin_sees_the_hostel_paid_for_and_it_is_preselected_for_allocation(): void
+    {
+        [$wanted] = $this->makeHostel($this->north, 'NW', 'female', 2, 50000, 90000);
+        $wanted->update(['name' => 'Palm Court', 'address' => '5 Palm Road']);
+        [$mixed] = $this->makeHostel($this->north, 'NX', 'mixed', 2);
+        $mixed->update(['name' => 'Open House']);
+        $this->makeHostel($this->north, 'NM', 'male', 2)[0]->update(['name' => 'Boys Lodge']);
+
+        $application = HostelApplication::factory()->create([
+            'campus_id' => $this->north->id, 'gender' => 'female', 'status' => 'pending',
+            'preferred_hostel_id' => $wanted->id, 'preferred_room_capacity' => 2, 'amount_paid' => 'semester',
+        ]);
+
+        $html = $this->asAdmin($this->adminNorth)->get(route('applications.show', $application))
+            ->assertOk()
+            ->assertSee('Palm Court')
+            ->assertSee('5 Palm Road')
+            ->assertSee('Expected hostel fee')
+            ->assertSee('50,000.00')
+            ->assertSee('Open House')        // mixed hostels can now be chosen
+            ->assertDontSee('Boys Lodge')    // other gender still hidden
+            ->getContent();
+
+        $this->assertMatchesRegularExpression('/value="' . $wanted->id . '"\s+selected/', $html);
+    }
+
+    public function test_allocating_to_a_different_hostel_than_the_one_paid_for_is_flagged(): void
+    {
+        [$paidFor] = $this->makeHostel($this->north, 'NA', 'female', 2, 50000, 90000);
+        [$other, $otherRoom, $otherBeds] = $this->makeHostel($this->north, 'NB', 'female', 2, 120000, 230000);
+        $other->update(['name' => 'Expensive Hall']);
+        $paidFor->update(['name' => 'Cheap Hall']);
+
+        $application = HostelApplication::factory()->create([
+            'campus_id' => $this->north->id, 'gender' => 'female', 'status' => 'pending', 'student_id' => 'N-DIFF-1',
+            'preferred_hostel_id' => $paidFor->id, 'preferred_room_capacity' => 2, 'amount_paid' => 'semester',
+        ]);
+
+        $response = $this->asAdmin($this->adminNorth)->post(route('applications.approve-assign', $application), [
+            'hostel_id' => $other->id, 'room_id' => $otherRoom->id, 'bed_id' => $otherBeds[0]->id,
+        ]);
+
+        $response->assertSessionHasNoErrors();
+        $message = session('success');
+        $this->assertStringContainsString('Cheap Hall', $message);
+        $this->assertStringContainsString('Expensive Hall', $message);
+        $this->assertStringContainsString('check the fee difference', $message);
+    }
+
+    public function test_application_page_offers_the_hostel_and_room_size_choices(): void
+    {
+        $this->get(route('apply'))->assertOk()
+            ->assertSee('name="preferred_hostel_id"', false)
+            ->assertSee('name="preferred_room_capacity"', false)
+            ->assertSee('Which hostel are you paying for?');
     }
 }

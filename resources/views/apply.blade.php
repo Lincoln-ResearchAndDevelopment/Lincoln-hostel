@@ -377,17 +377,31 @@
                     </div>
                 </div>
 
-                <div class="table-responsive mt-3">
-                    <table class="table table-sm table-bordered bg-white mb-1">
-                        <thead class="table-light">
-                            <tr><th>Room type</th><th>Per semester</th><th>Full year</th></tr>
-                        </thead>
-                        <tbody id="roomPriceRows">
-                            <tr><td colspan="3" class="text-muted">Loading…</td></tr>
-                        </tbody>
-                    </table>
+                <h6 class="fw-bold mt-4 mb-1">Hostels and their fees</h6>
+                <p class="small text-muted mb-2">Hostels are in different locations and each sets its own prices, so a bigger room in one hostel can cost more than a smaller room in another. Check the hostel name and the price before you pay.</p>
+                <div id="hostelFeeList"><p class="text-muted small mb-0">Loading…</p></div>
+
+                <div class="row g-3 mt-1">
+                    <div class="col-md-7">
+                        <label for="preferred_hostel_id" class="form-label fw-bold small">Which hostel are you paying for? <span class="required-field">*</span></label>
+                        <select name="preferred_hostel_id" id="preferred_hostel_id" form="hostelApplicationForm" required
+                                class="form-select @error('preferred_hostel_id') is-invalid @enderror"
+                                data-old="{{ old('preferred_hostel_id') }}">
+                            <option value="">-- Choose the hostel you are paying for --</option>
+                        </select>
+                        @error('preferred_hostel_id')<div class="text-danger small">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="col-md-5">
+                        <label for="preferred_room_capacity" class="form-label fw-bold small">Room size <span class="required-field">*</span></label>
+                        <select name="preferred_room_capacity" id="preferred_room_capacity" form="hostelApplicationForm" required
+                                class="form-select @error('preferred_room_capacity') is-invalid @enderror"
+                                data-old="{{ old('preferred_room_capacity') }}">
+                            <option value="">-- Choose a hostel first --</option>
+                        </select>
+                        @error('preferred_room_capacity')<div class="text-danger small">{{ $message }}</div>@enderror
+                    </div>
                 </div>
-                <small class="text-muted">The hostel fee depends on how many students share the room. Pay the amount for the room type you want; a room is allocated based on availability and your payment.</small>
+                <small class="text-muted d-block mt-2">Pay the fee for this hostel and room size, using the payment plan you select below. A room is then allocated based on availability and your payment.</small>
             </div>
         </div>
     </div>
@@ -1350,17 +1364,75 @@ document.addEventListener('DOMContentLoaded', function() {
   var select = document.getElementById('campus_id');
   if (!select) return;
   var panel = document.getElementById('campusPayment');
-  var rows = document.getElementById('roomPriceRows');
+  var list = document.getElementById('hostelFeeList');
+  var hostelSel = document.getElementById('preferred_hostel_id');
+  var sizeSel = document.getElementById('preferred_room_capacity');
+  var genderSel = document.getElementById('gender');
+  var hostels = [];
+
   var naira = function (n) { return '₦' + Number(n).toLocaleString(); };
   var range = function (min, max) { return Number(min) === Number(max) ? naira(min) : naira(min) + ' – ' + naira(max); };
+  var esc = function (t) { var d = document.createElement('div'); d.textContent = (t === null || t === undefined) ? '' : t; return d.innerHTML; };
+  var cap = function (t) { t = t || ''; return t.charAt(0).toUpperCase() + t.slice(1); };
+  var sizeLabel = function (n) { return Number(n) === 1 ? '1 person per room' : n + ' persons per room'; };
   var set = function (cls, value) {
     document.querySelectorAll('.' + cls).forEach(function (el) { el.textContent = value; });
   };
+
+  // Only hostels that suit the applicant's gender (mixed hostels suit everyone).
+  function suits(h) {
+    var g = genderSel ? genderSel.value : '';
+    return !g || h.type === 'mixed' || h.type === g;
+  }
+
+  function hostelCard(h) {
+    var rows = h.rooms.map(function (r) {
+      var left = r.spaces_left > 0 ? '<span class="badge bg-success">Available</span>' : '<span class="badge bg-secondary">Full</span>';
+      return '<tr><td>' + sizeLabel(r.capacity) + '</td><td>' + range(r.semester_min, r.semester_max) + '</td><td>' + range(r.year_min, r.year_max) + '</td><td>' + left + '</td></tr>';
+    }).join('');
+    var where = h.address ? '<div class="small text-muted"><i class="fas fa-map-marker-alt me-1"></i>' + esc(h.address) + '</div>' : '';
+    return '<div class="border rounded p-3 mb-2 bg-white">' +
+      '<div class="mb-2"><strong>' + esc(h.name) + '</strong> <span class="badge bg-info text-dark">' + esc(cap(h.type)) + '</span>' + where + '</div>' +
+      '<div class="table-responsive"><table class="table table-sm table-bordered mb-0">' +
+      '<thead class="table-light"><tr><th>Room size</th><th>Per semester</th><th>Full year</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div></div>';
+  }
+
+  function renderSizes() {
+    var h = hostels.filter(function (x) { return String(x.id) === String(hostelSel.value); })[0];
+    var keep = sizeSel.value || sizeSel.dataset.old || '';
+    sizeSel.dataset.old = '';
+    if (!h) { sizeSel.innerHTML = '<option value="">-- Choose a hostel first --</option>'; return; }
+    sizeSel.innerHTML = '<option value="">-- Choose room size --</option>' + h.rooms.map(function (r) {
+      var full = r.spaces_left < 1;
+      return '<option value="' + r.capacity + '"' + (full ? ' disabled' : '') + '>' + sizeLabel(r.capacity) + ' (' +
+        range(r.semester_min, r.semester_max) + ' per semester, ' + range(r.year_min, r.year_max) + ' per year)' + (full ? ' – full' : '') + '</option>';
+    }).join('');
+    if (keep) sizeSel.value = keep;
+  }
+
+  function renderHostels() {
+    var shown = hostels.filter(suits);
+    if (!hostels.length) {
+      list.innerHTML = '<p class="text-muted small mb-0">Fees for this campus have not been published yet.</p>';
+    } else if (!shown.length) {
+      list.innerHTML = '<p class="text-muted small mb-0">There is no hostel for your gender on this campus yet.</p>';
+    } else {
+      list.innerHTML = shown.map(hostelCard).join('');
+    }
+    var keep = hostelSel.value || hostelSel.dataset.old || '';
+    hostelSel.dataset.old = '';
+    hostelSel.innerHTML = '<option value="">-- Choose the hostel you are paying for --</option>' + shown.map(function (h) {
+      return '<option value="' + h.id + '">' + esc(h.name) + ' (' + esc(cap(h.type)) + ')</option>';
+    }).join('');
+    if (keep && shown.some(function (h) { return String(h.id) === String(keep); })) hostelSel.value = keep;
+    renderSizes();
+  }
 
   function update() {
     var opt = select.options[select.selectedIndex];
     if (!select.value) {
       panel.style.display = 'none';
+      hostels = [];
       set('js-bank-name', 'Select your campus first'); set('js-account-number', ''); set('js-account-name', '');
       set('js-sc-bank', 'Select your campus first'); set('js-sc-account-number', ''); set('js-sc-account-name', ''); set('js-sc-amount', '');
       return;
@@ -1368,7 +1440,7 @@ document.addEventListener('DOMContentLoaded', function() {
     set('js-bank-name', opt.dataset.bank);
     set('js-account-number', opt.dataset.accountNumber);
     set('js-account-name', opt.dataset.accountName);
-    // Service charge: its own amount and its own account.
+    // Service charge: its own amount(s) and its own account.
     var notSet = 'Not set yet. Please contact the hostel office.';
     var scParts = [];
     if (opt.dataset.scAmount) scParts.push(naira(opt.dataset.scAmount) + ' per semester');
@@ -1378,20 +1450,17 @@ document.addEventListener('DOMContentLoaded', function() {
     set('js-sc-account-number', opt.dataset.scAccountNumber || '');
     set('js-sc-account-name', opt.dataset.scAccountName || '');
     panel.style.display = 'block';
-    rows.innerHTML = '<tr><td colspan="3" class="text-muted">Loading…</td></tr>';
+
+    list.innerHTML = '<p class="text-muted small mb-0">Loading…</p>';
     fetch('/campuses/' + select.value + '/room-prices', { headers: { 'Accept': 'application/json' } })
       .then(function (r) { return r.json(); })
-      .then(function (list) {
-        if (!list.length) { rows.innerHTML = '<tr><td colspan="3" class="text-muted">Fees for this campus have not been published yet.</td></tr>'; return; }
-        rows.innerHTML = list.map(function (r) {
-          var label = Number(r.capacity) === 1 ? '1 person per room' : r.capacity + ' persons per room';
-          return '<tr><td>' + label + '</td><td>' + range(r.semester_min, r.semester_max) + '</td><td>' + range(r.year_min, r.year_max) + '</td></tr>';
-        }).join('');
-      })
-      .catch(function () { rows.innerHTML = '<tr><td colspan="3" class="text-muted">Could not load fees. Please refresh.</td></tr>'; });
+      .then(function (data) { hostels = data; renderHostels(); })
+      .catch(function () { list.innerHTML = '<p class="text-muted small mb-0">Could not load fees. Please refresh.</p>'; });
   }
 
-  select.addEventListener('change', update);
+  select.addEventListener('change', function () { hostelSel.value = ''; update(); });
+  hostelSel.addEventListener('change', function () { sizeSel.value = ''; renderSizes(); });
+  if (genderSel) genderSel.addEventListener('change', renderHostels);
   update();
 })();
 </script>
