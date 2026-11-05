@@ -53,10 +53,10 @@
                         </div>
 
                         <h5 class="mt-4 mb-1">Service charge</h5>
-                        <p class="text-muted small mb-3">Applicants pay this separately from the hostel fee, into the account below, and upload its receipt.</p>
+                        <p class="text-muted small mb-3">Applicants pay this <strong>every semester</strong>, separately from the hostel fee, into the account below, and upload its receipt.</p>
                         <div class="row mb-3">
                             <div class="col-md-3">
-                                <label class="form-label" for="service_charge_amount">Amount (₦) <span class="text-danger">*</span></label>
+                                <label class="form-label" for="service_charge_amount">Amount per semester (₦) <span class="text-danger">*</span></label>
                                 <input type="number" step="0.01" min="0" id="service_charge_amount" name="service_charge_amount" class="form-control @error('service_charge_amount') is-invalid @enderror" value="{{ old('service_charge_amount', $campus->service_charge_amount) }}" required>
                                 @error('service_charge_amount')<div class="invalid-feedback">{{ $message }}</div>@enderror
                             </div>

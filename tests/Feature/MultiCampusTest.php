@@ -624,6 +624,8 @@ class MultiCampusTest extends TestCase
         // ...which differs from North's hostel fee account.
         $this->assertStringContainsString('data-account-number="0123456789"', $html);
 
+        // The service charge is clearly marked as per semester.
+        $this->assertStringContainsString('Service Charge (per semester)', $html);
         $this->assertStringContainsString('Service Charge Receipt', $html);
         $this->assertStringContainsString('Hostel Fee Receipt', $html);
 
@@ -639,6 +641,7 @@ class MultiCampusTest extends TestCase
         $this->asAdmin($this->adminNorth)->get(route('applications.show', $application))
             ->assertOk()
             ->assertSee('Service Charge Receipt')
+            ->assertSee('7,500.00 per semester')
             ->assertSee('9988776655')   // North's service charge account
             ->assertSee('0123456789');  // North's hostel fee account
     }

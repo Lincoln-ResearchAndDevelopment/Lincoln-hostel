@@ -178,7 +178,7 @@
                 @if($payCampus)
                 <div class="alert alert-light border small mb-3">
                     <strong>Check the receipts against {{ $payCampus->name }}'s accounts:</strong>
-                    <div>Service charge{{ $payCampus->service_charge_amount !== null ? ' (₦' . number_format($payCampus->service_charge_amount, 2) . ')' : '' }}:
+                    <div>Service charge{{ $payCampus->service_charge_amount !== null ? ' (₦' . number_format($payCampus->service_charge_amount, 2) . ' per semester)' : '' }}:
                         {{ $payCampus->service_charge_bank_name }}, <span class="font-monospace">{{ $payCampus->service_charge_account_number }}</span> ({{ $payCampus->service_charge_account_name }})</div>
                     <div>Hostel fee: {{ $payCampus->bank_name }}, <span class="font-monospace">{{ $payCampus->account_number }}</span> ({{ $payCampus->account_name }})</div>
                 </div>

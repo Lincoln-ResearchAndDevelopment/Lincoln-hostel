@@ -342,7 +342,7 @@
             <p class="small text-muted mb-3">You make <strong>two separate payments</strong>, each into its own account, and upload a receipt for each.</p>
 
             <div class="border rounded p-3 mb-3 bg-white">
-                <h6 class="fw-bold text-danger mb-3"><i class="fas fa-file-invoice-dollar me-2"></i>1. Service Charge: <span class="js-sc-amount"></span></h6>
+                <h6 class="fw-bold text-danger mb-3"><i class="fas fa-file-invoice-dollar me-2"></i>1. Service Charge (per semester): <span class="js-sc-amount"></span></h6>
                 <div class="row">
                     <div class="col-md-4 mb-2 mb-md-0 border-end-md">
                         <small class="text-muted d-block text-uppercase fw-bold" style="font-size: 0.75rem; letter-spacing: 0.5px;">Bank Name</small>
@@ -907,7 +907,7 @@
                         @error('applicationform_receipt')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
-                        <small class="text-muted">Receipt for the service charge payment (max 10MB)</small>
+                        <small class="text-muted">Receipt for the service charge payment, charged per semester (max 10MB)</small>
                     </div>
 
                     <div class="form-group file-input-group">
@@ -1092,7 +1092,7 @@
           <i class="fas fa-info-circle me-2"></i>
           Please make your payment to the account details below and upload your payment receipt through the form.
         </div>
-        <h6 class="fw-bold mt-3">1. Service Charge: <span class="js-sc-amount"></span></h6>
+        <h6 class="fw-bold mt-3">1. Service Charge (per semester): <span class="js-sc-amount"></span></h6>
         <div class="table-responsive">
           <table class="table table-striped table-hover">
             <thead class="table-dark">
@@ -1134,9 +1134,9 @@
         <div class="row mt-4">
           <div class="col-md-6">
             <div class="alert alert-warning">
-              <h6><i class="fas fa-money-bill-wave me-2"></i>Service Charge</h6>
+              <h6><i class="fas fa-money-bill-wave me-2"></i>Service Charge (per semester)</h6>
               <p class="mb-0"><strong>Amount: <span class="js-sc-amount"></span></strong><br>
-              <small>Fixed for your campus, paid into the service charge account</small></p>
+              <small>Charged every semester; fixed for your campus and paid into the service charge account</small></p>
             </div>
           </div>
           <div class="col-md-6">

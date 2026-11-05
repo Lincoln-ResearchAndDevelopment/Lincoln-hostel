@@ -48,7 +48,7 @@
                             <td>{{ $campus->code }}</td>
                             <td>{{ $campus->bank_name }}<div class="small font-monospace">{{ $campus->account_number }} — {{ $campus->account_name }}</div></td>
                             <td>
-                                @if($campus->service_charge_amount !== null)<strong>₦{{ number_format($campus->service_charge_amount, 2) }}</strong>@else<span class="badge bg-warning text-dark">Amount not set</span>@endif
+                                @if($campus->service_charge_amount !== null)<strong>₦{{ number_format($campus->service_charge_amount, 2) }}</strong> <span class="small text-muted">per semester</span>@else<span class="badge bg-warning text-dark">Amount not set</span>@endif
                                 <div class="small">{{ $campus->service_charge_bank_name }}</div>
                                 <div class="small font-monospace">{{ $campus->service_charge_account_number }} — {{ $campus->service_charge_account_name }}</div>
                             </td>
