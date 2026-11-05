@@ -36,7 +36,9 @@ class CampusController extends Controller
             'account_number' => 'required|string|max:50',
             'account_name' => 'required|string|max:255',
             // Service charge: its own amount and its own account (separate from the hostel fee account).
-            'service_charge_amount' => 'required|numeric|min:0|max:99999999',
+            // Per semester and/or per year: at least one must be set (like the hostel fee).
+            'service_charge_amount' => 'nullable|required_without:service_charge_amount_year|numeric|min:0|max:99999999',
+            'service_charge_amount_year' => 'nullable|required_without:service_charge_amount|numeric|min:0|max:99999999',
             'service_charge_bank_name' => 'required|string|max:255',
             'service_charge_account_number' => 'required|string|max:50',
             'service_charge_account_name' => 'required|string|max:255',

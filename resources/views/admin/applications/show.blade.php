@@ -178,7 +178,13 @@
                 @if($payCampus)
                 <div class="alert alert-light border small mb-3">
                     <strong>Check the receipts against {{ $payCampus->name }}'s accounts:</strong>
-                    <div>Service charge{{ $payCampus->service_charge_amount !== null ? ' (₦' . number_format($payCampus->service_charge_amount, 2) . ' per semester)' : '' }}:
+                    @php
+                        $scParts = array_filter([
+                            $payCampus->service_charge_amount !== null ? '₦' . number_format($payCampus->service_charge_amount, 2) . ' per semester' : null,
+                            $payCampus->service_charge_amount_year !== null ? '₦' . number_format($payCampus->service_charge_amount_year, 2) . ' per year' : null,
+                        ]);
+                    @endphp
+                    <div>Service charge{{ $scParts ? ' (' . implode(' / ', $scParts) . ')' : '' }}:
                         {{ $payCampus->service_charge_bank_name }}, <span class="font-monospace">{{ $payCampus->service_charge_account_number }}</span> ({{ $payCampus->service_charge_account_name }})</div>
                     <div>Hostel fee: {{ $payCampus->bank_name }}, <span class="font-monospace">{{ $payCampus->account_number }}</span> ({{ $payCampus->account_name }})</div>
                 </div>

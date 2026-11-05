@@ -41,6 +41,7 @@ class MultiCampusTest extends TestCase
             'account_number' => '0123456789',
             'account_name' => 'Lincoln North',
             'service_charge_amount' => 7500,
+            'service_charge_amount_year' => 15000,
             'service_charge_bank_name' => 'Sterling',
             'service_charge_account_number' => '9988776655',
             'service_charge_account_name' => 'Lincoln North Services',
@@ -599,7 +600,7 @@ class MultiCampusTest extends TestCase
             'name' => 'West Campus', 'code' => 'west', 'bank_name' => 'Access',
             'account_number' => '3333333333', 'account_name' => 'Lincoln West', 'is_active' => 1,
         ])->assertSessionHasErrors([
-            'service_charge_amount', 'service_charge_bank_name',
+            'service_charge_amount', 'service_charge_amount_year', 'service_charge_bank_name',
             'service_charge_account_number', 'service_charge_account_name',
         ]);
 
@@ -624,8 +625,10 @@ class MultiCampusTest extends TestCase
         // ...which differs from North's hostel fee account.
         $this->assertStringContainsString('data-account-number="0123456789"', $html);
 
-        // The service charge is clearly marked as per semester.
-        $this->assertStringContainsString('Service Charge (per semester)', $html);
+        // North sets both a per-semester and a per-year service charge; the page script labels each.
+        $this->assertStringContainsString('data-sc-amount-year="15000.00"', $html);
+        $this->assertStringContainsString("' per semester'", $html);
+        $this->assertStringContainsString("' per year'", $html);
         $this->assertStringContainsString('Service Charge Receipt', $html);
         $this->assertStringContainsString('Hostel Fee Receipt', $html);
 
@@ -642,7 +645,41 @@ class MultiCampusTest extends TestCase
             ->assertOk()
             ->assertSee('Service Charge Receipt')
             ->assertSee('7,500.00 per semester')
+            ->assertSee('15,000.00 per year')
             ->assertSee('9988776655')   // North's service charge account
             ->assertSee('0123456789');  // North's hostel fee account
+    }
+
+    public function test_service_charge_can_be_set_per_semester_per_year_or_both_but_not_neither(): void
+    {
+        $master = SuperAdmin::create([
+            'name' => 'Master', 'email' => 'm5@test.com', 'password' => bcrypt('password'),
+            'is_master' => true, 'is_active' => true,
+        ]);
+        $base = fn (string $code, array $amounts) => array_merge([
+            'name' => "Campus $code", 'code' => $code, 'bank_name' => 'Bank', 'account_number' => '1',
+            'account_name' => 'Acc', 'service_charge_bank_name' => 'Bank',
+            'service_charge_account_number' => '2', 'service_charge_account_name' => 'Svc', 'is_active' => 1,
+        ], $amounts);
+
+        // only per semester
+        $this->asMaster($master)->post(route('superadmin.campuses.store'), $base('S1', ['service_charge_amount' => 1000]))
+            ->assertSessionHasNoErrors();
+        // only per year
+        $this->asMaster($master)->post(route('superadmin.campuses.store'), $base('Y1', ['service_charge_amount_year' => 2500]))
+            ->assertSessionHasNoErrors();
+        // both
+        $this->asMaster($master)->post(route('superadmin.campuses.store'), $base('B1', ['service_charge_amount' => 1000, 'service_charge_amount_year' => 1800]))
+            ->assertSessionHasNoErrors();
+        // neither
+        $this->asMaster($master)->post(route('superadmin.campuses.store'), $base('N1', []))
+            ->assertSessionHasErrors(['service_charge_amount', 'service_charge_amount_year']);
+
+        $this->assertDatabaseHas('campuses', ['code' => 'Y1', 'service_charge_amount' => null, 'service_charge_amount_year' => 2500]);
+        $this->assertDatabaseHas('campuses', ['code' => 'B1', 'service_charge_amount' => 1000, 'service_charge_amount_year' => 1800]);
+        $this->assertDatabaseMissing('campuses', ['code' => 'N1']);
+
+        // A campus with only a yearly amount still shows on the application form without breaking it.
+        $this->get(route('apply'))->assertOk()->assertSee('data-sc-amount-year="2500.00"', false);
     }
 }

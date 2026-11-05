@@ -324,6 +324,7 @@
                         data-account-number="{{ $campus->account_number }}"
                         data-account-name="{{ $campus->account_name }}"
                         data-sc-amount="{{ $campus->service_charge_amount }}"
+                        data-sc-amount-year="{{ $campus->service_charge_amount_year }}"
                         data-sc-bank="{{ $campus->service_charge_bank_name }}"
                         data-sc-account-number="{{ $campus->service_charge_account_number }}"
                         data-sc-account-name="{{ $campus->service_charge_account_name }}"
@@ -342,7 +343,7 @@
             <p class="small text-muted mb-3">You make <strong>two separate payments</strong>, each into its own account, and upload a receipt for each.</p>
 
             <div class="border rounded p-3 mb-3 bg-white">
-                <h6 class="fw-bold text-danger mb-3"><i class="fas fa-file-invoice-dollar me-2"></i>1. Service Charge (per semester): <span class="js-sc-amount"></span></h6>
+                <h6 class="fw-bold text-danger mb-3"><i class="fas fa-file-invoice-dollar me-2"></i>1. Service Charge: <span class="js-sc-amount"></span></h6>
                 <div class="row">
                     <div class="col-md-4 mb-2 mb-md-0 border-end-md">
                         <small class="text-muted d-block text-uppercase fw-bold" style="font-size: 0.75rem; letter-spacing: 0.5px;">Bank Name</small>
@@ -907,7 +908,7 @@
                         @error('applicationform_receipt')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
-                        <small class="text-muted">Receipt for the service charge payment, charged per semester (max 10MB)</small>
+                        <small class="text-muted">Receipt for the service charge payment for your chosen plan, per semester or full year (max 10MB)</small>
                     </div>
 
                     <div class="form-group file-input-group">
@@ -1092,7 +1093,7 @@
           <i class="fas fa-info-circle me-2"></i>
           Please make your payment to the account details below and upload your payment receipt through the form.
         </div>
-        <h6 class="fw-bold mt-3">1. Service Charge (per semester): <span class="js-sc-amount"></span></h6>
+        <h6 class="fw-bold mt-3">1. Service Charge: <span class="js-sc-amount"></span></h6>
         <div class="table-responsive">
           <table class="table table-striped table-hover">
             <thead class="table-dark">
@@ -1134,9 +1135,9 @@
         <div class="row mt-4">
           <div class="col-md-6">
             <div class="alert alert-warning">
-              <h6><i class="fas fa-money-bill-wave me-2"></i>Service Charge (per semester)</h6>
+              <h6><i class="fas fa-money-bill-wave me-2"></i>Service Charge</h6>
               <p class="mb-0"><strong>Amount: <span class="js-sc-amount"></span></strong><br>
-              <small>Charged every semester; fixed for your campus and paid into the service charge account</small></p>
+              <small>Pay the amount for your payment plan (per semester or full year) into the service charge account</small></p>
             </div>
           </div>
           <div class="col-md-6">
@@ -1369,7 +1370,10 @@ document.addEventListener('DOMContentLoaded', function() {
     set('js-account-name', opt.dataset.accountName);
     // Service charge: its own amount and its own account.
     var notSet = 'Not set yet. Please contact the hostel office.';
-    set('js-sc-amount', opt.dataset.scAmount !== '' && opt.dataset.scAmount !== undefined ? naira(opt.dataset.scAmount) : 'amount not set yet');
+    var scParts = [];
+    if (opt.dataset.scAmount) scParts.push(naira(opt.dataset.scAmount) + ' per semester');
+    if (opt.dataset.scAmountYear) scParts.push(naira(opt.dataset.scAmountYear) + ' per year');
+    set('js-sc-amount', scParts.length ? scParts.join(' / ') : 'amount not set yet');
     set('js-sc-bank', opt.dataset.scBank || notSet);
     set('js-sc-account-number', opt.dataset.scAccountNumber || '');
     set('js-sc-account-name', opt.dataset.scAccountName || '');

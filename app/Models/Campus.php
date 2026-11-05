@@ -19,6 +19,7 @@ class Campus extends Model
         'account_number',
         'account_name',
         'service_charge_amount',
+        'service_charge_amount_year',
         'service_charge_bank_name',
         'service_charge_account_number',
         'service_charge_account_name',
@@ -28,6 +29,7 @@ class Campus extends Model
     protected $casts = [
         'is_active' => 'boolean',
         'service_charge_amount' => 'decimal:2',
+        'service_charge_amount_year' => 'decimal:2',
     ];
 
     public function hostels()
