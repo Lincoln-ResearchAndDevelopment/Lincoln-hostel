@@ -67,7 +67,9 @@ class LoginController extends Controller
     protected function attemptLogin(Request $request)
     {
         $credentials = $this->credentials($request);
-        $guardName = $this->guard();
+        // Guard *name*: SessionManagementService identifies guards by name. (guard() below
+        // must return the guard object for Laravel's AuthenticatesUsers trait.)
+        $guardName = 'web';
         
         // First, attempt authentication with Laravel's built-in method
         if (Auth::guard($guardName)->attempt($credentials, $request->boolean('remember'))) {
@@ -134,10 +136,14 @@ class LoginController extends Controller
     /**
      * Get the guard to be used during authentication.
      *
-     * @return string
+     * Must return the guard instance, not its name: AuthenticatesUsers::sendLoginResponse()
+     * calls $this->guard()->user(). Returning the string 'web' made every successful
+     * admin login end in "Call to a member function user() on string" (HTTP 500).
+     *
+     * @return \Illuminate\Contracts\Auth\StatefulGuard
      */
     protected function guard()
     {
-        return 'web';
+        return Auth::guard('web');
     }
 }
