@@ -379,15 +379,13 @@
 
                 <h6 class="fw-bold mt-4 mb-1">Hostels and their fees</h6>
                 <p class="small text-muted mb-2">Hostels are in different locations and each sets its own prices, so a bigger room in one hostel can cost more than a smaller room in another. Check the hostel name and the price before you pay.</p>
-                <div id="hostelFeeList"><p class="text-muted small mb-0">Loading…</p></div>
-
                 <div class="row g-3 mt-1">
                     <div class="col-md-7">
-                        <label for="preferred_hostel_id" class="form-label fw-bold small">Which hostel are you paying for? <span class="required-field">*</span></label>
+                        <label for="preferred_hostel_id" class="form-label fw-bold small">Choose your hostel <span class="required-field">*</span></label>
                         <select name="preferred_hostel_id" id="preferred_hostel_id" form="hostelApplicationForm" required
                                 class="form-select @error('preferred_hostel_id') is-invalid @enderror"
                                 data-old="{{ old('preferred_hostel_id') }}">
-                            <option value="">-- Choose the hostel you are paying for --</option>
+                            <option value="">-- Choose your hostel --</option>
                         </select>
                         @error('preferred_hostel_id')<div class="text-danger small">{{ $message }}</div>@enderror
                     </div>
@@ -401,6 +399,7 @@
                         @error('preferred_room_capacity')<div class="text-danger small">{{ $message }}</div>@enderror
                     </div>
                 </div>
+                <div id="hostelFeeList" class="mt-3"><p class="text-muted small mb-0">Loading…</p></div>
                 <small class="text-muted d-block mt-2">Pay the fee for this hostel and room size, using the payment plan you select below. A room is then allocated based on availability and your payment.</small>
             </div>
         </div>
@@ -1416,16 +1415,21 @@ document.addEventListener('DOMContentLoaded', function() {
       list.innerHTML = '<p class="text-muted small mb-0">Fees for this campus have not been published yet.</p>';
     } else if (!shown.length) {
       list.innerHTML = '<p class="text-muted small mb-0">There is no hostel for your gender on this campus yet.</p>';
-    } else {
-      list.innerHTML = shown.map(hostelCard).join('');
     }
     var keep = hostelSel.value || hostelSel.dataset.old || '';
     hostelSel.dataset.old = '';
-    hostelSel.innerHTML = '<option value="">-- Choose the hostel you are paying for --</option>' + shown.map(function (h) {
+    hostelSel.innerHTML = '<option value="">-- Choose your hostel --</option>' + shown.map(function (h) {
       return '<option value="' + h.id + '">' + esc(h.name) + ' (' + esc(cap(h.type)) + ')</option>';
     }).join('');
     if (keep && shown.some(function (h) { return String(h.id) === String(keep); })) hostelSel.value = keep;
     renderSizes();
+    showSelectedHostel();
+  }
+
+  function showSelectedHostel() {
+    var h = hostels.filter(function (x) { return String(x.id) === String(hostelSel.value); })[0];
+    if (h) list.innerHTML = hostelCard(h);
+    else if (hostels.filter(suits).length) list.innerHTML = '<p class="text-muted small mb-0">Choose a hostel above to see its address, room sizes and fees.</p>';
   }
 
   function update() {
@@ -1459,7 +1463,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   select.addEventListener('change', function () { hostelSel.value = ''; update(); });
-  hostelSel.addEventListener('change', function () { sizeSel.value = ''; renderSizes(); });
+  hostelSel.addEventListener('change', function () { sizeSel.value = ''; renderSizes(); showSelectedHostel(); });
   if (genderSel) genderSel.addEventListener('change', renderHostels);
   update();
 })();

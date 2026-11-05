@@ -853,6 +853,6 @@ class MultiCampusTest extends TestCase
         $this->get(route('apply'))->assertOk()
             ->assertSee('name="preferred_hostel_id"', false)
             ->assertSee('name="preferred_room_capacity"', false)
-            ->assertSee('Which hostel are you paying for?');
+            ->assertSee('Choose your hostel');
     }
 }
