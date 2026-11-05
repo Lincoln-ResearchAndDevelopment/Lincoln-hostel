@@ -40,6 +40,10 @@ class MultiCampusTest extends TestCase
             'bank_name' => 'GTBank',
             'account_number' => '0123456789',
             'account_name' => 'Lincoln North',
+            'service_charge_amount' => 7500,
+            'service_charge_bank_name' => 'Sterling',
+            'service_charge_account_number' => '9988776655',
+            'service_charge_account_name' => 'Lincoln North Services',
         ]);
 
         $this->adminMain = $this->makeAdmin('main@test.com', $this->main);
@@ -427,6 +431,10 @@ class MultiCampusTest extends TestCase
                 'bank_name' => 'Access',
                 'account_number' => '1111111111',
                 'account_name' => 'Lincoln East',
+                'service_charge_amount' => 5000,
+                'service_charge_bank_name' => 'Access',
+                'service_charge_account_number' => '2222222222',
+                'service_charge_account_name' => 'Lincoln East Services',
                 'is_active' => 1,
             ])
             ->assertRedirect(route('superadmin.campuses.index'));
@@ -576,5 +584,62 @@ class MultiCampusTest extends TestCase
         }
 
         $this->assertDatabaseMissing('users', ['email' => 'manager@test.com']);
+    }
+
+    // ---------------------------------------------------------------- service charge + two receipts
+
+    public function test_a_campus_needs_its_own_service_charge_amount_and_account(): void
+    {
+        $master = SuperAdmin::create([
+            'name' => 'Master', 'email' => 'm4@test.com', 'password' => bcrypt('password'),
+            'is_master' => true, 'is_active' => true,
+        ]);
+
+        $this->asMaster($master)->post(route('superadmin.campuses.store'), [
+            'name' => 'West Campus', 'code' => 'west', 'bank_name' => 'Access',
+            'account_number' => '3333333333', 'account_name' => 'Lincoln West', 'is_active' => 1,
+        ])->assertSessionHasErrors([
+            'service_charge_amount', 'service_charge_bank_name',
+            'service_charge_account_number', 'service_charge_account_name',
+        ]);
+
+        $this->assertDatabaseMissing('campuses', ['code' => 'WEST']);
+    }
+
+    public function test_existing_campus_keeps_its_account_for_the_service_charge_but_has_no_amount_yet(): void
+    {
+        // The migration copies the old single account across; the amount was never stored.
+        $this->assertSame($this->main->account_number, $this->main->service_charge_account_number);
+        $this->assertSame($this->main->bank_name, $this->main->service_charge_bank_name);
+        $this->assertNull($this->main->service_charge_amount);
+    }
+
+    public function test_application_form_shows_each_campuss_service_charge_and_the_two_receipt_labels(): void
+    {
+        $html = $this->get(route('apply'))->assertOk()->getContent();
+
+        // North's own service charge amount and separate account are offered to the page script.
+        $this->assertStringContainsString('data-sc-amount="7500.00"', $html);
+        $this->assertStringContainsString('data-sc-account-number="9988776655"', $html);
+        // ...which differs from North's hostel fee account.
+        $this->assertStringContainsString('data-account-number="0123456789"', $html);
+
+        $this->assertStringContainsString('Service Charge Receipt', $html);
+        $this->assertStringContainsString('Hostel Fee Receipt', $html);
+
+        // The old hardcoded ₦2,000 application form fee is gone.
+        $this->assertStringNotContainsString('2,000', $html);
+        $this->assertStringNotContainsString('2000 naira', $html);
+    }
+
+    public function test_admin_sees_the_applicants_campus_accounts_next_to_the_receipts(): void
+    {
+        $application = $this->makeApplication($this->north, 'N-SC-1');
+
+        $this->asAdmin($this->adminNorth)->get(route('applications.show', $application))
+            ->assertOk()
+            ->assertSee('Service Charge Receipt')
+            ->assertSee('9988776655')   // North's service charge account
+            ->assertSee('0123456789');  // North's hostel fee account
     }
 }

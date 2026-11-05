@@ -33,7 +33,7 @@
                             <input type="text" id="address" name="address" class="form-control" value="{{ old('address', $campus->address) }}">
                         </div>
 
-                        <h5 class="mt-4 mb-3">Payment account (shown to applicants of this campus)</h5>
+                        <h5 class="mt-4 mb-3">Hostel fee account (shown to applicants of this campus)</h5>
                         <div class="row mb-3">
                             <div class="col-md-4">
                                 <label class="form-label" for="bank_name">Bank <span class="text-danger">*</span></label>
@@ -49,6 +49,31 @@
                                 <label class="form-label" for="account_name">Account name <span class="text-danger">*</span></label>
                                 <input type="text" id="account_name" name="account_name" class="form-control @error('account_name') is-invalid @enderror" value="{{ old('account_name', $campus->account_name) }}" required>
                                 @error('account_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            </div>
+                        </div>
+
+                        <h5 class="mt-4 mb-1">Service charge</h5>
+                        <p class="text-muted small mb-3">Applicants pay this separately from the hostel fee, into the account below, and upload its receipt.</p>
+                        <div class="row mb-3">
+                            <div class="col-md-3">
+                                <label class="form-label" for="service_charge_amount">Amount (₦) <span class="text-danger">*</span></label>
+                                <input type="number" step="0.01" min="0" id="service_charge_amount" name="service_charge_amount" class="form-control @error('service_charge_amount') is-invalid @enderror" value="{{ old('service_charge_amount', $campus->service_charge_amount) }}" required>
+                                @error('service_charge_amount')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label" for="service_charge_bank_name">Bank <span class="text-danger">*</span></label>
+                                <input type="text" id="service_charge_bank_name" name="service_charge_bank_name" class="form-control @error('service_charge_bank_name') is-invalid @enderror" value="{{ old('service_charge_bank_name', $campus->service_charge_bank_name) }}" required>
+                                @error('service_charge_bank_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label" for="service_charge_account_number">Account number <span class="text-danger">*</span></label>
+                                <input type="text" id="service_charge_account_number" name="service_charge_account_number" class="form-control font-monospace @error('service_charge_account_number') is-invalid @enderror" value="{{ old('service_charge_account_number', $campus->service_charge_account_number) }}" required>
+                                @error('service_charge_account_number')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label" for="service_charge_account_name">Account name <span class="text-danger">*</span></label>
+                                <input type="text" id="service_charge_account_name" name="service_charge_account_name" class="form-control @error('service_charge_account_name') is-invalid @enderror" value="{{ old('service_charge_account_name', $campus->service_charge_account_name) }}" required>
+                                @error('service_charge_account_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                             </div>
                         </div>
 

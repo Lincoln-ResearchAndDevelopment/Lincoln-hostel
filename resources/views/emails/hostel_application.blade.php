@@ -6,12 +6,12 @@
     <img src="{{ $message->embed(public_path(parse_url($applicationData['passport_photo'], PHP_URL_PATH))) }}" alt="Passport Photo" width="150" />
 </p>
 
-<p><strong>Application Form Payment Receipt (#2000):</strong> {{ $applicationData['applicationform_receipt'] }}</p>
+<p><strong>Service Charge Receipt:</strong> {{ $applicationData['applicationform_receipt'] }}</p>
 <p>
-    <img src="{{ $message->embed(public_path(parse_url($applicationData['applicationform_receipt'], PHP_URL_PATH))) }}" alt="Application Form Receipt" width="150" />
+    <img src="{{ $message->embed(public_path(parse_url($applicationData['applicationform_receipt'], PHP_URL_PATH))) }}" alt="Service Charge Receipt" width="150" />
 </p>
 
-<p><strong>Hostel Fees Payment Receipt:</strong> {{ $applicationData['hostelfee_receipt'] }}</p>
+<p><strong>Hostel Fee Receipt:</strong> {{ $applicationData['hostelfee_receipt'] }}</p>
 <p>
     <img src="{{ $message->embed(public_path(parse_url($applicationData['hostelfee_receipt'], PHP_URL_PATH))) }}" alt="Hostel Fee Receipt" width="150" />
 </p>

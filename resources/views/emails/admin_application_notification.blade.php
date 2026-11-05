@@ -349,7 +349,7 @@
                 <li>✅ Passport Photo</li>
                 @endif
                 @if($application->applicationform_receipt)
-                <li>✅ Application Form Receipt</li>
+                <li>✅ Service Charge Receipt</li>
                 @endif
                 @if($application->hostelfee_receipt)
                 <li>✅ Hostel Fee Receipt</li>

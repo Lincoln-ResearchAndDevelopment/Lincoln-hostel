@@ -287,7 +287,7 @@
   <div class="info-button-container" tabindex="0" aria-label="Hostel application info">
     <div class="info-button">i</div>
     <div class="info-tooltip" role="tooltip">
-      STUDENTS register for hostel at the student affairs department and fill hostel application form for 2000 naira only.
+      STUDENTS apply for a hostel by paying the service charge and the hostel fee for their campus, then filling this application form and uploading both receipts.
             <br/><br/>
       <b>PAYMENT:</b> Students make payment online for a semester/year (may generate receipt online).
             <br/><br/>
@@ -323,6 +323,10 @@
                         data-bank="{{ $campus->bank_name }}"
                         data-account-number="{{ $campus->account_number }}"
                         data-account-name="{{ $campus->account_name }}"
+                        data-sc-amount="{{ $campus->service_charge_amount }}"
+                        data-sc-bank="{{ $campus->service_charge_bank_name }}"
+                        data-sc-account-number="{{ $campus->service_charge_account_number }}"
+                        data-sc-account-name="{{ $campus->service_charge_account_name }}"
                         {{ (string) $selectedCampusId === (string) $campus->id ? 'selected' : '' }}>
                     {{ $campus->name }}
                 </option>
@@ -332,36 +336,58 @@
         <small class="text-muted d-block mb-3">You can only apply for a hostel on the campus where you study.</small>
 
         <div id="campusPayment" style="display:none;">
-            <h5 class="card-title text-danger mb-3 fw-bold" style="font-size: 1.1rem;">
-                <i class="fas fa-university me-2"></i>Account Details for Payment
+            <h5 class="card-title text-danger mb-2 fw-bold" style="font-size: 1.1rem;">
+                <i class="fas fa-university me-2"></i>Payments for This Campus
             </h5>
-            <div class="row">
-                <div class="col-md-4 mb-2 mb-md-0 border-end-md">
-                    <small class="text-muted d-block text-uppercase fw-bold" style="font-size: 0.75rem; letter-spacing: 0.5px;">Bank Name</small>
-                    <div class="fw-bold text-dark js-bank-name"></div>
-                </div>
-                <div class="col-md-4 mb-2 mb-md-0 border-end-md">
-                    <small class="text-muted d-block text-uppercase fw-bold" style="font-size: 0.75rem; letter-spacing: 0.5px;">Account Number</small>
-                    <div class="fw-bold fs-5 text-danger font-monospace js-account-number"></div>
-                </div>
-                <div class="col-md-4">
-                    <small class="text-muted d-block text-uppercase fw-bold" style="font-size: 0.75rem; letter-spacing: 0.5px;">Account Name</small>
-                    <div class="fw-bold text-dark js-account-name"></div>
+            <p class="small text-muted mb-3">You make <strong>two separate payments</strong>, each into its own account, and upload a receipt for each.</p>
+
+            <div class="border rounded p-3 mb-3 bg-white">
+                <h6 class="fw-bold text-danger mb-3"><i class="fas fa-file-invoice-dollar me-2"></i>1. Service Charge: <span class="js-sc-amount"></span></h6>
+                <div class="row">
+                    <div class="col-md-4 mb-2 mb-md-0 border-end-md">
+                        <small class="text-muted d-block text-uppercase fw-bold" style="font-size: 0.75rem; letter-spacing: 0.5px;">Bank Name</small>
+                        <div class="fw-bold text-dark js-sc-bank"></div>
+                    </div>
+                    <div class="col-md-4 mb-2 mb-md-0 border-end-md">
+                        <small class="text-muted d-block text-uppercase fw-bold" style="font-size: 0.75rem; letter-spacing: 0.5px;">Account Number</small>
+                        <div class="fw-bold fs-5 text-danger font-monospace js-sc-account-number"></div>
+                    </div>
+                    <div class="col-md-4">
+                        <small class="text-muted d-block text-uppercase fw-bold" style="font-size: 0.75rem; letter-spacing: 0.5px;">Account Name</small>
+                        <div class="fw-bold text-dark js-sc-account-name"></div>
+                    </div>
                 </div>
             </div>
 
-            <h6 class="mt-4 mb-2 fw-bold text-danger"><i class="fas fa-bed me-2"></i>Hostel Fees for This Campus</h6>
-            <div class="table-responsive">
-                <table class="table table-sm table-bordered bg-white mb-1">
-                    <thead class="table-light">
-                        <tr><th>Room type</th><th>Per semester</th><th>Full year</th></tr>
-                    </thead>
-                    <tbody id="roomPriceRows">
-                        <tr><td colspan="3" class="text-muted">Loading…</td></tr>
-                    </tbody>
-                </table>
+            <div class="border rounded p-3 bg-white">
+                <h6 class="fw-bold text-danger mb-3"><i class="fas fa-bed me-2"></i>2. Hostel Fee</h6>
+                <div class="row">
+                    <div class="col-md-4 mb-2 mb-md-0 border-end-md">
+                        <small class="text-muted d-block text-uppercase fw-bold" style="font-size: 0.75rem; letter-spacing: 0.5px;">Bank Name</small>
+                        <div class="fw-bold text-dark js-bank-name"></div>
+                    </div>
+                    <div class="col-md-4 mb-2 mb-md-0 border-end-md">
+                        <small class="text-muted d-block text-uppercase fw-bold" style="font-size: 0.75rem; letter-spacing: 0.5px;">Account Number</small>
+                        <div class="fw-bold fs-5 text-danger font-monospace js-account-number"></div>
+                    </div>
+                    <div class="col-md-4">
+                        <small class="text-muted d-block text-uppercase fw-bold" style="font-size: 0.75rem; letter-spacing: 0.5px;">Account Name</small>
+                        <div class="fw-bold text-dark js-account-name"></div>
+                    </div>
+                </div>
+
+                <div class="table-responsive mt-3">
+                    <table class="table table-sm table-bordered bg-white mb-1">
+                        <thead class="table-light">
+                            <tr><th>Room type</th><th>Per semester</th><th>Full year</th></tr>
+                        </thead>
+                        <tbody id="roomPriceRows">
+                            <tr><td colspan="3" class="text-muted">Loading…</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <small class="text-muted">The hostel fee depends on how many students share the room. Pay the amount for the room type you want; a room is allocated based on availability and your payment.</small>
             </div>
-            <small class="text-muted">The fee depends on how many students share the room. Pay the amount for the room type you want; a room is allocated based on availability and your payment.</small>
         </div>
     </div>
   </div>
@@ -876,16 +902,16 @@
                     </div>
 
                     <div class="form-group file-input-group">
-                        <label for="applicationform_receipt">Application Form Receipt <span class="required-field">*</span></label>
+                        <label for="applicationform_receipt">Service Charge Receipt <span class="required-field">*</span></label>
                         <input type="file" name="applicationform_receipt" id="applicationform_receipt" accept="image/*,application/pdf" required class="@error('applicationform_receipt') is-invalid @enderror">
                         @error('applicationform_receipt')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
-                        <small class="text-muted">Receipt for ₦2,000 application form fee (max 10MB)</small>
+                        <small class="text-muted">Receipt for the service charge payment (max 10MB)</small>
                     </div>
 
                     <div class="form-group file-input-group">
-                        <label for="hostelfee_receipt">Hostel form fee <span class="required-field">*</span></label>
+                        <label for="hostelfee_receipt">Hostel Fee Receipt <span class="required-field">*</span></label>
                         <input type="file" name="hostelfee_receipt" id="hostelfee_receipt" accept="image/*,application/pdf" required class="@error('hostelfee_receipt') is-invalid @enderror">
                         @error('hostelfee_receipt')
                             <div class="invalid-feedback">{{ $message }}</div>
@@ -1066,6 +1092,26 @@
           <i class="fas fa-info-circle me-2"></i>
           Please make your payment to the account details below and upload your payment receipt through the form.
         </div>
+        <h6 class="fw-bold mt-3">1. Service Charge: <span class="js-sc-amount"></span></h6>
+        <div class="table-responsive">
+          <table class="table table-striped table-hover">
+            <thead class="table-dark">
+              <tr>
+                <th><i class="fas fa-university me-1"></i>Bank Name</th>
+                <th><i class="fas fa-hashtag me-1"></i>Account Number</th>
+                <th><i class="fas fa-user me-1"></i>Account Name</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong class="js-sc-bank">Select your campus first</strong></td>
+                <td><code class="fs-5 js-sc-account-number"></code></td>
+                <td><strong class="js-sc-account-name"></strong></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <h6 class="fw-bold mt-3">2. Hostel Fee</h6>
         <div class="table-responsive">
           <table class="table table-striped table-hover">
             <thead class="table-dark">
@@ -1088,14 +1134,14 @@
         <div class="row mt-4">
           <div class="col-md-6">
             <div class="alert alert-warning">
-              <h6><i class="fas fa-money-bill-wave me-2"></i>Application Form Fee</h6>
-              <p class="mb-0"><strong>Amount: ₦2,000</strong><br>
-              <small>One-time application processing fee</small></p>
+              <h6><i class="fas fa-money-bill-wave me-2"></i>Service Charge</h6>
+              <p class="mb-0"><strong>Amount: <span class="js-sc-amount"></span></strong><br>
+              <small>Fixed for your campus, paid into the service charge account</small></p>
             </div>
           </div>
           <div class="col-md-6">
             <div class="alert alert-success">
-              <h6><i class="fas fa-home me-2"></i>Hostel form fee</h6>
+              <h6><i class="fas fa-home me-2"></i>Hostel Fee</h6>
               <p class="mb-0">
                 <strong>Per Semester</strong><br>
                 <strong>Full Year</strong><br>
@@ -1107,7 +1153,7 @@
         
         <div class="alert alert-danger mt-3">
           <i class="fas fa-exclamation-triangle me-2"></i>
-          <strong>Important:</strong> After making your payment, kindly upload your payment receipt using the form above for verification. Both receipts (application form fee and hostel form fee) are required.
+          <strong>Important:</strong> After making your payment, kindly upload your payment receipt using the form above for verification. Both receipts (service charge and hostel fee) are required.
         </div>
       </div>
       <div class="modal-footer">
@@ -1315,11 +1361,18 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!select.value) {
       panel.style.display = 'none';
       set('js-bank-name', 'Select your campus first'); set('js-account-number', ''); set('js-account-name', '');
+      set('js-sc-bank', 'Select your campus first'); set('js-sc-account-number', ''); set('js-sc-account-name', ''); set('js-sc-amount', '');
       return;
     }
     set('js-bank-name', opt.dataset.bank);
     set('js-account-number', opt.dataset.accountNumber);
     set('js-account-name', opt.dataset.accountName);
+    // Service charge: its own amount and its own account.
+    var notSet = 'Not set yet. Please contact the hostel office.';
+    set('js-sc-amount', opt.dataset.scAmount !== '' && opt.dataset.scAmount !== undefined ? naira(opt.dataset.scAmount) : 'amount not set yet');
+    set('js-sc-bank', opt.dataset.scBank || notSet);
+    set('js-sc-account-number', opt.dataset.scAccountNumber || '');
+    set('js-sc-account-name', opt.dataset.scAccountName || '');
     panel.style.display = 'block';
     rows.innerHTML = '<tr><td colspan="3" class="text-muted">Loading…</td></tr>';
     fetch('/campuses/' + select.value + '/room-prices', { headers: { 'Accept': 'application/json' } })

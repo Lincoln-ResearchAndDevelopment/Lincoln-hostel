@@ -18,11 +18,16 @@ class Campus extends Model
         'bank_name',
         'account_number',
         'account_name',
+        'service_charge_amount',
+        'service_charge_bank_name',
+        'service_charge_account_number',
+        'service_charge_account_name',
         'is_active',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
+        'service_charge_amount' => 'decimal:2',
     ];
 
     public function hostels()

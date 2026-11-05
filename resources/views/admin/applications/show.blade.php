@@ -174,6 +174,15 @@
                 <h6 class="mb-0 fw-bold"><i class="fas fa-file-alt me-2" style="color: #cc0000;"></i>Submitted Documents</h6>
             </div>
             <div class="card-body">
+                @php $payCampus = $application->campus; @endphp
+                @if($payCampus)
+                <div class="alert alert-light border small mb-3">
+                    <strong>Check the receipts against {{ $payCampus->name }}'s accounts:</strong>
+                    <div>Service charge{{ $payCampus->service_charge_amount !== null ? ' (₦' . number_format($payCampus->service_charge_amount, 2) . ')' : '' }}:
+                        {{ $payCampus->service_charge_bank_name }}, <span class="font-monospace">{{ $payCampus->service_charge_account_number }}</span> ({{ $payCampus->service_charge_account_name }})</div>
+                    <div>Hostel fee: {{ $payCampus->bank_name }}, <span class="font-monospace">{{ $payCampus->account_number }}</span> ({{ $payCampus->account_name }})</div>
+                </div>
+                @endif
                 <div class="row g-3">
                     @if($application->passport_photo)
                     <div class="col-md-2 col-6">
@@ -188,7 +197,7 @@
                     <div class="col-md-2 col-6">
                         <div class="border rounded p-3 text-center h-100 d-flex flex-column justify-content-between">
                             <i class="fas fa-file-invoice-dollar fa-2x text-success mb-2"></i>
-                            <p class="small mb-2 fw-semibold">App. Receipt</p>
+                            <p class="small mb-2 fw-semibold">Service Charge Receipt</p>
                             <a href="{{ asset($application->applicationform_receipt) }}" target="_blank" class="btn btn-sm btn-outline-primary">View</a>
                         </div>
                     </div>
@@ -197,7 +206,7 @@
                     <div class="col-md-2 col-6">
                         <div class="border rounded p-3 text-center h-100 d-flex flex-column justify-content-between">
                             <i class="fas fa-receipt fa-2x text-success mb-2"></i>
-                            <p class="small mb-2 fw-semibold">Hostel Receipt</p>
+                            <p class="small mb-2 fw-semibold">Hostel Fee Receipt</p>
                             <a href="{{ asset($application->hostelfee_receipt) }}" target="_blank" class="btn btn-sm btn-outline-primary">View</a>
                         </div>
                     </div>
