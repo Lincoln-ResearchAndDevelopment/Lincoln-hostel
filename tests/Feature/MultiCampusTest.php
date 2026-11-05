@@ -533,4 +533,30 @@ class MultiCampusTest extends TestCase
             ->assertSessionHasErrors();
         $this->assertGuest('student');
     }
+
+    public function test_master_can_create_a_campus_admin_with_a_phone_number(): void
+    {
+        // Regression: users.phone had no migration, so creating any admin returned a 500.
+        $master = SuperAdmin::create([
+            'name' => 'Master', 'email' => 'm2@test.com', 'password' => bcrypt('password'),
+            'is_master' => true, 'is_active' => true,
+        ]);
+
+        $this->asMaster($master)->post(route('superadmin.admin-management.store'), [
+            'name' => 'North Warden',
+            'email' => 'warden@test.com',
+            'phone' => '08030000000',
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+            'role' => 'admin',
+            'campus_id' => $this->north->id,
+        ])->assertRedirect();
+
+        $this->assertDatabaseHas('users', [
+            'email' => 'warden@test.com',
+            'phone' => '08030000000',
+            'campus_id' => $this->north->id,
+            'is_admin' => 1,
+        ]);
+    }
 }
