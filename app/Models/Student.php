@@ -31,6 +31,7 @@ class Student extends Authenticatable
         'state_of_origin',
         'local_government',
         'profile_photo',
+        'program',
         'department',
         'semester',
         'intake',

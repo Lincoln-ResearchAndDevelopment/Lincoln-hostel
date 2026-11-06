@@ -363,8 +363,8 @@
                 
                 <!-- System Setup -->
                 <div class="nav-section-title">System Setup</div>
-                <a class="nav-link {{ request()->routeIs('admin.departments.index') ? 'active' : '' }}" href="{{ route('admin.departments.index') }}">
-                    <i class="fas fa-university"></i><span>Departments</span>
+                <a class="nav-link {{ request()->routeIs('admin.programs.index') ? 'active' : '' }}" href="{{ route('admin.programs.index') }}">
+                    <i class="fas fa-university"></i><span>Programs</span>
                 </a>
                 <a class="nav-link {{ request()->routeIs('admin.intakes.index') ? 'active' : '' }}" href="{{ route('admin.intakes.index') }}">
                     <i class="fas fa-calendar-check"></i><span>Intakes</span>

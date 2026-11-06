@@ -161,7 +161,7 @@
                             <thead class="bg-light">
                                 <tr>
                                     <th>Name</th>
-                                    <th>Department</th>
+                                    <th>Program</th>
                                     <th>Bed #</th>
                                     <th>Check-in Date</th>
                                     <th>Status</th>
@@ -180,7 +180,7 @@
                                             </div>
                                         </div>
                                     </td>
-                                    <td>{{ $roommate->department }}</td>
+                                    <td>{{ $roommate->program }}</td>
                                     <td>{{ $roommate->bed_id ? 'Bed #' . $roommate->bed_id : 'N/A' }}</td>
                                     <td>{{ $roommate->formatted_check_in_date }}</td>
                                     <td>{!! $roommate->status_badge !!}</td>

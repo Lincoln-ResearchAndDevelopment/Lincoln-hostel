@@ -147,8 +147,8 @@
                                 </td>
                                 <td><span class="badge bg-{{ $app->gender == 'male' ? 'primary' : 'danger' }}">{{ ucfirst($app->gender) }}</span></td>
                                 <td>
-                                    <small>{{ $app->department }}</small><br>
-                                    <small class="text-muted">{{ $app->program }}</small>
+                                    <small>{{ $app->program }}</small><br>
+                                    <small class="text-muted">{{ $app->department }}</small>
                                 </td>
                                 <td>
                                     @if($app->preferred_room_type)

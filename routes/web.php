@@ -43,6 +43,7 @@ Route::post('/contact', [ContactController::class, 'send'])->name('contact.send'
 */
 Route::get('/hostel/apply', [HostelApplicationController::class, 'create'])->name('apply');
 Route::post('/hostel/apply', [HostelApplicationController::class, 'store'])->name('hostel.apply');
+Route::get('/campuses/{campus}/academic-options', [HostelApplicationController::class, 'academicOptions'])->name('campus.academic-options');
 Route::get('/campuses/{campus}/room-prices', [HostelApplicationController::class, 'roomPrices'])->name('campus.room-prices');
 Route::get('/application/{applicationNumber}', [HostelApplicationController::class, 'show'])->name('application.show');
 Route::get('/check-application', function() {
@@ -345,10 +346,10 @@ Route::prefix('superadmin')->name('superadmin.')->middleware('web')->group(funct
 
 // Added on 2026-04-29: Dynamic Departments/Intakes + Safe Student Directory
 Route::middleware(['admin'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/departments', [\App\Http\Controllers\Admin\DepartmentController::class, 'index'])->name('departments.index');
-    Route::post('/departments', [\App\Http\Controllers\Admin\DepartmentController::class, 'store'])->name('departments.store');
-    Route::put('/departments/{department}', [\App\Http\Controllers\Admin\DepartmentController::class, 'update'])->name('departments.update');
-    Route::delete('/departments/{department}', [\App\Http\Controllers\Admin\DepartmentController::class, 'destroy'])->name('departments.destroy');
+    Route::get('/programs', [\App\Http\Controllers\Admin\ProgramController::class, 'index'])->name('programs.index');
+    Route::post('/programs', [\App\Http\Controllers\Admin\ProgramController::class, 'store'])->name('programs.store');
+    Route::put('/programs/{program}', [\App\Http\Controllers\Admin\ProgramController::class, 'update'])->name('programs.update');
+    Route::delete('/programs/{program}', [\App\Http\Controllers\Admin\ProgramController::class, 'destroy'])->name('programs.destroy');
 
     Route::get('/intakes', [\App\Http\Controllers\Admin\IntakeController::class, 'index'])->name('intakes.index');
     Route::post('/intakes', [\App\Http\Controllers\Admin\IntakeController::class, 'store'])->name('intakes.store');

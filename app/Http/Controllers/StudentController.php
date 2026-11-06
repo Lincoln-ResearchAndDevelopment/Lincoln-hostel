@@ -14,8 +14,8 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
-use App\Models\Department;
 use App\Models\Intake;
+use App\Models\Program;
 use Carbon\Carbon;
 use App\Traits\TracksEmails;
 
@@ -57,6 +57,7 @@ class StudentController extends Controller
                 $query->where(function($q) use ($search) {
                     $q->where('full_name', 'like', '%'.$search.'%')
                       ->orWhere('admission_number', 'like', '%'.$search.'%')
+                      ->orWhere('program', 'like', '%'.$search.'%')
                       ->orWhere('department', 'like', '%'.$search.'%')
                       ->orWhere('gender', 'like', '%'.$search.'%')
                       ->orWhere('contact_number', 'like', '%'.$search.'%')
@@ -73,9 +74,9 @@ class StudentController extends Controller
 
     public function create()
     {
-        $departments = Department::where('is_active', true)->orderBy('sort_order')->get();
+        $programs = Program::where('is_active', true)->orderBy('sort_order')->orderBy('name')->get();
         $intakes = Intake::where('is_active', true)->orderBy('sort_order')->get();
-        return view('students.create', compact('departments', 'intakes'));
+        return view('students.create', compact('programs', 'intakes'));
     }
 
     public function store(Request $request)
@@ -85,7 +86,8 @@ class StudentController extends Controller
             'full_name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email|max:255',
             'gender' => 'required|string|max:255',
-            'department' => 'required|string|max:255',
+            'program' => 'required|string|max:255',
+            'department' => 'nullable|string|max:255',
             'semester' => 'required|integer|min:1|max:20',
             'intake' => 'required|string|max:100', // Flexible intake
             'contact_number' => 'required|string|max:20',
@@ -123,6 +125,8 @@ class StudentController extends Controller
         $application = HostelApplication::where('student_id', $validated['admission_number'])
             ->where('status', 'approved')
             ->first();
+
+        $validated['department'] = $validated['department'] ?? '';
 
         $student = DB::transaction(function () use ($validated, $application, $request) {
             $user = User::create([
@@ -183,10 +187,10 @@ class StudentController extends Controller
                 ->get();
         }
 
-        $departments = Department::where('is_active', true)->orderBy('sort_order')->get();
+        $programs = Program::where('is_active', true)->orderBy('sort_order')->orderBy('name')->get();
         $intakes = Intake::where('is_active', true)->orderBy('sort_order')->get();
 
-        return view('students.edit', compact('student', 'availableRooms', 'availableBeds', 'departments', 'intakes'));
+        return view('students.edit', compact('student', 'availableRooms', 'availableBeds', 'programs', 'intakes'));
     }
 
     public function update(Request $request, Student $student)
@@ -195,7 +199,8 @@ class StudentController extends Controller
             'admission_number' => 'required|string|max:50|unique:students,admission_number,' . $student->id,
             'full_name' => 'required|string|max:255',
             'gender' => 'required|string|max:255',
-            'department' => 'required|string|max:255',
+            'program' => 'required|string|max:255',
+            'department' => 'nullable|string|max:255',
             'semester' => 'required|integer|min:1|max:20',
             'intake' => 'required|string|max:100',
             'room_id' => ['nullable', CampusContext::exists('rooms')],
@@ -261,6 +266,7 @@ class StudentController extends Controller
                 
                 // Remove bed_id and room_id from validated array (already handled by service)
                 unset($validated['bed_id'], $validated['room_id']);
+                $validated['department'] = $validated['department'] ?? '';
                 
                 $student->update($validated);
 

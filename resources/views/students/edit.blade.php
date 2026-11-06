@@ -52,19 +52,34 @@
                             </div>
                         </div>
 
+                        <!-- Program Field -->
+                        <div class="form-group row mb-3">
+                            <label for="program" class="col-md-4 col-form-label text-md-right">{{ __('Program') }}</label>
+                            <div class="col-md-6">
+                                <select id="program" 
+                                        class="form-select @error('program') is-invalid @enderror" 
+                                        name="program" 
+                                        required>
+                                    <option value="">Select Program</option>
+                                    @foreach($programs as $prog)
+                                        <option value="{{ $prog->name }}" {{ old('program', $student->program) == $prog->name ? 'selected' : '' }}>{{ $prog->name }}</option>
+                                    @endforeach
+                                </select>
+                                @error('program')
+                                    <span class="invalid-feedback" role="alert">
+                                        <strong>{{ $message }}</strong>
+                                    </span>
+                                @enderror
+                            </div>
+                        </div>
+
                         <!-- Department Field -->
                         <div class="form-group row mb-3">
                             <label for="department" class="col-md-4 col-form-label text-md-right">{{ __('Department') }}</label>
                             <div class="col-md-6">
-                                <select id="department" 
-                                        class="form-select @error('department') is-invalid @enderror" 
-                                        name="department" 
-                                        required>
-                                    <option value="">Select Department</option>
-                                    @foreach($departments as $dept)
-                                        <option value="{{ $dept->name }}" {{ old('department', $student->department) == $dept->name ? 'selected' : '' }}>{{ $dept->name }}</option>
-                                    @endforeach
-                                </select>
+                                <input id="department" type="text"
+                                       class="form-control @error('department') is-invalid @enderror"
+                                       name="department" value="{{ old('department', $student->department) }}">
                                 @error('department')
                                     <span class="invalid-feedback" role="alert">
                                         <strong>{{ $message }}</strong>

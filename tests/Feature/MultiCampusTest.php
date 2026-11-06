@@ -166,6 +166,8 @@ class MultiCampusTest extends TestCase
         $campus = isset($overrides['campus_id']) ? Campus::find($overrides['campus_id']) : null;
         if ($campus) {
             $this->payloadHostels[$campus->id] ??= $this->makeHostel($campus, 'PAY', 'female', 2)[0];
+            \App\Models\Program::withoutGlobalScopes()->firstOrCreate(['campus_id' => $campus->id, 'name' => 'BSc']);
+            \App\Models\Intake::withoutGlobalScopes()->firstOrCreate(['campus_id' => $campus->id, 'name' => 'July 2026']);
             $choice = ['preferred_hostel_id' => $this->payloadHostels[$campus->id]->id, 'preferred_room_capacity' => 2];
         }
 
@@ -539,7 +541,7 @@ class MultiCampusTest extends TestCase
     {
         $theirs = Student::create([
             'campus_id' => $this->north->id, 'admission_number' => 'N-STU-9', 'full_name' => 'North Person',
-            'email' => 'np@test.com', 'gender' => 'male', 'department' => 'CS', 'semester' => 1,
+            'email' => 'np@test.com', 'gender' => 'male', 'program' => 'BSc', 'department' => 'CS', 'semester' => 1,
             'intake' => 'July 2026', 'contact_number' => '08000000009', 'emergency_contact' => '08000000008',
             'address' => 'x', 'status' => 'active',
         ]);
@@ -555,7 +557,7 @@ class MultiCampusTest extends TestCase
     {
         $student = Student::create([
             'campus_id' => $this->north->id, 'admission_number' => 'N-STU-2', 'full_name' => 'North Login',
-            'email' => 'nl@test.com', 'gender' => 'male', 'department' => 'CS', 'semester' => 1,
+            'email' => 'nl@test.com', 'gender' => 'male', 'program' => 'BSc', 'department' => 'CS', 'semester' => 1,
             'intake' => 'July 2026', 'contact_number' => '08031234567', 'emergency_contact' => '08000000002',
             'address' => 'x', 'status' => 'active',
         ]);
@@ -569,7 +571,7 @@ class MultiCampusTest extends TestCase
     {
         Student::create([
             'campus_id' => $this->north->id, 'admission_number' => 'N-STU-3', 'full_name' => 'North Wrong',
-            'email' => 'nw@test.com', 'gender' => 'male', 'department' => 'CS', 'semester' => 1,
+            'email' => 'nw@test.com', 'gender' => 'male', 'program' => 'BSc', 'department' => 'CS', 'semester' => 1,
             'intake' => 'July 2026', 'contact_number' => '08031234567', 'emergency_contact' => '08000000002',
             'address' => 'x', 'status' => 'active',
         ]);
@@ -854,5 +856,73 @@ class MultiCampusTest extends TestCase
             ->assertSee('name="preferred_hostel_id"', false)
             ->assertSee('name="preferred_room_capacity"', false)
             ->assertSee('Choose your hostel');
+    }
+
+    public function test_academic_options_list_only_that_campuses_programs_and_intakes(): void
+    {
+        \App\Models\Program::withoutGlobalScopes()->create(['campus_id' => $this->north->id, 'name' => 'Nursing']);
+        \App\Models\Program::withoutGlobalScopes()->create(['campus_id' => $this->main->id, 'name' => 'Law']);
+        \App\Models\Intake::withoutGlobalScopes()->create(['campus_id' => $this->main->id, 'name' => 'May 2027']);
+
+        $this->getJson("/campuses/{$this->north->id}/academic-options")->assertOk()
+            ->assertJson(['programs' => ['Nursing'], 'intakes' => []]);
+        $this->getJson("/campuses/{$this->main->id}/academic-options")->assertOk()
+            ->assertJson(['programs' => ['Law'], 'intakes' => ['May 2027']]);
+    }
+
+    public function test_application_rejects_a_program_from_another_campus_and_department_is_optional(): void
+    {
+        \App\Models\Program::withoutGlobalScopes()->create(['campus_id' => $this->main->id, 'name' => 'Law']);
+
+        $this->post('/hostel/apply', $this->applicationPayload(['campus_id' => $this->north->id, 'program' => 'Law']))
+            ->assertSessionHasErrors('program');
+
+        $this->post('/hostel/apply', $this->applicationPayload(['campus_id' => $this->north->id, 'department' => null]))
+            ->assertSessionHasNoErrors();
+        $this->assertSame('', HostelApplication::withoutGlobalScopes()->latest('id')->first()->department);
+    }
+
+    public function test_program_and_intake_lists_are_managed_per_campus(): void
+    {
+        $this->asAdmin($this->adminNorth)->post('/admin/programs', ['name' => 'Nursing'])->assertSessionHasNoErrors();
+        $this->asAdmin($this->adminNorth)->post('/admin/intakes', ['name' => 'July 2026'])->assertSessionHasNoErrors();
+
+        $this->assertSame($this->north->id, (int) \App\Models\Program::withoutGlobalScopes()->where('name', 'Nursing')->value('campus_id'));
+        $this->assertSame($this->north->id, (int) \App\Models\Intake::withoutGlobalScopes()->where('name', 'July 2026')->value('campus_id'));
+
+        // Same names are fine on another campus, and each admin only sees their own list.
+        $this->asAdmin($this->adminMain)->post('/admin/programs', ['name' => 'Nursing'])->assertSessionHasNoErrors();
+        $this->assertSame(1, \App\Models\Program::withoutGlobalScopes()->where('campus_id', $this->main->id)->count());
+        $this->asAdmin($this->adminMain)->get('/admin/programs')->assertOk()->assertSee('Nursing');
+    }
+
+    public function test_approval_copies_program_and_department_to_the_student(): void
+    {
+        [$hostel, $room, $beds] = $this->makeHostel($this->north, 'PRG', 'male', 2);
+        $application = $this->makeApplication($this->north, 'N-PRG-1');
+        $application->update(['program' => 'Nursing', 'department' => 'Health Sciences']);
+
+        $this->asAdmin($this->adminNorth)
+            ->post(route('applications.approve-assign', $application), [
+                'hostel_id' => $hostel->id, 'room_id' => $room->id, 'bed_id' => $beds[0]->id,
+            ])->assertSessionHasNoErrors();
+
+        $student = Student::withoutGlobalScopes()->where('admission_number', 'N-PRG-1')->firstOrFail();
+        $this->assertSame('Nursing', $student->program);
+        $this->assertSame('Health Sciences', $student->department);
+    }
+
+    public function test_migration_swaps_old_program_and_department_values(): void
+    {
+        $application = $this->makeApplication($this->north, 'N-OLD-1');
+        // Old meaning: `program` was typed text, `department` was the dropdown value.
+        $application->update(['program' => 'BSc typed', 'department' => 'Nursing']);
+
+        $migration = require base_path('database/migrations/2026_11_06_000001_create_programs_and_campus_intakes.php');
+        $migration->up();
+
+        $fresh = HostelApplication::withoutGlobalScopes()->find($application->id);
+        $this->assertSame('Nursing', $fresh->program);
+        $this->assertSame('BSc typed', $fresh->department);
     }
 }

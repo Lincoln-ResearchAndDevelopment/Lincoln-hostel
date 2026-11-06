@@ -118,6 +118,7 @@ class StudentsDashboardController extends Controller
         $roommates = $student->room->students()->select([
             'students.id', 
             'students.full_name', 
+            'students.program', 
             'students.department', 
             'students.bed_id', 
             'students.check_in_date', 
@@ -516,12 +517,13 @@ class StudentsDashboardController extends Controller
     public function directory(Request $request)
     {
         $search = $request->get('search');
-        $department = $request->get('department');
+        $program = $request->get('program');
         
         $query = \App\Models\Student::where('status', 'active')
             ->select([
                 'id', 
                 'full_name', 
+                'program', 
                 'department', 
                 'semester', 
                 'intake', 
@@ -533,13 +535,13 @@ class StudentsDashboardController extends Controller
             $query->where('full_name', 'like', "%{$search}%");
         }
 
-        if ($department) {
-            $query->where('department', $department);
+        if ($program) {
+            $query->where('program', $program);
         }
 
         $students = $query->orderBy('full_name')->paginate(20);
-        $departments = \App\Models\Department::where('is_active', true)->orderBy('name')->get();
+        $programs = \App\Models\Program::where('is_active', true)->orderBy('name')->get();
 
-        return view('student.directory', compact('students', 'departments'));
+        return view('student.directory', compact('students', 'programs'));
     }
 }

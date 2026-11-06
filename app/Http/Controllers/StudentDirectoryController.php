@@ -16,7 +16,7 @@ class StudentDirectoryController extends Controller
         }
 
         $students = Student::where('room_id', $student->room_id)
-            ->select('id', 'full_name', 'admission_number', 'department', 'semester', 'intake')
+            ->select('id', 'full_name', 'admission_number', 'program', 'department', 'semester', 'intake')
             ->orderBy('full_name')
             ->get();
 

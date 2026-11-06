@@ -103,19 +103,35 @@
                         </div>
 
                         <div class="row mb-3">
-                            <label for="department" class="col-md-4 col-form-label text-md-end">
-                                {{ __('Department') }} <span class="text-danger">*</span>
+                            <label for="program" class="col-md-4 col-form-label text-md-end">
+                                {{ __('Program') }} <span class="text-danger">*</span>
                             </label>
                             <div class="col-md-6">
-                                <select id="department" 
-                                        class="form-select @error('department') is-invalid @enderror" 
-                                        name="department" 
+                                <select id="program" 
+                                        class="form-select @error('program') is-invalid @enderror" 
+                                        name="program" 
                                         required>
-                                    <option value="">Select Department</option>
-                                    @foreach($departments as $dept)
-                                        <option value="{{ $dept->name }}" {{ old('department') == $dept->name ? 'selected' : '' }}>{{ $dept->name }}</option>
+                                    <option value="">Select Program</option>
+                                    @foreach($programs as $prog)
+                                        <option value="{{ $prog->name }}" {{ old('program') == $prog->name ? 'selected' : '' }}>{{ $prog->name }}</option>
                                     @endforeach
                                 </select>
+                                @error('program')
+                                    <span class="invalid-feedback" role="alert">
+                                        <strong>{{ $message }}</strong>
+                                    </span>
+                                @enderror
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <label for="department" class="col-md-4 col-form-label text-md-end">
+                                {{ __('Department') }}
+                            </label>
+                            <div class="col-md-6">
+                                <input id="department" type="text"
+                                       class="form-control @error('department') is-invalid @enderror"
+                                       name="department" value="{{ old('department') }}">
                                 @error('department')
                                     <span class="invalid-feedback" role="alert">
                                         <strong>{{ $message }}</strong>
@@ -432,6 +448,7 @@
             full_name: document.getElementById('full_name'),
             email: document.getElementById('email'),
             gender: document.getElementById('gender'),
+            program: document.getElementById('program'),
             department: document.getElementById('department'),
             contact_number: document.getElementById('contact_number'),
             emergency_contact: document.getElementById('emergency_contact'),
@@ -467,7 +484,7 @@
                                             <div class="fw-bold text-primary">${item.full_name}</div>
                                             <div class="small text-muted">
                                                 <i class="fas fa-id-card me-1"></i>${item.student_id} | 
-                                                <i class="fas fa-graduation-cap me-1"></i>${item.department}
+                                                <i class="fas fa-graduation-cap me-1"></i>${item.program}
                                             </div>
                                         </div>
                                         <span class="badge bg-primary rounded-pill"><i class="fas fa-plus"></i></span>
@@ -497,7 +514,8 @@
             
             // Handle selects
             if (item.gender) setSelectedValue(fields.gender, item.gender);
-            if (item.department) setSelectedValue(fields.department, item.department);
+            if (item.program) setSelectedValue(fields.program, item.program);
+            fields.department.value = item.department || '';
             if (item.intake) setSelectedValue(fields.intake, item.intake);
             
             // Default Semester to 1 for new students

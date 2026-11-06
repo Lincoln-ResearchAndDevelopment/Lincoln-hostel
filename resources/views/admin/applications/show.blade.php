@@ -87,7 +87,7 @@
             <div class="card-body">
                 <div class="row g-3">
                     <div class="col-6"><label class="text-muted small">Program</label><p class="mb-0">{{ $application->program }}</p></div>
-                    <div class="col-6"><label class="text-muted small">Department</label><p class="mb-0">{{ $application->department }}</p></div>
+                    <div class="col-6"><label class="text-muted small">Department</label><p class="mb-0">{{ $application->department ?: '-' }}</p></div>
                     <div class="col-6"><label class="text-muted small">Intake</label><p class="mb-0 fw-semibold">{{ $application->intake }}</p></div>
                     <div class="col-6"><label class="text-muted small">Academic Year</label><p class="mb-0">{{ $application->academic_year }}</p></div>
                     <div class="col-12">

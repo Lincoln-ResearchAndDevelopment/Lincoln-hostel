@@ -22,18 +22,30 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use App\Traits\TracksEmails;
 
-use App\Models\Department;
 use App\Models\Intake;
+use App\Models\Program;
 
 class HostelApplicationController extends Controller
 {
     use TracksEmails;
     public function create()
     {
-        $departments = Department::where('is_active', true)->orderBy('sort_order')->orderBy('name')->get();
-        $intakes = Intake::where('is_active', true)->orderBy('sort_order')->orderBy('name')->get();
         $campuses = Campus::active()->orderBy('name')->get();
-        return view('apply', compact('departments', 'intakes', 'campuses'));
+        return view('apply', compact('campuses'));
+    }
+
+    /**
+     * Programs and intakes offered by one campus (the application form fills its
+     * dropdowns from this once the applicant has chosen a campus).
+     */
+    public function academicOptions(Campus $campus)
+    {
+        $programs = Program::withoutGlobalScopes()->where('campus_id', $campus->id)->where('is_active', true)
+            ->orderBy('sort_order')->orderBy('name')->pluck('name');
+        $intakes = Intake::withoutGlobalScopes()->where('campus_id', $campus->id)->where('is_active', true)
+            ->orderBy('sort_order')->orderBy('name')->pluck('name');
+
+        return response()->json(['programs' => $programs, 'intakes' => $intakes]);
     }
 
     public function store(Request $request)
@@ -57,9 +69,11 @@ class HostelApplicationController extends Controller
             // Student Information
             'full_name' => 'required|string|max:255',
             'student_id' => 'required|string|max:255|unique:hostel_applications,student_id',
-            'intake' => 'required|string|max:255',
-            'program' => 'required|string|max:255',
-            'department' => 'required|string|max:255',
+            'intake' => ['required', 'string', 'max:255', \Illuminate\Validation\Rule::exists('intakes', 'name')
+                ->where('campus_id', $request->input('campus_id'))->where('is_active', true)],
+            'program' => ['required', 'string', 'max:255', \Illuminate\Validation\Rule::exists('programs', 'name')
+                ->where('campus_id', $request->input('campus_id'))->where('is_active', true)],
+            'department' => 'nullable|string|max:255',
             'gender' => 'required|in:male,female',
             'date_of_birth' => 'required|date|before:today',
             'phone_number' => 'required|string|max:20',
@@ -149,6 +163,7 @@ class HostelApplicationController extends Controller
         }
 
         $validated = $validator->validated();
+        $validated['department'] = $validated['department'] ?? '';
 
         // Handle file uploads
         $fileFields = [
@@ -568,7 +583,8 @@ class HostelApplicationController extends Controller
                     'nationality' => $application->nationality,
                     'state_of_origin' => $application->state_of_origin,
                     'local_government' => $application->local_government,
-                    'department' => $application->department,
+                    'program' => $application->program,
+                    'department' => $application->department ?? '',
                     'intake' => $application->intake,
                     'semester' => 1,
                     'contact_number' => $application->phone_number,
@@ -587,7 +603,8 @@ class HostelApplicationController extends Controller
                 // Update existing student with latest application info
                 $student->update([
                     'application_id' => $application->id,
-                    'department' => $application->department,
+                    'program' => $application->program,
+                    'department' => $application->department ?? '',
                     'intake' => $application->intake,
                 ]);
             }

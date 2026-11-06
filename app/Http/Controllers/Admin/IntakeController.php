@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Intake;
+use App\Support\CampusContext;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class IntakeController extends Controller
 {
@@ -16,8 +18,13 @@ class IntakeController extends Controller
 
     public function store(Request $request)
     {
+        $campusId = CampusContext::currentCampusId();
+        if (!$campusId) {
+            return back()->withInput()->with('error', 'Choose the campus you are working in first (Super Admin > Campuses > Switch), then add the intake.');
+        }
+
         $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:intakes,name',
+            'name' => ['required', 'string', 'max:255', Rule::unique('intakes', 'name')->where('campus_id', $campusId)],
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
             'sort_order' => 'nullable|integer|min:0',
@@ -29,6 +36,7 @@ class IntakeController extends Controller
             'end_date' => $validated['end_date'] ?? null,
             'sort_order' => $validated['sort_order'] ?? 0,
             'is_active' => true,
+            'campus_id' => $campusId,
         ]);
 
         return back()->with('success', 'Intake created successfully.');
@@ -37,7 +45,7 @@ class IntakeController extends Controller
     public function update(Request $request, Intake $intake)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:intakes,name,' . $intake->id,
+            'name' => ['required', 'string', 'max:255', Rule::unique('intakes', 'name')->where('campus_id', $intake->campus_id)->ignore($intake->id)],
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
             'sort_order' => 'nullable|integer|min:0',

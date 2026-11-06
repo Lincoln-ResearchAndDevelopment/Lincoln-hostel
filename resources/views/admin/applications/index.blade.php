@@ -75,8 +75,8 @@
                         <small class="text-muted">{{ $application->phone_number }}</small>
                     </td>
                     <td>
-                        <small>{{ $application->department }}</small><br>
-                        <small class="text-muted">{{ $application->program }}</small>
+                        <small>{{ $application->program }}</small><br>
+                        <small class="text-muted">{{ $application->department }}</small>
                     </td>
                     <td>{!! $application->status_badge !!}</td>
                     <td>{{ $application->created_at->format('M d, Y') }}</td>

@@ -10,7 +10,7 @@
                 <div class="row align-items-center">
                     <div class="col-md-6 text-white">
                         <h3 class="fw-bold mb-1">Student Community</h3>
-                        <p class="opacity-75 mb-0">Connect and collaborate with your peers across departments.</p>
+                        <p class="opacity-75 mb-0">Connect and collaborate with your peers across programs.</p>
                     </div>
                     <div class="col-md-6 mt-3 mt-md-0">
                         <form action="{{ route('student.directory') }}" method="GET" class="row g-2">
@@ -21,10 +21,10 @@
                                 </div>
                             </div>
                             <div class="col-sm-5">
-                                <select name="department" class="form-select border-0 shadow-sm" onchange="this.form.submit()">
-                                    <option value="">All Departments</option>
-                                    @foreach($departments as $dept)
-                                        <option value="{{ $dept->name }}" {{ request('department') == $dept->name ? 'selected' : '' }}>{{ $dept->name }}</option>
+                                <select name="program" class="form-select border-0 shadow-sm" onchange="this.form.submit()">
+                                    <option value="">All Programs</option>
+                                    @foreach($programs as $prog)
+                                        <option value="{{ $prog->name }}" {{ request('program') == $prog->name ? 'selected' : '' }}>{{ $prog->name }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -51,7 +51,7 @@
                     
                     <h5 class="fw-bold text-dark mb-1">{{ $entry->full_name }}</h5>
                     <div class="badge bg-soft-primary text-primary mb-3 px-3 py-2 rounded-pill" style="background-color: rgba(52, 152, 219, 0.1);">
-                        <i class="fas fa-graduation-cap me-1 small"></i> {{ $entry->department }}
+                        <i class="fas fa-graduation-cap me-1 small"></i> {{ $entry->program }}
                     </div>
                     
                     <div class="d-flex justify-content-center gap-4 text-muted small border-top pt-3">

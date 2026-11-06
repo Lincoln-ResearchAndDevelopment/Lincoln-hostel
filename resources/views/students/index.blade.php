@@ -63,6 +63,7 @@
                                     <th style="white-space: nowrap;">Application #</th> <!-- Added Column -->
                                     <th>Name</th>
                                     <th>Gender</th>
+                                    <th>Program</th>
                                     <th>Department</th>
                                     <th>Semester</th>
                                     <th>Intake</th>
@@ -86,6 +87,7 @@
                                         </td>
                                         <td class="fw-bold">{{ $student->full_name }}</td>
                                         <td>{{ ucfirst($student->gender) }}</td> 
+                                        <td>{{ $student->program }}</td>
                                         <td>{{ $student->department }}</td>
                                         <td>{{ $student->semester }}</td>
                                         <td>{{ $student->intake }}</td>

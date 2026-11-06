@@ -231,6 +231,12 @@
                     @endif
                     <div class="col-md-6">
                         <div class="p-3 bg-light rounded">
+                            <small class="text-muted d-block text-uppercase">Program</small>
+                            <span class="fw-bold">{{ $student->program }}</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded">
                             <small class="text-muted d-block text-uppercase">Department</small>
                             <span class="fw-bold">{{ $student->department }}</span>
                         </div>
@@ -258,7 +264,7 @@
                     <thead class="bg-light">
                         <tr>
                             <th class="ps-4">Name</th>
-                            <th>Department</th>
+                            <th>Program</th>
                             <th>Check-in</th>
                         </tr>
                     </thead>
@@ -266,7 +272,7 @@
                         @forelse($student->room->students->where('id', '!=', $student->id) as $roommate)
                         <tr>
                             <td class="ps-4 fw-medium">{{ $roommate->full_name }}</td>
-                            <td>{{ $roommate->department }}</td>
+                            <td>{{ $roommate->program }}</td>
                             <td>{{ $roommate->formatted_check_in_date }}</td>
                         </tr>
                         @empty

@@ -23,6 +23,7 @@
                             @endif
                             <p><strong>Full Name:</strong> {{ $student->full_name }}</p>
                             <p><strong>Gender:</strong> {{ $student->gender ?? 'Not Specified' }}</p>
+                            <p><strong>Program:</strong> {{ $student->program }}</p>
                             <p><strong>Department:</strong> {{ $student->department }}</p>
                             <p><strong>Semester:</strong> Semester {{ $student->semester }}</p>
                             <p><strong>Intake:</strong> {{ $student->intake }}</p>

@@ -144,6 +144,12 @@
                     @endif
                     <div class="col-md-4">
                         <div class="p-3 bg-light rounded">
+                            <small class="text-muted d-block text-uppercase">Program</small>
+                            <span class="fw-bold">{{ $student->program }}</span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 bg-light rounded">
                             <small class="text-muted d-block text-uppercase">Department</small>
                             <span class="fw-bold">{{ $student->department }}</span>
                         </div>

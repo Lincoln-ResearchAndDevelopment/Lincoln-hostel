@@ -4,7 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\HostelApplication;
-use App\Models\Department;
+use App\Models\Program;
 use App\Models\Intake;
 use App\Models\Hostel;
 use App\Models\Room;
@@ -16,11 +16,14 @@ class ChrisChimezieSeeder extends Seeder
 {
     public function run(): void
     {
-        // 1. Seed Departments if empty
-        if (Department::count() === 0) {
+        $campusId = \App\Models\Campus::orderBy('id')->value('id');
+
+        // 1. Seed Programs if empty
+        if (Program::withoutGlobalScopes()->count() === 0) {
             $depts = ['Computer Science', 'Nursing', 'Business Administration', 'Accounting', 'Public Health'];
             foreach ($depts as $index => $name) {
-                Department::create([
+                Program::create([
+                    'campus_id' => $campusId,
                     'name' => $name,
                     'is_active' => true,
                     'sort_order' => $index
@@ -29,10 +32,11 @@ class ChrisChimezieSeeder extends Seeder
         }
 
         // 2. Seed Intakes if empty
-        if (Intake::count() === 0) {
+        if (Intake::withoutGlobalScopes()->count() === 0) {
             $intakes = ['September 2026', 'January 2027', 'May 2027'];
             foreach ($intakes as $index => $name) {
                 Intake::create([
+                    'campus_id' => $campusId,
                     'name' => $name,
                     'start_date' => now()->addMonths($index * 4),
                     'end_date' => now()->addMonths(($index + 1) * 4),
@@ -43,8 +47,8 @@ class ChrisChimezieSeeder extends Seeder
         }
 
         // 3. Create a Pending Application for Chris Chimezie
-        $dept = Department::first();
-        $intake = Intake::first();
+        $program = Program::withoutGlobalScopes()->first();
+        $intake = Intake::withoutGlobalScopes()->first();
 
         HostelApplication::updateOrCreate(
             ['email' => 'tchimezie475@gmail.com'],
@@ -56,8 +60,8 @@ class ChrisChimezieSeeder extends Seeder
                 'full_name' => 'Chris Chimezie',
                 'student_id' => 'STU-CHRIS-001',
                 'intake' => $intake->name,
-                'program' => 'Undergraduate',
-                'department' => $dept->name,
+                'program' => $program->name,
+                'department' => 'Computer Science',
                 'gender' => 'male',
                 'date_of_birth' => '2000-01-01',
                 'phone_number' => '08012345678',

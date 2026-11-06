@@ -561,35 +561,22 @@
 
                     <div class="form-group">
                         <label for="intake">Intake <span class="required-field">*</span></label>
-                        @if(isset($intakes) && $intakes->count() > 0)
-                            <select name="intake" id="intake" required>
-                                <option value="">Select Intake</option>
-                                @foreach($intakes as $intake)
-                                    <option value="{{ $intake->name }}" {{ old('intake') == $intake->name ? 'selected' : '' }}>{{ $intake->name }}</option>
-                                @endforeach
-                            </select>
-                        @else
-                            <input type="text" name="intake" id="intake" value="{{ old('intake') }}" placeholder="e.g. July 2026" required>
-                        @endif
+                        <select name="intake" id="intake" required data-old="{{ old('intake') }}">
+                            <option value="">Select Intake</option>
+                        </select>
                     </div>
 
                     <div class="form-group">
                         <label for="program">Program <span class="required-field">*</span></label>
-                        <input type="text" name="program" id="program" value="{{ old('program') }}" required>
+                        <select name="program" id="program" required data-old="{{ old('program') }}">
+                            <option value="">Select Program</option>
+                        </select>
                     </div>
 
                     <div class="form-group">
-                        <label for="department">Department <span class="required-field">*</span></label>
-                        @if(isset($departments) && $departments->count() > 0)
-                            <select name="department" id="department" required>
-                                <option value="">Select Department</option>
-                                @foreach($departments as $dept)
-                                    <option value="{{ $dept->name }}" {{ old('department') == $dept->name ? 'selected' : '' }}>{{ $dept->name }}</option>
-                                @endforeach
-                            </select>
-                        @else
-                            <input type="text" name="department" id="department" value="{{ old('department') }}" placeholder="e.g. Computer Science" required>
-                        @endif
+                        <label for="department">Department</label>
+                        <input type="text" name="department" id="department" value="{{ old('department') }}">
+                    </div>
                     </div>
                 </div>
             </div>
@@ -1429,7 +1416,28 @@ document.addEventListener('DOMContentLoaded', function() {
     else if (hostels.filter(suits).length) list.innerHTML = '';
   }
 
+  var intakeSel = document.getElementById('intake');
+  var programSel = document.getElementById('program');
+
+  function fillSelect(sel, label, names) {
+    var keep = sel.value || sel.dataset.old || '';
+    sel.dataset.old = '';
+    sel.innerHTML = '<option value="">' + label + '</option>' + names.map(function (n) {
+      return '<option value="' + esc(n) + '">' + esc(n) + '</option>';
+    }).join('');
+    if (keep && names.indexOf(keep) !== -1) sel.value = keep;
+  }
+
+  function loadAcademic() {
+    if (!select.value) { fillSelect(intakeSel, 'Select Intake', []); fillSelect(programSel, 'Select Program', []); return; }
+    fetch('/campuses/' + select.value + '/academic-options', { headers: { 'Accept': 'application/json' } })
+      .then(function (r) { return r.json(); })
+      .then(function (d) { fillSelect(intakeSel, 'Select Intake', d.intakes); fillSelect(programSel, 'Select Program', d.programs); })
+      .catch(function () {});
+  }
+
   function update() {
+    loadAcademic();
     var opt = select.options[select.selectedIndex];
     if (!select.value) {
       panel.style.display = 'none';
@@ -1459,7 +1467,7 @@ document.addEventListener('DOMContentLoaded', function() {
       .catch(function () { list.innerHTML = '<p class="text-muted small mb-0">Could not load fees. Please refresh.</p>'; });
   }
 
-  select.addEventListener('change', function () { hostelSel.value = ''; update(); });
+  select.addEventListener('change', function () { hostelSel.value = ''; intakeSel.value = ''; programSel.value = ''; update(); });
   hostelSel.addEventListener('change', function () { sizeSel.value = ''; renderSizes(); showSelectedHostel(); });
   if (genderSel) genderSel.addEventListener('change', renderHostels);
   update();
