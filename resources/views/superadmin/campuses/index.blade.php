@@ -50,6 +50,7 @@
                             <td>
                                 @if($campus->service_charge_amount !== null)<div><strong>₦{{ number_format($campus->service_charge_amount, 2) }}</strong> <span class="small text-muted">per semester</span></div>@endif
                                 @if($campus->service_charge_amount_year !== null)<div><strong>₦{{ number_format($campus->service_charge_amount_year, 2) }}</strong> <span class="small text-muted">per year</span></div>@endif
+                                @if($campus->form_fee_amount !== null)<div><strong>₦{{ number_format($campus->form_fee_amount, 2) }}</strong> <span class="small text-muted">form fee, one-time</span></div>@endif
                                 @if($campus->service_charge_amount === null && $campus->service_charge_amount_year === null)<span class="badge bg-warning text-dark">Amount not set</span>@endif
                                 <div class="small">{{ $campus->service_charge_bank_name }}</div>
                                 <div class="small font-monospace">{{ $campus->service_charge_account_number }} — {{ $campus->service_charge_account_name }}</div>

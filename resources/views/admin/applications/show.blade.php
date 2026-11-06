@@ -210,7 +210,7 @@
                             $payCampus->service_charge_amount_year !== null ? '₦' . number_format($payCampus->service_charge_amount_year, 2) . ' per year' : null,
                         ]);
                     @endphp
-                    <div>Service charge{{ $scParts ? ' (' . implode(' / ', $scParts) . ')' : '' }}:
+                    <div>Service charge{{ $scParts ? ' (' . implode(' / ', $scParts) . ')' : '' }}{{ $payCampus->form_fee_amount !== null ? ' + ₦' . number_format($payCampus->form_fee_amount, 2) . ' form fee, one-time' : '' }}:
                         {{ $payCampus->service_charge_bank_name }}, <span class="font-monospace">{{ $payCampus->service_charge_account_number }}</span> ({{ $payCampus->service_charge_account_name }})</div>
                     <div>Hostel fee: {{ $payCampus->bank_name }}, <span class="font-monospace">{{ $payCampus->account_number }}</span> ({{ $payCampus->account_name }})</div>
                 </div>

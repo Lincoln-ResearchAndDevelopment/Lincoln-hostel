@@ -56,6 +56,13 @@
                         <p class="text-muted small mb-3">Applicants pay this separately from the hostel fee, into the account below, and upload its receipt. Set it <strong>per semester</strong>, <strong>per year</strong>, or both: students pay the one that matches the payment plan they choose.</p>
                         <div class="row mb-3">
                             <div class="col-md-6">
+                                <label class="form-label" for="form_fee_amount">Application form fee, one-time (₦)</label>
+                                <input type="number" step="0.01" min="0" id="form_fee_amount" name="form_fee_amount" class="form-control @error('form_fee_amount') is-invalid @enderror" value="{{ old('form_fee_amount', $campus->exists ? $campus->form_fee_amount : 2000) }}">
+                                @error('form_fee_amount')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
                                 <label class="form-label" for="service_charge_amount">Per semester (₦)</label>
                                 <input type="number" step="0.01" min="0" id="service_charge_amount" name="service_charge_amount" class="form-control @error('service_charge_amount') is-invalid @enderror" value="{{ old('service_charge_amount', $campus->service_charge_amount) }}">
                                 @error('service_charge_amount')<div class="invalid-feedback">{{ $message }}</div>@enderror

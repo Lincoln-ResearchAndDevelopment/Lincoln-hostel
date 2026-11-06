@@ -935,4 +935,25 @@ class MultiCampusTest extends TestCase
             ->firstWhere('id', $hostel->id);
         $this->assertSame(0, $hostelRow['rooms'][0]['spaces_left']);
     }
+
+    public function test_form_fee_defaults_to_2000_and_is_shown_with_the_service_charge(): void
+    {
+        $this->assertSame('2000.00', (string) Campus::find($this->main->id)->fresh()->form_fee_amount);
+        $this->main->update(['service_charge_amount' => 10000, 'service_charge_amount_year' => 18000]);
+
+        $this->get('/hostel/apply')->assertOk()
+            ->assertSee('data-form-fee="2000.00"', false)
+            ->assertSee('Application Form Fee');
+
+        $this->asAdmin($this->adminMain)
+            ->get(route('applications.show', $this->makeApplication($this->main, 'M-FEE-1')))
+            ->assertOk()->assertSee('form fee, one-time');
+    }
+
+    public function test_super_admin_can_change_the_form_fee_per_campus(): void
+    {
+        $this->main->update(['form_fee_amount' => 3500]);
+        $this->assertSame('3500.00', (string) $this->main->fresh()->form_fee_amount);
+        $this->assertSame('2000.00', (string) $this->north->fresh()->form_fee_amount);
+    }
 }
