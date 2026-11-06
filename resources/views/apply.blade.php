@@ -346,7 +346,6 @@
                 <h6 class="fw-bold text-danger mb-3"><i class="fas fa-file-invoice-dollar me-2"></i>1. Service Charge: <span class="js-sc-amount"></span></h6>
                 <div class="js-form-fee-box mb-3" style="display:none;">
                     <div>Application Form Fee: <strong class="js-form-fee"></strong> (one-time)</div>
-                    <div class="text-danger fw-bold">Total to transfer: <span class="js-sc-total"></span></div>
                 </div>
                 <div class="row">
                     <div class="col-md-4 mb-2 mb-md-0 border-end-md">
@@ -1098,7 +1097,6 @@
         <h6 class="fw-bold mt-3">1. Service Charge: <span class="js-sc-amount"></span></h6>
         <div class="js-form-fee-box mb-2" style="display:none;">
           <div>Application Form Fee: <strong class="js-form-fee"></strong> (one-time)</div>
-          <div class="text-danger fw-bold">Total to transfer: <span class="js-sc-total"></span></div>
         </div>
         <div class="table-responsive">
           <table class="table table-striped table-hover">
@@ -1445,16 +1443,9 @@ document.addEventListener('DOMContentLoaded', function() {
       .catch(function () {});
   }
 
-  function showFormFee(fee, perSem, perYear) {
-    var parts = [];
-    if (fee > 0) {
-      if (perSem) parts.push(naira(parseFloat(perSem) + fee) + ' per semester');
-      if (perYear) parts.push(naira(parseFloat(perYear) + fee) + ' per year');
-      if (!parts.length) parts.push(naira(fee));
-    }
+  function showFormFee(fee) {
     document.querySelectorAll('.js-form-fee-box').forEach(function (b) { b.style.display = fee > 0 ? 'block' : 'none'; });
     set('js-form-fee', fee > 0 ? naira(fee) : '');
-    set('js-sc-total', parts.join(' / '));
   }
 
   function update() {
@@ -1465,7 +1456,7 @@ document.addEventListener('DOMContentLoaded', function() {
       hostels = [];
       set('js-bank-name', 'Select your campus first'); set('js-account-number', ''); set('js-account-name', '');
       set('js-sc-bank', 'Select your campus first'); set('js-sc-account-number', ''); set('js-sc-account-name', ''); set('js-sc-amount', '');
-      showFormFee(0, null, null);
+      showFormFee(0);
       return;
     }
     set('js-bank-name', opt.dataset.bank);
@@ -1477,7 +1468,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (opt.dataset.scAmount) scParts.push(naira(opt.dataset.scAmount) + ' per semester');
     if (opt.dataset.scAmountYear) scParts.push(naira(opt.dataset.scAmountYear) + ' per year');
     set('js-sc-amount', scParts.length ? scParts.join(' / ') : 'amount not set yet');
-    showFormFee(parseFloat(opt.dataset.formFee) || 0, opt.dataset.scAmount, opt.dataset.scAmountYear);
+    showFormFee(parseFloat(opt.dataset.formFee) || 0);
     set('js-sc-bank', opt.dataset.scBank || notSet);
     set('js-sc-account-number', opt.dataset.scAccountNumber || '');
     set('js-sc-account-name', opt.dataset.scAccountName || '');

@@ -943,7 +943,7 @@ class MultiCampusTest extends TestCase
 
         $this->get('/hostel/apply')->assertOk()
             ->assertSee('data-form-fee="2000.00"', false)
-            ->assertSee('Application Form Fee');
+            ->assertSee('Application Form Fee')->assertDontSee('Total to transfer');
 
         $this->asAdmin($this->adminMain)
             ->get(route('applications.show', $this->makeApplication($this->main, 'M-FEE-1')))
