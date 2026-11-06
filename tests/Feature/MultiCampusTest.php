@@ -925,4 +925,14 @@ class MultiCampusTest extends TestCase
         $this->assertSame('Nursing', $fresh->program);
         $this->assertSame('BSc typed', $fresh->department);
     }
+
+    public function test_a_room_the_admin_marked_full_shows_as_no_space_left(): void
+    {
+        [$hostel, $room] = $this->makeHostel($this->north, 'FUL', 'male', 2);
+        $room->update(['status' => 'full']);
+
+        $hostelRow = collect($this->getJson("/campuses/{$this->north->id}/room-prices")->assertOk()->json())
+            ->firstWhere('id', $hostel->id);
+        $this->assertSame(0, $hostelRow['rooms'][0]['spaces_left']);
+    }
 }
