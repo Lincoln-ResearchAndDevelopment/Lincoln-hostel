@@ -456,7 +456,7 @@ class HostelApplicationController extends Controller
                 hostels.type as hostel_type, hostels.address as hostel_address, rooms.capacity as capacity,
                 MIN(rooms.price_per_semester) as semester_min, MAX(rooms.price_per_semester) as semester_max,
                 MIN(rooms.price_per_year) as year_min, MAX(rooms.price_per_year) as year_max,
-                SUM(CASE WHEN rooms.status = 'available' AND rooms.capacity > rooms.occupied THEN rooms.capacity - rooms.occupied ELSE 0 END) as spaces_left')
+                SUM(CASE WHEN rooms.status = "available" AND rooms.capacity > rooms.occupied THEN rooms.capacity - rooms.occupied ELSE 0 END) as spaces_left')
             ->get();
 
         $hostels = [];
