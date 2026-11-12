@@ -142,13 +142,23 @@ class HostelApplication extends Model
         $year  = date('Y'); // e.g. 2026
         $month = date('m'); // e.g. 03, 04
 
-        // Count applications in the current month to get the sequence
-        $count = self::whereYear('created_at', $year)
-                      ->whereMonth('created_at', $month)
-                      ->count() + 1;
+        // Continue from the highest number already issued this month. Counting rows breaks as
+        // soon as an application is deleted, or when a campus filter hides other campuses'
+        // applications, and the number then collides with an existing one. Every campus shares
+        // one numbering, so look across all campuses.
+        $prefix = 'LH' . $year . $month;
+        $last = self::withoutGlobalScopes()
+            ->where('application_number', 'like', $prefix . '%')
+            ->orderByDesc('application_number')
+            ->value('application_number');
+        $next = $last ? ((int) substr($last, strlen($prefix))) + 1 : 1;
 
-        // Format: LH + YYYY + MM + 4-digit sequence → e.g. LH2026050001
-        return 'LH' . $year . $month . str_pad($count, 4, '0', STR_PAD_LEFT);
+        // Format: LH + YYYY + MM + 4-digit sequence, e.g. LH2026050001
+        do {
+            $number = $prefix . str_pad($next++, 4, '0', STR_PAD_LEFT);
+        } while (self::withoutGlobalScopes()->where('application_number', $number)->exists());
+
+        return $number;
     }
 
     /**

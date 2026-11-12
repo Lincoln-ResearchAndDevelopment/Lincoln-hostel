@@ -956,4 +956,16 @@ class MultiCampusTest extends TestCase
         $this->assertSame('3500.00', (string) $this->main->fresh()->form_fee_amount);
         $this->assertSame('2000.00', (string) $this->north->fresh()->form_fee_amount);
     }
+
+    public function test_application_numbers_stay_unique_across_campuses_and_after_deletions(): void
+    {
+        $first = $this->makeApplication($this->main, 'M-NUM-1');
+        $second = $this->makeApplication($this->north, 'N-NUM-1');
+        $third = $this->makeApplication($this->main, 'M-NUM-2');
+        $second->delete();
+
+        $new = HostelApplication::generateApplicationNumber();
+        $this->assertNotContains($new, [$first->application_number, $third->application_number]);
+        $this->assertSame(3, (int) substr($third->application_number, -4) - (int) substr($first->application_number, -4) + 1);
+    }
 }
