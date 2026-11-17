@@ -21,6 +21,9 @@ class Campus extends Model
         'service_charge_amount',
         'service_charge_amount_year',
         'form_fee_amount',
+        'payments_external',
+        'health_semesters',
+        'non_health_semesters',
         'service_charge_bank_name',
         'service_charge_account_number',
         'service_charge_account_name',
@@ -32,6 +35,7 @@ class Campus extends Model
         'service_charge_amount' => 'decimal:2',
         'service_charge_amount_year' => 'decimal:2',
         'form_fee_amount' => 'decimal:2',
+        'payments_external' => 'boolean',
     ];
 
     public function hostels()

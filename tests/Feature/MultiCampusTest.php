@@ -968,4 +968,118 @@ class MultiCampusTest extends TestCase
         $this->assertNotContains($new, [$first->application_number, $third->application_number]);
         $this->assertSame(3, (int) substr($third->application_number, -4) - (int) substr($first->application_number, -4) + 1);
     }
+
+    private function externalCampus(): Campus
+    {
+        $this->north->update(['payments_external' => true, 'health_semesters' => 2, 'non_health_semesters' => 3]);
+        \App\Models\Program::withoutGlobalScopes()->create(['campus_id' => $this->north->id, 'name' => 'Nursing', 'is_health' => true]);
+        \App\Models\Program::withoutGlobalScopes()->create(['campus_id' => $this->north->id, 'name' => 'Law']);
+
+        return $this->north->fresh();
+    }
+
+    public function test_external_payment_campus_needs_no_hostel_choice_and_counts_semesters_by_course(): void
+    {
+        $campus = $this->externalCampus();
+        $payload = fn (array $o) => array_diff_key($this->applicationPayload(['campus_id' => $campus->id] + $o), ['preferred_hostel_id' => 1, 'preferred_room_capacity' => 1, 'amount_paid' => 1]);
+
+        $this->post('/hostel/apply', $payload(['program' => 'Nursing', 'student_id' => 'K-HEALTH']))->assertSessionHasNoErrors();
+        $this->post('/hostel/apply', $payload(['program' => 'Law', 'student_id' => 'K-OTHER']))->assertSessionHasNoErrors();
+
+        $health = HostelApplication::withoutGlobalScopes()->where('student_id', 'K-HEALTH')->first();
+        $other = HostelApplication::withoutGlobalScopes()->where('student_id', 'K-OTHER')->first();
+        $this->assertSame(2, (int) $health->semesters_to_pay);
+        $this->assertSame(3, (int) $other->semesters_to_pay);
+        $this->assertNull($health->preferred_hostel_id);
+    }
+
+    public function test_other_campuses_still_require_the_hostel_choice_and_have_no_semester_count(): void
+    {
+        $this->externalCampus();
+        $payload = array_diff_key($this->applicationPayload(['campus_id' => $this->main->id]), ['preferred_hostel_id' => 1, 'preferred_room_capacity' => 1]);
+
+        $this->post('/hostel/apply', $payload)->assertSessionHasErrors(['preferred_hostel_id', 'preferred_room_capacity']);
+    }
+
+    public function test_apply_page_marks_external_campuses(): void
+    {
+        $this->externalCampus();
+        $html = $this->get('/hostel/apply')->assertOk()->getContent();
+        $this->assertStringContainsString('data-external="1"', $html);
+        $this->assertStringContainsString('data-external="0"', $html);
+    }
+
+    private function externalStudent(int $semesters = 3): Student
+    {
+        $campus = $this->externalCampus();
+        [$hostel, $room, $beds] = $this->makeHostel($campus, 'KUM', 'male', 2);
+        $application = $this->makeApplication($campus, 'K-SEM-1');
+        $application->update(['semesters_to_pay' => $semesters, 'preferred_hostel_id' => null]);
+
+        $this->asAdmin($this->adminNorth)->post(route('applications.approve-assign', $application), [
+            'hostel_id' => $hostel->id, 'room_id' => $room->id, 'bed_id' => $beds[0]->id,
+        ])->assertSessionHasNoErrors();
+
+        return Student::withoutGlobalScopes()->where('admission_number', 'K-SEM-1')->firstOrFail();
+    }
+
+    public function test_approval_gives_the_student_the_semester_count_and_a_schedule(): void
+    {
+        $student = $this->externalStudent(3);
+        $this->assertSame(3, (int) $student->semesters_to_pay);
+
+        $schedule = $student->semesterSchedule();
+        $this->assertSame(['approved', 'due', 'due'], array_column($schedule, 'status'));
+        $this->assertSame([false, true, false], array_column($schedule, 'can_upload'));
+    }
+
+    public function test_student_uploads_semester_receipts_and_admin_approves_in_order(): void
+    {
+        Storage::fake('public');
+        $student = $this->externalStudent(3);
+        $files = fn () => [
+            'service_charge_receipt' => UploadedFile::fake()->image('sc.jpg'),
+            'hostel_fee_receipt' => UploadedFile::fake()->image('hf.jpg'),
+        ];
+
+        // Semester 3 is not open until semester 2 is approved.
+        $this->asStudent($student)->post(route('student.semester-payments.store'), ['semester_number' => 3] + $files())
+            ->assertSessionHas('error');
+
+        $this->asStudent($student)->post(route('student.semester-payments.store'), ['semester_number' => 2] + $files())
+            ->assertSessionHasNoErrors();
+        $payment = \App\Models\SemesterPayment::withoutGlobalScopes()->where('student_id', $student->id)->firstOrFail();
+        $this->assertSame('pending', $payment->status);
+        $this->assertSame($student->campus_id, $payment->campus_id);
+
+        // Reject, then the student can upload again.
+        $this->asAdmin($this->adminNorth)->post(route('semester-payments.reject', $payment), ['admin_notes' => 'Blurry'])->assertSessionHasNoErrors();
+        $this->assertSame('rejected', $payment->fresh()->status);
+        $this->asStudent($student)->post(route('student.semester-payments.store'), ['semester_number' => 2] + $files())->assertSessionHasNoErrors();
+        $this->assertSame('pending', $payment->fresh()->status);
+
+        $this->asAdmin($this->adminNorth)->post(route('semester-payments.approve', $payment))->assertSessionHasNoErrors();
+        $this->assertSame([false, false, true], array_column($student->fresh()->semesterSchedule(), 'can_upload'));
+    }
+
+    public function test_another_campus_admin_cannot_review_semester_payments(): void
+    {
+        $student = $this->externalStudent(2);
+        $payment = \App\Models\SemesterPayment::withoutGlobalScopes()->create([
+            'campus_id' => $student->campus_id, 'student_id' => $student->id, 'semester_number' => 2,
+            'service_charge_receipt' => 'storage/x.jpg', 'hostel_fee_receipt' => 'storage/y.jpg', 'status' => 'pending',
+        ]);
+
+        $this->asAdmin($this->adminMain)->post(route('semester-payments.approve', $payment->id))->assertNotFound();
+        $this->assertSame('pending', $payment->fresh()->status);
+    }
+
+    public function test_health_tick_and_external_switch_are_managed_in_admin(): void
+    {
+        $this->externalCampus();
+        $this->asAdmin($this->adminNorth)->post('/admin/programs', ['name' => 'Pharmacy', 'is_health' => 1])->assertSessionHasNoErrors();
+        $this->assertTrue((bool) \App\Models\Program::withoutGlobalScopes()->where('name', 'Pharmacy')->value('is_health'));
+        $this->asAdmin($this->adminNorth)->get('/admin/programs')->assertOk()->assertSee('Health course');
+        $this->asAdmin($this->adminMain)->get('/admin/programs')->assertOk()->assertDontSee('Health course');
+    }
 }

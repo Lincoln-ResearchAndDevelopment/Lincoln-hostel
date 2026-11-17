@@ -52,19 +52,24 @@ class HostelApplicationController extends Controller
     {
         \Log::info('Hostel application store request received', ['data' => $request->except(['passport_photo', 'applicationform_receipt', 'hostelfee_receipt', 'medical_report', 'birth_certificate', 'admission_letter'])]);
         
+        // Campuses whose students pay outside this system do not choose a hostel or room size
+        // and have no payment plan to state; the admin assigns the room.
+        $campus = Campus::find($request->input('campus_id'));
+        $external = (bool) ($campus && $campus->payments_external);
+
         $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
             // Campus the student is applying to
             'campus_id' => ['required', \Illuminate\Validation\Rule::exists('campuses', 'id')->where('is_active', true)],
 
             // Which hostel and room size the applicant paid for (prices differ per hostel).
-            'preferred_hostel_id' => ['required', \Illuminate\Validation\Rule::exists('hostels', 'id')
+            'preferred_hostel_id' => $external ? 'nullable' : ['required', \Illuminate\Validation\Rule::exists('hostels', 'id')
                 ->where('campus_id', $request->input('campus_id'))
                 ->where('status', 'active')],
-            'preferred_room_capacity' => 'required|integer|min:1|max:50',
+            'preferred_room_capacity' => $external ? 'nullable' : 'required|integer|min:1|max:50',
 
             // Academic Information
             'academic_year' => 'required|string|max:255',
-            'amount_paid' => 'required|string|max:255',
+            'amount_paid' => $external ? 'nullable|string|max:255' : 'required|string|max:255',
             
             // Student Information
             'full_name' => 'required|string|max:255',
@@ -138,7 +143,10 @@ class HostelApplicationController extends Controller
         ]);
 
         // The chosen hostel must suit the applicant's gender and really have rooms of that size.
-        $validator->after(function ($v) use ($request) {
+        $validator->after(function ($v) use ($request, $external) {
+            if ($external) {
+                return;
+            }
             if ($v->errors()->has('preferred_hostel_id') || $v->errors()->has('preferred_room_capacity')) {
                 return;
             }
@@ -164,6 +172,16 @@ class HostelApplicationController extends Controller
 
         $validated = $validator->validated();
         $validated['department'] = $validated['department'] ?? '';
+
+        if ($external) {
+            $validated['preferred_hostel_id'] = null;
+            $validated['preferred_room_capacity'] = null;
+            $validated['amount_paid'] = '';
+            // Health courses pay the hostel fee for fewer semesters than other courses.
+            $isHealth = (bool) Program::withoutGlobalScopes()
+                ->where('campus_id', $campus->id)->where('name', $validated['program'])->value('is_health');
+            $validated['semesters_to_pay'] = $isHealth ? $campus->health_semesters : $campus->non_health_semesters;
+        }
 
         // Handle file uploads
         $fileFields = [
@@ -584,6 +602,7 @@ class HostelApplicationController extends Controller
                     'state_of_origin' => $application->state_of_origin,
                     'local_government' => $application->local_government,
                     'program' => $application->program,
+                    'semesters_to_pay' => $application->semesters_to_pay,
                     'department' => $application->department ?? '',
                     'intake' => $application->intake,
                     'semester' => 1,
@@ -604,6 +623,7 @@ class HostelApplicationController extends Controller
                 $student->update([
                     'application_id' => $application->id,
                     'program' => $application->program,
+                    'semesters_to_pay' => $application->semesters_to_pay,
                     'department' => $application->department ?? '',
                     'intake' => $application->intake,
                 ]);

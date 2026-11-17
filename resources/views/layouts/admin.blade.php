@@ -393,6 +393,9 @@
                 <a class="nav-link {{ request()->routeIs('payments.*') ? 'active' : '' }}" href="{{ route('payments.index') }}">
                     <i class="fas fa-credit-card"></i><span>Payments</span>
                 </a>
+                <a class="nav-link {{ request()->routeIs('semester-payments.*') ? 'active' : '' }}" href="{{ route('semester-payments.index') }}">
+                    <i class="fas fa-receipt"></i><span>Semester Payments</span>
+                </a>
                 <a class="nav-link {{ request()->routeIs('admin.fees.*') ? 'active' : '' }}" href="{{ route('admin.fees.index') }}">
                     <i class="fas fa-money-bill-wave"></i><span>Fee Structure</span>
                 </a>

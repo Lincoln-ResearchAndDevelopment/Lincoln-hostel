@@ -14,6 +14,52 @@
     </div>
 </div>
 
+@php $schedule = $student->semesterSchedule(); @endphp
+@if(count($schedule))
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white"><h6 class="mb-0 fw-bold">Semester Payments</h6></div>
+    <div class="card-body">
+        @foreach($schedule as $row)
+            <div class="border rounded p-3 mb-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <strong>Semester {{ $row['semester'] }}</strong>
+                    @if($row['status'] === 'approved')
+                        <span class="badge bg-success">Paid</span>
+                    @elseif($row['status'] === 'pending')
+                        <span class="badge bg-warning text-dark">Awaiting approval</span>
+                    @elseif($row['status'] === 'rejected')
+                        <span class="badge bg-danger">Rejected</span>
+                    @else
+                        <span class="badge bg-secondary">Due</span>
+                    @endif
+                </div>
+                @if($row['status'] === 'rejected' && $row['payment'] && $row['payment']->admin_notes)
+                    <div class="small text-danger mt-1">{{ $row['payment']->admin_notes }}</div>
+                @endif
+                @if($row['can_upload'])
+                    <form method="POST" action="{{ route('student.semester-payments.store') }}" enctype="multipart/form-data" class="row g-2 mt-2">
+                        @csrf
+                        <input type="hidden" name="semester_number" value="{{ $row['semester'] }}">
+                        <div class="col-md-5">
+                            <label class="form-label small mb-1" for="sc_{{ $row['semester'] }}">Service Charge Receipt</label>
+                            <input type="file" class="form-control" id="sc_{{ $row['semester'] }}" name="service_charge_receipt" accept="image/*,application/pdf" required>
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label small mb-1" for="hf_{{ $row['semester'] }}">Hostel Fee Receipt</label>
+                            <input type="file" class="form-control" id="hf_{{ $row['semester'] }}" name="hostel_fee_receipt" accept="image/*,application/pdf" required>
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end"><button class="btn btn-danger w-100">Submit</button></div>
+                    </form>
+                @endif
+            </div>
+        @endforeach
+        @error('semester_number')<div class="text-danger small">{{ $message }}</div>@enderror
+        @error('service_charge_receipt')<div class="text-danger small">{{ $message }}</div>@enderror
+        @error('hostel_fee_receipt')<div class="text-danger small">{{ $message }}</div>@enderror
+    </div>
+</div>
+@endif
+
 <!-- Fee Overview Cards -->
 <div class="row g-4 mb-4">
     <div class="col-md-3">

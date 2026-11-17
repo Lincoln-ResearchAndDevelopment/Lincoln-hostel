@@ -95,6 +95,10 @@ Route::middleware(['admin'])->group(function () {
     // AJAX Routes for dynamic bed loading
     Route::get('/students/beds/available', [StudentController::class, 'getAvailableBeds'])->name('students.beds.available');
 
+    Route::get('/semester-payments', [\App\Http\Controllers\Admin\SemesterPaymentController::class, 'index'])->name('semester-payments.index');
+    Route::post('/semester-payments/{semesterPayment}/approve', [\App\Http\Controllers\Admin\SemesterPaymentController::class, 'approve'])->name('semester-payments.approve');
+    Route::post('/semester-payments/{semesterPayment}/reject', [\App\Http\Controllers\Admin\SemesterPaymentController::class, 'reject'])->name('semester-payments.reject');
+
     Route::post('/payments/{payment}/approve', [PaymentController::class, 'approve'])->name('payments.approve');
     Route::post('/payments/{payment}/reject', [PaymentController::class, 'reject'])->name('payments.reject');
 
@@ -268,6 +272,7 @@ Route::prefix('student')->name('student.')->middleware('student.auth')->group(fu
 
     // Payments
     Route::post('/payments', [StudentPaymentController::class, 'store'])->name('payments.store');
+    Route::post('/semester-payments', [\App\Http\Controllers\StudentSemesterPaymentController::class, 'store'])->name('semester-payments.store');
 
     // Complaints
     Route::get('/complaints', [StudentsDashboardController::class, 'complaints'])->name('complaints.index');

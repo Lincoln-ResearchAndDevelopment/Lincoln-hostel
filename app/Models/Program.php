@@ -9,9 +9,9 @@ class Program extends Model
 {
     use BelongsToCampus;
 
-    protected $fillable = ['name', 'is_active', 'sort_order'];
+    protected $fillable = ['name', 'is_active', 'sort_order', 'is_health'];
 
-    protected $casts = ['is_active' => 'boolean'];
+    protected $casts = ['is_active' => 'boolean', 'is_health' => 'boolean'];
 
     public function scopeActive($query)
     {

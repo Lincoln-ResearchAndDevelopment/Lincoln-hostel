@@ -96,6 +96,10 @@
                             $expected = $application->expectedFee();
                             $fmt = fn ($n) => '₦' . number_format($n, 2);
                         @endphp
+                        @if($application->semesters_to_pay)
+                            <label class="text-muted small">Hostel fee payments</label>
+                            <p class="mb-0 fw-semibold">{{ $application->semesters_to_pay }} semesters</p>
+                        @else
                         <label class="text-muted small">Hostel &amp; room size the applicant paid for</label>
                         @if($paidHostel)
                             <p class="mb-0 fw-semibold">
@@ -114,6 +118,7 @@
                             @endif
                         @else
                             <p class="mb-0 text-muted">Not recorded (application made before the hostel choice was added).</p>
+                        @endif
                         @endif
                     </div>
                     <div class="col-6">
@@ -201,7 +206,7 @@
             </div>
             <div class="card-body">
                 @php $payCampus = $application->campus; @endphp
-                @if($payCampus)
+                @if($payCampus && !$payCampus->payments_external)
                 <div class="alert alert-light border small mb-3">
                     <strong>Check the receipts against {{ $payCampus->name }}'s accounts:</strong>
                     @php

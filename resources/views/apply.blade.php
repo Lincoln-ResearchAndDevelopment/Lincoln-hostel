@@ -326,6 +326,7 @@
                         data-sc-amount="{{ $campus->service_charge_amount }}"
                         data-sc-amount-year="{{ $campus->service_charge_amount_year }}"
                         data-form-fee="{{ $campus->form_fee_amount }}"
+                        data-external="{{ $campus->payments_external ? 1 : 0 }}"
                         data-sc-bank="{{ $campus->service_charge_bank_name }}"
                         data-sc-account-number="{{ $campus->service_charge_account_number }}"
                         data-sc-account-name="{{ $campus->service_charge_account_name }}"
@@ -552,7 +553,7 @@
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <div class="form-group">
+                            <div class="form-group" id="planGroup">
                                 <label for="amount_paid">Payment Plan Paid For <span class="required-field">*</span></label>
                                 <select name="amount_paid" id="amount_paid" required style="width: 100%; padding: 10px; border: 1px solid #ced4da; border-radius: 4px;">
                                     <option value="">Select payment plan</option>
@@ -921,7 +922,7 @@
                         <small class="text-muted">Receipt for hostel fee payment (max 10MB)</small>
                     </div>
 
-                    <button type="button" class="account-details-btn" data-bs-toggle="modal" data-bs-target="#paymentDetailsModal">
+                    <button type="button" class="account-details-btn" id="accountDetailsBtn" data-bs-toggle="modal" data-bs-target="#paymentDetailsModal">
                         <i class="fas fa-info-circle me-2"></i>View Payment Account Details
                     </button>
                 </div>
@@ -1448,9 +1449,22 @@ document.addEventListener('DOMContentLoaded', function() {
     set('js-form-fee', fee > 0 ? naira(fee) : '');
   }
 
+  // Campuses where students pay outside this system: no payment details, hostel or plan.
+  function applyExternal(on) {
+    ['preferred_hostel_id', 'preferred_room_capacity', 'amount_paid'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.disabled = on;
+    });
+    var plan = document.getElementById('planGroup');
+    if (plan) plan.style.display = on ? 'none' : '';
+    var btn = document.getElementById('accountDetailsBtn');
+    if (btn) btn.style.display = on ? 'none' : '';
+  }
+
   function update() {
     loadAcademic();
     var opt = select.options[select.selectedIndex];
+    applyExternal(!!select.value && opt.dataset.external === '1');
     if (!select.value) {
       panel.style.display = 'none';
       hostels = [];
@@ -1472,6 +1486,7 @@ document.addEventListener('DOMContentLoaded', function() {
     set('js-sc-bank', opt.dataset.scBank || notSet);
     set('js-sc-account-number', opt.dataset.scAccountNumber || '');
     set('js-sc-account-name', opt.dataset.scAccountName || '');
+    if (opt.dataset.external === '1') { panel.style.display = 'none'; hostels = []; return; }
     panel.style.display = 'block';
 
     list.innerHTML = '<p class="text-muted small mb-0">Loading…</p>';

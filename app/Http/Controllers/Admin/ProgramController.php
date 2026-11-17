@@ -13,7 +13,8 @@ class ProgramController extends Controller
     public function index()
     {
         $programs = Program::orderBy('sort_order')->orderBy('name')->get();
-        return view('admin.programs.index', compact('programs'));
+        $showHealth = (bool) optional(\App\Models\Campus::find(CampusContext::currentCampusId()))->payments_external;
+        return view('admin.programs.index', compact('programs', 'showHealth'));
     }
 
     public function store(Request $request)
@@ -33,6 +34,7 @@ class ProgramController extends Controller
         Program::create([
             'name' => $validated['name'],
             'sort_order' => $validated['sort_order'] ?? 0,
+            'is_health' => $request->boolean('is_health'),
             'is_active' => true,
             'campus_id' => $campusId,
         ]);
@@ -51,6 +53,7 @@ class ProgramController extends Controller
         $program->update([
             'name' => $validated['name'],
             'sort_order' => $validated['sort_order'] ?? 0,
+            'is_health' => $request->boolean('is_health'),
             'is_active' => $request->boolean('is_active'),
         ]);
 

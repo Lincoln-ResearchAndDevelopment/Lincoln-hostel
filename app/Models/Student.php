@@ -32,6 +32,7 @@ class Student extends Authenticatable
         'local_government',
         'profile_photo',
         'program',
+        'semesters_to_pay',
         'department',
         'semester',
         'intake',
@@ -111,6 +112,42 @@ class Student extends Authenticatable
     public function payments()
     {
         return $this->hasMany(Payment::class);
+    }
+
+    public function semesterPayments()
+    {
+        return $this->hasMany(SemesterPayment::class);
+    }
+
+    /**
+     * Payment schedule for campuses where the hostel fee is paid for several semesters.
+     * Semester 1 is covered by the application receipts. A later semester can be uploaded
+     * once the one before it is approved; a rejected one can be uploaded again.
+     */
+    public function semesterSchedule(): array
+    {
+        $total = (int) $this->semesters_to_pay;
+        if ($total < 1) {
+            return [];
+        }
+
+        $paid = $this->semesterPayments()->get()->keyBy('semester_number');
+        $schedule = [['semester' => 1, 'status' => 'approved', 'payment' => null, 'can_upload' => false]];
+        $previousApproved = true;
+
+        for ($n = 2; $n <= $total; $n++) {
+            $payment = $paid->get($n);
+            $status = $payment->status ?? 'due';
+            $schedule[] = [
+                'semester' => $n,
+                'status' => $status,
+                'payment' => $payment,
+                'can_upload' => $previousApproved && in_array($status, ['due', 'rejected'], true),
+            ];
+            $previousApproved = $status === 'approved';
+        }
+
+        return $schedule;
     }
 
     public function complaints()

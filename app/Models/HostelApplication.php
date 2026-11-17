@@ -21,6 +21,7 @@ class HostelApplication extends Model
         // Academic Information
         'academic_year',
         'amount_paid',
+        'semesters_to_pay',
         
         // Student Information
         'full_name',
