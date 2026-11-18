@@ -1298,6 +1298,11 @@ document.addEventListener('DOMContentLoaded', function() {
         let isValid = true;
         
         requiredFields.forEach(field => {
+            // Fields switched off for the chosen campus (e.g. hostel and plan for Kumo) are not required.
+            if (field.disabled) {
+                field.classList.remove('is-invalid');
+                return;
+            }
             if (field.type === 'checkbox') {
                 if (!field.checked && field.hasAttribute('required')) {
                     isValid = false;
