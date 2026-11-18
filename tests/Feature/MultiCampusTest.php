@@ -1082,4 +1082,16 @@ class MultiCampusTest extends TestCase
         $this->asAdmin($this->adminNorth)->get('/admin/programs')->assertOk()->assertSee('Health course');
         $this->asAdmin($this->adminMain)->get('/admin/programs')->assertOk()->assertDontSee('Health course');
     }
+
+    public function test_uploaded_files_open_even_without_the_storage_link(): void
+    {
+        Storage::fake('public');
+        Storage::disk('public')->put('hostel_applications/applicationform_receipt/r.png', 'img');
+        Storage::disk('public')->put('secret.php', '<?php');
+
+        $this->get('/storage/hostel_applications/applicationform_receipt/r.png')->assertOk();
+        $this->get('/storage/hostel_applications/missing.png')->assertNotFound();
+        $this->get('/storage/secret.php')->assertNotFound();
+        $this->get('/storage/hostel_applications/../../.env')->assertNotFound();
+    }
 }

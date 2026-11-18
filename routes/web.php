@@ -43,6 +43,17 @@ Route::post('/contact', [ContactController::class, 'send'])->name('contact.send'
 */
 Route::get('/hostel/apply', [HostelApplicationController::class, 'create'])->name('apply');
 Route::post('/hostel/apply', [HostelApplicationController::class, 'store'])->name('hostel.apply');
+// Uploaded files (receipts, photos). Normally the web server serves /storage straight from the
+// public/storage link; when that link does not work on the host, the request lands here instead.
+Route::get('/storage/{path}', function (string $path) {
+    $disk = \Illuminate\Support\Facades\Storage::disk('public');
+    if (str_contains($path, '..') || preg_match('/\.(php|phtml|phar|htaccess)$/i', $path) || !$disk->exists($path)) {
+        abort(404);
+    }
+
+    return response()->file($disk->path($path));
+})->where('path', '.*')->name('storage.fallback');
+
 Route::get('/campuses/{campus}/academic-options', [HostelApplicationController::class, 'academicOptions'])->name('campus.academic-options');
 Route::get('/campuses/{campus}/room-prices', [HostelApplicationController::class, 'roomPrices'])->name('campus.room-prices');
 Route::get('/application/{applicationNumber}', [HostelApplicationController::class, 'show'])->name('application.show');
