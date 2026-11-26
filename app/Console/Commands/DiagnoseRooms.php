@@ -10,17 +10,16 @@ use App\Models\Student;
 use Illuminate\Console\Command;
 
 /**
- * Finds why rooms or beds show as unavailable. Read-only unless --fix is given.
+ * Finds why rooms or beds show as unavailable. Read-only; hostel:repair-beds does the repair.
  *
  *   php artisan hostel:diagnose-rooms            report for every campus
  *   php artisan hostel:diagnose-rooms --campus=3 report for one campus
- *   php artisan hostel:diagnose-rooms --fix      also repair campus links and missing beds
  */
 class DiagnoseRooms extends Command
 {
-    protected $signature = 'hostel:diagnose-rooms {--campus= : Campus id} {--fix : Repair campus links and create missing beds}';
+    protected $signature = 'hostel:diagnose-rooms {--campus= : Campus id}';
 
-    protected $description = 'Report (and optionally repair) hostel, room and bed records that make rooms look unavailable';
+    protected $description = 'Report hostel, room and bed records that make rooms look unavailable (read-only)';
 
     public function handle(): int
     {
@@ -82,44 +81,9 @@ class DiagnoseRooms extends Command
             ->whereRaw('students.campus_id <> rooms.campus_id')->get(['students.id', 'students.admission_number', 'students.campus_id as s', 'rooms.campus_id as r']);
         $this->report('Students placed in a room of another campus (not repaired)', $studentMismatch, fn ($s) => "student {$s->id} ({$s->admission_number}): student campus {$s->s}, room campus {$s->r}");
 
-        if ($this->option('fix')) {
+        if ($problems > 0) {
             $this->newLine();
-            $this->info('=== Repairing ===');
-            $fixedRooms = 0;
-            foreach ($roomMismatch as $row) {
-                if ($row->hostel_campus) {
-                    Room::withoutGlobalScopes()->whereKey($row->id)->update(['campus_id' => $row->hostel_campus]);
-                    $fixedRooms++;
-                }
-            }
-            $fixedBeds = 0;
-            foreach (Bed::withoutGlobalScopes()->join('rooms', 'rooms.id', '=', 'beds.room_id')
-                ->whereRaw('beds.campus_id IS NULL OR beds.campus_id <> rooms.campus_id')
-                ->get(['beds.id', 'rooms.campus_id as room_campus']) as $row) {
-                if ($row->room_campus) {
-                    Bed::withoutGlobalScopes()->whereKey($row->id)->update(['campus_id' => $row->room_campus]);
-                    $fixedBeds++;
-                }
-            }
-            $created = 0;
-            foreach (Room::withoutGlobalScopes()->get() as $room) {
-                $existing = Bed::withoutGlobalScopes()->where('room_id', $room->id)->count();
-                for ($i = $existing + 1; $i <= $room->capacity; $i++) {
-                    Bed::withoutGlobalScopes()->create([
-                        'room_id' => $room->id,
-                        'campus_id' => $room->campus_id,
-                        'bed_number' => 'Bed ' . $i,
-                        'is_occupied' => false,
-                    ]);
-                    $created++;
-                }
-            }
-            $this->line("Rooms re-linked to their hostel's campus: {$fixedRooms}");
-            $this->line("Beds re-linked to their room's campus: {$fixedBeds}");
-            $this->line("Missing beds created: {$created}");
-        } elseif ($problems > 0) {
-            $this->newLine();
-            $this->warn('Nothing was changed. Run with --fix to repair the campus links and create missing beds.');
+            $this->warn('Nothing was changed. To create missing beds and give residents their beds, run hostel:repair-beds (preview) and then hostel:repair-beds --apply.');
         }
 
         return self::SUCCESS;

@@ -1095,12 +1095,10 @@ class MultiCampusTest extends TestCase
         $this->get('/storage/hostel_applications/../../.env')->assertNotFound();
     }
 
-    public function test_room_diagnostic_reports_and_repairs_hidden_rooms_and_beds(): void
+    public function test_room_diagnostic_reports_without_changing_anything(): void
     {
         [$hostel, $room, $beds] = $this->makeHostel($this->north, 'DGN', 'male', 3);
-        // A room that carries the wrong campus, one bed with no campus, and a missing bed.
         Room::withoutGlobalScopes()->whereKey($room->id)->update(['campus_id' => $this->main->id]);
-        Bed::withoutGlobalScopes()->whereKey($beds[0]->id)->update(['campus_id' => null]);
         Bed::withoutGlobalScopes()->whereKey($beds[2]->id)->delete();
 
         $this->artisan('hostel:diagnose-rooms')
@@ -1109,16 +1107,72 @@ class MultiCampusTest extends TestCase
             ->expectsOutputToContain('Nothing was changed')
             ->assertSuccessful();
         $this->assertSame($this->main->id, (int) Room::withoutGlobalScopes()->find($room->id)->campus_id);
+        $this->assertSame(2, Bed::withoutGlobalScopes()->where('room_id', $room->id)->count());
+    }
 
-        $this->artisan('hostel:diagnose-rooms', ['--fix' => true])->assertSuccessful();
+    private function legacyRoom(Hostel $hostel, string $number, int $capacity, int $occupied, string $status = 'available'): Room
+    {
+        // A room from before bed records: it has a headcount and residents, but no beds.
+        return Room::withoutGlobalScopes()->create([
+            'hostel_id' => $hostel->id, 'campus_id' => $hostel->campus_id, 'room_number' => $number, 'room_type' => 'quad',
+            'capacity' => $capacity, 'occupied' => $occupied, 'status' => $status, 'floor_number' => 1, 'gender_type' => 'male',
+            'price_per_semester' => 80000, 'price_per_year' => 150000,
+        ]);
+    }
 
-        $this->assertSame($this->north->id, (int) Room::withoutGlobalScopes()->find($room->id)->campus_id);
-        $beds = Bed::withoutGlobalScopes()->where('room_id', $room->id)->get();
-        $this->assertCount(3, $beds);
-        $this->assertSame([$this->north->id], $beds->pluck('campus_id')->unique()->map(fn ($v) => (int) $v)->all());
+    private function legacyResident(Room $room, string $admission): Student
+    {
+        return Student::withoutGlobalScopes()->create(array_merge(
+            \Database\Factories\StudentFactory::new()->make(['admission_number' => $admission])->getAttributes(),
+            ['campus_id' => $room->campus_id, 'hostel_id' => $room->hostel_id, 'room_id' => $room->id, 'bed_id' => null, 'password' => bcrypt('x')]
+        ));
+    }
 
-        // After the repair a Kumo-style campus admin sees the room and all of its free beds.
-        $this->asAdmin($this->adminNorth)->getJson(route('applications.available-rooms', $hostel))->assertOk()->assertJsonCount(1);
-        $this->asAdmin($this->adminNorth)->getJson(route('applications.available-beds', $room))->assertOk()->assertJsonCount(3);
+    public function test_repair_beds_previews_then_creates_beds_and_places_residents(): void
+    {
+        $hostel = Hostel::withoutGlobalScopes()->create([
+            'name' => 'Male', 'code' => 'KM', 'type' => 'male', 'status' => 'active', 'campus_id' => $this->north->id, 'address' => 'x',
+        ]);
+        $a1 = $this->legacyRoom($hostel, 'A1', 4, 3);
+        $this->legacyResident($a1, 'K-1');
+        $this->legacyResident($a1, 'K-2');
+        $this->legacyResident($a1, 'K-3');
+        $b1 = $this->legacyRoom($hostel, 'B1', 6, 5, 'full');       // marked full, space left
+        $c1 = $this->legacyRoom($hostel, 'C1', 2, 0);                // empty room, no beds
+        $d1 = $this->legacyRoom($hostel, 'D1', 2, 2, 'full');        // genuinely full
+        $this->legacyResident($d1, 'K-4');
+        $this->legacyResident($d1, 'K-5');
+        $this->legacyResident($d1, 'K-6');                           // one more resident than beds
+
+        // Preview: nothing is saved.
+        $this->artisan('hostel:repair-beds')->expectsOutputToContain('PREVIEW only')->assertSuccessful();
+        $this->assertSame(0, Bed::withoutGlobalScopes()->count());
+        $this->assertSame('full', $b1->fresh()->status);
+
+        $this->artisan('hostel:repair-beds', ['--apply' => true])
+            ->expectsOutputToContain('Residents that could not be given a bed (1)')
+            ->assertSuccessful();
+
+        // Beds exist for every room, up to capacity.
+        foreach ([$a1->id => 4, $b1->id => 6, $c1->id => 2, $d1->id => 2] as $roomId => $expected) {
+            $this->assertSame($expected, Bed::withoutGlobalScopes()->where('room_id', $roomId)->count());
+        }
+        // The three residents of A1 each hold a bed, the fourth bed is free.
+        $this->assertSame(3, Bed::withoutGlobalScopes()->where('room_id', $a1->id)->where('is_occupied', true)->count());
+        foreach (Student::withoutGlobalScopes()->where('room_id', $a1->id)->get() as $student) {
+            $bed = Bed::withoutGlobalScopes()->find($student->bed_id);
+            $this->assertSame($student->id, (int) $bed->student_id);
+        }
+        // The room marked full with space left reopens; the really full one stays full.
+        $this->assertSame('available', $b1->fresh()->status);
+        $this->assertSame('full', $d1->fresh()->status);
+
+        // A campus admin now gets a free bed to choose in A1 and sees the reopened room.
+        $this->asAdmin($this->adminNorth)->getJson(route('applications.available-beds', $a1))->assertOk()->assertJsonCount(1);
+        $rooms = $this->asAdmin($this->adminNorth)->getJson(route('applications.available-rooms', $hostel))->assertOk()->json();
+        $this->assertContains($b1->id, array_column($rooms, 'id'));
+
+        // Running it again changes nothing.
+        $this->artisan('hostel:repair-beds', ['--apply' => true])->expectsOutputToContain('Total beds created: 0')->assertSuccessful();
     }
 }
