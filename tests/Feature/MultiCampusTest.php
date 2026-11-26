@@ -1094,4 +1094,31 @@ class MultiCampusTest extends TestCase
         $this->get('/storage/secret.php')->assertNotFound();
         $this->get('/storage/hostel_applications/../../.env')->assertNotFound();
     }
+
+    public function test_room_diagnostic_reports_and_repairs_hidden_rooms_and_beds(): void
+    {
+        [$hostel, $room, $beds] = $this->makeHostel($this->north, 'DGN', 'male', 3);
+        // A room that carries the wrong campus, one bed with no campus, and a missing bed.
+        Room::withoutGlobalScopes()->whereKey($room->id)->update(['campus_id' => $this->main->id]);
+        Bed::withoutGlobalScopes()->whereKey($beds[0]->id)->update(['campus_id' => null]);
+        Bed::withoutGlobalScopes()->whereKey($beds[2]->id)->delete();
+
+        $this->artisan('hostel:diagnose-rooms')
+            ->expectsOutputToContain('Rooms whose campus differs from their hostel: 1')
+            ->expectsOutputToContain('Rooms with fewer beds than their capacity: 1')
+            ->expectsOutputToContain('Nothing was changed')
+            ->assertSuccessful();
+        $this->assertSame($this->main->id, (int) Room::withoutGlobalScopes()->find($room->id)->campus_id);
+
+        $this->artisan('hostel:diagnose-rooms', ['--fix' => true])->assertSuccessful();
+
+        $this->assertSame($this->north->id, (int) Room::withoutGlobalScopes()->find($room->id)->campus_id);
+        $beds = Bed::withoutGlobalScopes()->where('room_id', $room->id)->get();
+        $this->assertCount(3, $beds);
+        $this->assertSame([$this->north->id], $beds->pluck('campus_id')->unique()->map(fn ($v) => (int) $v)->all());
+
+        // After the repair a Kumo-style campus admin sees the room and all of its free beds.
+        $this->asAdmin($this->adminNorth)->getJson(route('applications.available-rooms', $hostel))->assertOk()->assertJsonCount(1);
+        $this->asAdmin($this->adminNorth)->getJson(route('applications.available-beds', $room))->assertOk()->assertJsonCount(3);
+    }
 }
